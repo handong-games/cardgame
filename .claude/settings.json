@@ -3,7 +3,8 @@
     "allow": [
       "Bash(npm run lint)",
       "Bash(npm run test:*)",
-      "Read(~/.zshrc)"
+      "Read(~/.zshrc)",
+      "Bash(git push*)"
     ],
     "deny": [
       "Bash(curl:*)",
