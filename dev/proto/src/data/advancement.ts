@@ -7,8 +7,8 @@ export interface AdvancementDefinition {
   description: string;
   icon: string;
   color: string;
-  requiredCards: number;  // 필요한 인정 카드 수
-  auraId?: string;        // 전직 시 획득하는 오라 버프 ID
+  requiredCardIds: string[];  // 전직에 필요한 카드 ID 목록 (모두 획득해야 전직)
+  auraId?: string;            // 전직 시 획득하는 오라 버프 ID
   auraDescription: string;
 }
 
@@ -20,7 +20,7 @@ export const ADVANCEMENT_DEFINITIONS: Record<CharacterClass, AdvancementDefiniti
     description: '기본 클래스',
     icon: '🧑‍⚔️',
     color: '#888888',
-    requiredCards: 0,
+    requiredCardIds: [],
     auraDescription: '',
   },
   paladin: {
@@ -29,7 +29,7 @@ export const ADVANCEMENT_DEFINITIONS: Record<CharacterClass, AdvancementDefiniti
     description: '수호자 - 공방 밸런스, 오라',
     icon: '⚔️',
     color: '#FFD700',
-    requiredCards: 3,
+    requiredCardIds: ['battlefield_will', 'iron_will', 'counter', 'holy_focus'],
     auraId: 'aura_of_devotion',
     auraDescription: '턴 시작 시 +2 방어, 공격 시 +1 데미지',
   },
@@ -39,7 +39,7 @@ export const ADVANCEMENT_DEFINITIONS: Record<CharacterClass, AdvancementDefiniti
     description: '파괴자 - 리스크 공격, HP 소모',
     icon: '🔥',
     color: '#FF4444',
-    requiredCards: 3,
+    requiredCardIds: ['battlefield_will', 'iron_will', 'flash_slash', 'blood_price'],
     auraId: 'berserker_rage',
     auraDescription: 'HP 50% 이하 시 데미지 +50%',
   },
@@ -49,7 +49,7 @@ export const ADVANCEMENT_DEFINITIONS: Record<CharacterClass, AdvancementDefiniti
     description: '통제된 폭력, 숙련된 기술',
     icon: '⚔️',
     color: '#4488FF',
-    requiredCards: 3,
+    requiredCardIds: ['battlefield_will', 'flash_slash', 'counter', 'chain_slash'],
     auraId: 'blade_mastery',
     auraDescription: '카드 사용 3회마다 카드 1장 드로우',
   },

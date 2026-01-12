@@ -31,8 +31,9 @@ export interface AdvancementHintInfo {
   icon: string;
   color: string;
   className: string;
-  currentCount: number;
-  requiredCount: number;
+  ownedCardIds: string[];      // 보유한 필수 카드 ID 목록
+  missingCardIds: string[];    // 미보유 필수 카드 ID 목록
+  requiredCardIds: string[];   // 전체 필수 카드 ID 목록
   willAdvanceOnSelect: boolean;
 }
 
@@ -41,14 +42,27 @@ export interface MultiAdvancementHint {
   hints: AdvancementHintInfo[];
 }
 
-// 덱에서 특정 전직에 기여하는 카드 수 카운트 (advancesTo 기반)
-export function countAdvancementCards(deck: Card[], targetClass: CharacterClass): number {
-  return deck.filter(card => {
-    return card.advancesTo?.includes(targetClass) ?? false;
-  }).length;
+// 덱에서 특정 전직에 필요한 카드 중 보유한 카드 키 목록 반환
+export function getOwnedRequiredCards(deck: Card[], targetClass: CharacterClass): string[] {
+  const definition = ADVANCEMENT_DEFINITIONS[targetClass];
+  if (!definition || definition.requiredCardIds.length === 0) return [];
+
+  // cardKey 사용 (없으면 빈 문자열)
+  const deckCardKeys = deck.map(card => card.cardKey ?? '').filter(key => key !== '');
+
+  return definition.requiredCardIds.filter(reqId => deckCardKeys.includes(reqId));
 }
 
-// 전직 조건 충족 여부 체크
+// 덱에서 특정 전직에 필요한 카드 중 미보유 카드 ID 목록 반환
+export function getMissingRequiredCards(deck: Card[], targetClass: CharacterClass): string[] {
+  const definition = ADVANCEMENT_DEFINITIONS[targetClass];
+  if (!definition || definition.requiredCardIds.length === 0) return [];
+
+  const ownedIds = getOwnedRequiredCards(deck, targetClass);
+  return definition.requiredCardIds.filter(reqId => !ownedIds.includes(reqId));
+}
+
+// 전직 조건 충족 여부 체크 (모든 필수 카드 보유 시 전직)
 export function canAdvanceToClass(
   currentClass: CharacterClass,
   targetClass: CharacterClass,
@@ -61,10 +75,11 @@ export function canAdvanceToClass(
   if (currentClass === targetClass) return false;
 
   const definition = ADVANCEMENT_DEFINITIONS[targetClass];
-  if (!definition || definition.requiredCards === 0) return false;
+  if (!definition || definition.requiredCardIds.length === 0) return false;
 
-  const cardCount = countAdvancementCards(deck, targetClass);
-  return cardCount >= definition.requiredCards;
+  // 모든 필수 카드를 보유해야 전직 가능
+  const missingCards = getMissingRequiredCards(deck, targetClass);
+  return missingCards.length === 0;
 }
 
 // 전직 가능한 클래스 목록 반환 (다중 전직 지원)
@@ -90,6 +105,11 @@ export function processClassAdvancement(
   };
 }
 
+// 카드에서 cardKey 추출
+export function getCardKey(card: Card): string {
+  return card.cardKey ?? '';
+}
+
 // 전직 진행도 계산 (단일 전직)
 export function getAdvancementProgress(
   deck: Card[],
@@ -105,18 +125,25 @@ export function getAdvancementProgress(
   // 첫 번째 전직만 반환 (단일 힌트)
   const targetClass = card.advancesTo[0];
 
-  const currentCount = countAdvancementCards(deck, targetClass);
   const definition = ADVANCEMENT_DEFINITIONS[targetClass];
-  const requiredCount = definition?.requiredCards ?? 3;
+  if (!definition) return null;
+
+  const ownedCardIds = getOwnedRequiredCards(deck, targetClass);
+  const missingCardIds = getMissingRequiredCards(deck, targetClass);
+  const cardKey = getCardKey(card);
+
+  // 이 카드를 선택하면 전직 가능한지 체크
+  const willAdvanceOnSelect = missingCardIds.length === 1 && missingCardIds.includes(cardKey);
 
   return {
     targetClass,
     icon: CLASS_ICONS[targetClass],
     color: CLASS_COLORS[targetClass],
     className: CLASS_NAMES[targetClass],
-    currentCount,
-    requiredCount,
-    willAdvanceOnSelect: currentCount + 1 >= requiredCount,
+    ownedCardIds,
+    missingCardIds,
+    requiredCardIds: definition.requiredCardIds,
+    willAdvanceOnSelect,
   };
 }
 
@@ -133,23 +160,33 @@ export function getMultiAdvancementProgress(
   if (!canAdvanceFrom(playerClass)) return null;
 
   const hints: AdvancementHintInfo[] = [];
+  const cardKey = getCardKey(card);
 
   for (const targetClass of card.advancesTo) {
     // 이미 해당 클래스면 스킵
     if (playerClass === targetClass) continue;
 
-    const currentCount = countAdvancementCards(deck, targetClass);
     const definition = ADVANCEMENT_DEFINITIONS[targetClass];
-    const requiredCount = definition?.requiredCards ?? 3;
+    if (!definition) continue;
+
+    const ownedCardIds = getOwnedRequiredCards(deck, targetClass);
+    const missingCardIds = getMissingRequiredCards(deck, targetClass);
+
+    // 이미 덱에 있는 카드 종류면 더 이상 기여하지 않으므로 스킵
+    if (ownedCardIds.includes(cardKey)) continue;
+
+    // 이 카드를 선택하면 전직 가능한지 체크
+    const willAdvanceOnSelect = missingCardIds.length === 1 && missingCardIds.includes(cardKey);
 
     hints.push({
       targetClass,
       icon: CLASS_ICONS[targetClass],
       color: CLASS_COLORS[targetClass],
       className: CLASS_NAMES[targetClass],
-      currentCount,
-      requiredCount,
-      willAdvanceOnSelect: currentCount + 1 >= requiredCount,
+      ownedCardIds,
+      missingCardIds,
+      requiredCardIds: definition.requiredCardIds,
+      willAdvanceOnSelect,
     });
   }
 
