@@ -1,14 +1,23 @@
 import type { Card, CharacterClass } from '../types';
 import { WARRIOR_CARD_DEFINITIONS, WARRIOR_STARTER_DECK } from './characters/warrior';
-import { PALADIN_CARD_DEFINITIONS } from './characters/paladin';
-import { COMMON_CARD_DEFINITIONS, COMMON_CARD_POOL } from './cards/common';
+import { PALADIN_CARD_DEFINITIONS, PALADIN_REWARD_POOL } from './characters/paladin';
+import { COMMON_CARD_DEFINITIONS, COMMON_CARD_POOL, CURSE_CARD_DEFINITIONS } from './cards/common';
 import { ADVANCEMENT_EXCLUSIVE_CARDS } from './advancement';
 
-// 모든 카드 정의 통합 (캐릭터별 카드 + 공통 카드 병합)
+// 클래스별 보상 카드 풀
+const CLASS_REWARD_POOLS: Record<CharacterClass, string[]> = {
+  warrior: COMMON_CARD_POOL,
+  paladin: PALADIN_REWARD_POOL,
+  berserker: COMMON_CARD_POOL,  // TODO: 버서커 전용 풀
+  swordmaster: COMMON_CARD_POOL,  // TODO: 검사 전용 풀
+};
+
+// 모든 카드 정의 통합 (캐릭터별 카드 + 공통 카드 + 저주 카드 병합)
 export const CARD_DEFINITIONS: Record<string, Omit<Card, 'id'>> = {
   ...WARRIOR_CARD_DEFINITIONS,
   ...PALADIN_CARD_DEFINITIONS,
   ...COMMON_CARD_DEFINITIONS,
+  ...CURSE_CARD_DEFINITIONS,
 };
 
 // 카드 인스턴스 생성 함수
@@ -21,6 +30,7 @@ export function createCard(cardKey: string): Card {
   return {
     ...definition,
     id: `card_${cardIdCounter++}`,
+    cardKey,  // 원본 카드 키 저장
   };
 }
 
@@ -79,9 +89,10 @@ export function createAdvancementTestDeck(): Card[] {
   ];
 }
 
-// 보상 카드 풀에서 랜덤 카드 생성
-export function createRewardCards(count: number = 3): Card[] {
-  const pool = [...COMMON_CARD_POOL];
+// 보상 카드 풀에서 랜덤 카드 생성 (클래스별 분기)
+export function createRewardCards(characterClass: CharacterClass = 'warrior', count: number = 3): Card[] {
+  const classPool = CLASS_REWARD_POOLS[characterClass] || COMMON_CARD_POOL;
+  const pool = [...classPool];
   const result: Card[] = [];
 
   for (let i = 0; i < count && pool.length > 0; i++) {

@@ -104,7 +104,65 @@ export const COMMON_CARD_DEFINITIONS: Record<string, Omit<Card, 'id'>> = {
     ],
     description: '3 데미지를 3회.',
   },
+
+  // === 동료 연계 카드 (선술집 동료 영입 시 획득) ===
+  natures_blessing: {
+    name: '자연의 축복',
+    type: 'skill',
+    cost: 1,
+    rarity: 'special',
+    effects: [
+      { type: 'block', value: 6, target: 'self' },
+      { type: 'energy', value: 1, target: 'self' },
+    ],
+    description: '6 방어. 에너지 1 회복.',
+  },
+
+  double_slash: {
+    name: '연속 베기',
+    type: 'attack',
+    cost: 1,
+    rarity: 'special',
+    damage: 10,
+    effects: [
+      { type: 'damage', value: 5, target: 'enemy' },
+      { type: 'damage', value: 5, target: 'enemy' },
+    ],
+    description: '5 데미지를 2회.',
+  },
+
+  lucky_dice: {
+    name: '행운의 주사위',
+    type: 'skill',
+    cost: 0,
+    rarity: 'special',
+    effects: [
+      { type: 'draw', value: 2, target: 'self' },
+    ],
+    description: '카드 2장 드로우.',
+  },
 };
 
-// 공통 카드 키 목록 (보상 풀)
-export const COMMON_CARD_POOL = Object.keys(COMMON_CARD_DEFINITIONS);
+// === 저주 카드 (피의 제단) ===
+export const CURSE_CARD_DEFINITIONS: Record<string, Omit<Card, 'id'>> = {
+  blood_debt: {
+    name: '피의 대가',
+    type: 'curse',
+    cost: 1,
+    rarity: 'curse',
+    exhaust: true,  // 사용 시 소모
+    passiveEffect: {
+      trigger: 'turn_start',
+      type: 'damage',
+      value: 3,
+      target: 'self',
+    },
+    effects: [],  // 사용 효과 없음 (소모만)
+    description: '손에 있으면 턴 시작 시 HP -3. 사용하면 소모됩니다.',
+  },
+};
+
+// 공통 카드 키 목록 (보상 풀) - 동료 연계 카드, 저주 카드 제외
+export const COMMON_CARD_POOL = Object.keys(COMMON_CARD_DEFINITIONS).filter(
+  key => !['natures_blessing', 'double_slash', 'lucky_dice'].includes(key)
+);
