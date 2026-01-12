@@ -1,5 +1,5 @@
 import type { ClassDefinition } from '../warrior';
-import { PALADIN_CARD_DEFINITIONS, PALADIN_CARD_POOL } from './cards';
+import { PALADIN_CARD_DEFINITIONS, PALADIN_REWARD_POOL } from './cards';
 import { PALADIN_BUFF_DEFINITIONS, PALADIN_BUFF_EVENT_EFFECTS } from './buffs';
 
 export const PALADIN_CLASS: ClassDefinition = {
@@ -14,13 +14,13 @@ export const PALADIN_CLASS: ClassDefinition = {
     // 기본 전사 카드 포함
     'strike', 'defend', 'bash',
     // 팔라딘 전용 카드 추가
-    ...PALADIN_CARD_POOL,
+    ...PALADIN_REWARD_POOL,
   ],
 };
 
 export {
   PALADIN_CARD_DEFINITIONS,
-  PALADIN_CARD_POOL,
+  PALADIN_REWARD_POOL,
   PALADIN_BUFF_DEFINITIONS,
   PALADIN_BUFF_EVENT_EFFECTS,
 };

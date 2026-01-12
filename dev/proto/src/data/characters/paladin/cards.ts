@@ -1,7 +1,8 @@
 import type { Card } from '../../../types';
 
-// 팔라딘 고유 카드 정의 (3장)
+// 팔라딘 고유 카드 정의
 export const PALADIN_CARD_DEFINITIONS: Record<string, Omit<Card, 'id'>> = {
+  // === 오라 카드 (파워) ===
   aura_of_devotion: {
     name: '헌신의 오라',
     type: 'power',
@@ -11,8 +12,34 @@ export const PALADIN_CARD_DEFINITIONS: Record<string, Omit<Card, 'id'>> = {
     effects: [
       { type: 'apply_buff', value: 1, buffId: 'aura_of_devotion', target: 'self' }
     ],
-    description: '(파워) 매 턴 시작 시 2 방어. 공격 카드 사용 시 +1 데미지.',
+    description: '(파워) 3턴간 턴 시작 시 2 방어. 공격 카드 사용 시 +1 데미지.',
   },
+
+  justice_aura: {
+    name: '정의의 오라',
+    type: 'power',
+    cost: 1,
+    rarity: 'common',
+    classRequired: 'paladin',
+    effects: [
+      { type: 'apply_buff', value: 1, buffId: 'justice_aura', target: 'self' }
+    ],
+    description: '(파워) 3턴간 공격 카드 사용 시 +2 데미지.',
+  },
+
+  guardian_aura: {
+    name: '수호의 오라',
+    type: 'power',
+    cost: 1,
+    rarity: 'common',
+    classRequired: 'paladin',
+    effects: [
+      { type: 'apply_buff', value: 1, buffId: 'guardian_aura', target: 'self' }
+    ],
+    description: '(파워) 3턴간 턴 시작 시 +4 방어.',
+  },
+
+  // === 일반 카드 ===
 
   holy_strike: {
     name: '신성한 일격',
@@ -55,5 +82,11 @@ export const PALADIN_CARD_DEFINITIONS: Record<string, Omit<Card, 'id'>> = {
   },
 };
 
-// 팔라딘 카드 풀 (보상에서 등장 가능한 카드)
-export const PALADIN_CARD_POOL = ['holy_strike', 'shield_of_purification'];
+// 팔라딘 보상 카드 풀 (전직 후 보상에서 등장 가능한 카드)
+// 헌신의 오라는 전직 보상으로 제공되므로 제외
+export const PALADIN_REWARD_POOL = [
+  'justice_aura',
+  'guardian_aura',
+  'holy_strike',
+  'shield_of_purification',
+];
