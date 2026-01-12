@@ -61,8 +61,22 @@ export const blockNumberAnimation = {
   },
 };
 
+// 몬스터 사망 애니메이션 (페이드아웃 + 축소 + 위로 이동)
+export const enemyDeathAnimation = {
+  opacity: [1, 0],
+  scale: [1, 0.5],
+  y: [0, -30],
+  transition: {
+    duration: 0.5,
+    ease: 'easeOut' as const,
+  },
+};
+
 // 전체 애니메이션 시간
 export const TOTAL_ATTACK_DURATION =
   COMBAT_TIMING.PEEK_DURATION +
   COMBAT_TIMING.HIT_DURATION +
   COMBAT_TIMING.RETURN_DURATION;
+
+// 사망 애니메이션 시간
+export const DEATH_ANIMATION_DURATION = 0.5;

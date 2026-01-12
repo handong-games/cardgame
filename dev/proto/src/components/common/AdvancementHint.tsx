@@ -43,7 +43,7 @@ export function AdvancementHint({ hints, showTooltip = false }: AdvancementHintP
         </div>
       )}
 
-      {/* 카드 호버 시 툴팁: 기여 클래스 목록 */}
+      {/* 카드 호버 시 툴팁: 전직명 + 진행도만 표시 */}
       <AnimatePresence>
         {showTooltip && (
           <motion.div
@@ -61,9 +61,11 @@ export function AdvancementHint({ hints, showTooltip = false }: AdvancementHintP
                   className="flex items-center gap-2 text-sm"
                 >
                   <span>{hint.icon}</span>
-                  <span style={{ color: hint.color }}>{hint.className}</span>
+                  <span style={{ color: hint.color }} className="font-medium">
+                    {hint.className}
+                  </span>
                   <span className="text-gray-500 text-xs">
-                    {hint.currentCount}/{hint.requiredCount}
+                    ({hint.ownedCardIds.length}/{hint.requiredCardIds.length})
                   </span>
                   {hint.willAdvanceOnSelect && (
                     <span className="text-yellow-400 text-xs font-bold">전직!</span>

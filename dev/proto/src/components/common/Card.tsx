@@ -13,12 +13,14 @@ export function Card({ card, onClick, onDragStart, disabled, isDragging }: CardP
     attack: 'border-red-500 bg-red-900',
     skill: 'border-blue-500 bg-blue-900',
     power: 'border-yellow-500 bg-yellow-900',
+    curse: 'border-purple-500 bg-purple-900',
   };
 
   const typeLabels = {
     attack: '공격',
     skill: '스킬',
     power: '파워',
+    curse: '저주',
   };
 
   const handleMouseDown = (e: React.MouseEvent) => {

@@ -29,9 +29,11 @@ export {
 export {
   COMBAT_TIMING,
   TOTAL_ATTACK_DURATION,
+  DEATH_ANIMATION_DURATION,
   playerAttackAnimation,
   enemyAttackAnimation,
   hitReactAnimation,
   shieldShakeAnimation,
   blockNumberAnimation,
+  enemyDeathAnimation,
 } from './combatAnimations';

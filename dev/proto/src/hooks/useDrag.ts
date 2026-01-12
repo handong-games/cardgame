@@ -91,6 +91,15 @@ export function useDrag(onDrop: (card: Card, zone: DropZone) => void): UseDragRe
     const handleMouseUp = (e: MouseEvent) => {
       const zone = detectDropZone(e.clientX, e.clientY);
 
+      // [DEBUG] 드롭 디버깅
+      console.log('[useDrag] mouseUp:', {
+        zone,
+        card: dragState.card?.name,
+        dropZoneRefs: !!dropZoneRefs,
+        enemyRef: !!dropZoneRefs?.enemy.current,
+        battlefieldRef: !!dropZoneRefs?.battlefield.current,
+      });
+
       if (dragState.card && zone && zone !== 'hand') {
         onDrop(dragState.card, zone);
       }
