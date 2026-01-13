@@ -1,2 +1,6 @@
 *-cwd
 .claude/events/debug-focus.log
+
+# 임시 폴더
+ztmp/
+*.tmp
