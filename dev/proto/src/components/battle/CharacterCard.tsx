@@ -1,4 +1,4 @@
-import { motion, useAnimationControls } from 'framer-motion';
+import { motion, useAnimationControls, AnimatePresence } from 'framer-motion';
 import { useEffect, useRef } from 'react';
 import { HPBar } from '../common/HPBar';
 import {
@@ -20,6 +20,7 @@ interface CharacterCardProps {
   isAttacking?: boolean;
   isHit?: boolean;
   isShieldHit?: boolean;
+  previewBlock?: number;  // 프리뷰 방어력
 }
 
 export function CharacterCard({
@@ -32,6 +33,7 @@ export function CharacterCard({
   isAttacking = false,
   isHit = false,
   isShieldHit = false,
+  previewBlock = 0,
 }: CharacterCardProps) {
   const cardControls = useAnimationControls();
   const shieldControls = useAnimationControls();
@@ -82,21 +84,39 @@ export function CharacterCard({
           className="relative flex-shrink-0"
           animate={shieldControls}
         >
-          <div
-            className={`w-12 h-12 rounded-full border-2 flex items-center justify-center text-lg font-bold
-              ${block > 0
-                ? 'bg-blue-600 border-blue-400 text-white'
-                : 'bg-gray-700 border-gray-600 text-gray-400'
-              }`}
-          >
-            {block > 0 ? (
-              <motion.span animate={blockNumberControls}>{block}</motion.span>
-            ) : (
-              <span className="text-xl">🛡️</span>
+          {/* 프리뷰 시 +X 표시 */}
+          <AnimatePresence>
+            {previewBlock > 0 && (
+              <motion.div
+                key="preview-block"
+                initial={{ opacity: 0, y: 5, scale: 0.8 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: -5, scale: 0.8 }}
+                transition={{ duration: 0.15 }}
+                className="absolute -top-5 left-1/2 -translate-x-1/2 text-cyan-400 font-bold text-sm whitespace-nowrap"
+              >
+                +{previewBlock}
+              </motion.div>
             )}
-          </div>
+          </AnimatePresence>
+          <motion.div
+            animate={{
+              backgroundColor: previewBlock > 0 ? '#0891b2' : block > 0 ? '#2563eb' : '#374151',
+              borderColor: previewBlock > 0 ? '#22d3ee' : block > 0 ? '#60a5fa' : '#4b5563',
+            }}
+            transition={{ duration: 0.15 }}
+            className="w-12 h-12 rounded-full border-2 flex items-center justify-center text-lg font-bold text-white"
+          >
+            {block > 0 || previewBlock > 0 ? (
+              <motion.span animate={blockNumberControls}>
+                {previewBlock > 0 ? block + previewBlock : block}
+              </motion.span>
+            ) : (
+              <span className="text-xl text-gray-400">🛡️</span>
+            )}
+          </motion.div>
           {/* 방어력이 있을 때 방패 아이콘 오버레이 */}
-          {block > 0 && (
+          {(block > 0 || previewBlock > 0) && (
             <div className="absolute -top-1 -right-1 w-5 h-5 bg-gray-800 rounded-full flex items-center justify-center text-xs">
               🛡️
             </div>

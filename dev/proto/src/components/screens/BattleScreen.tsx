@@ -629,6 +629,7 @@ export function BattleScreen() {
   const enemyZoneRef = useRef<HTMLDivElement>(null);
   const battlefieldRef = useRef<HTMLDivElement>(null);
   const handAreaRef = useRef<HTMLDivElement>(null);
+  const playerZoneRef = useRef<HTMLDivElement>(null);
 
   // 드롭 핸들러
   const handleDrop = useCallback((card: CardType, zone: DropZone) => {
@@ -638,8 +639,8 @@ export function BattleScreen() {
     if (card.type === 'attack' && zone === 'enemy') {
       playCard(card.id);
     }
-    // 스킬/파워 카드는 전투 필드에
-    else if (card.type !== 'attack' && (zone === 'battlefield' || zone === 'enemy')) {
+    // 스킬/파워 카드는 플레이어 영역 또는 전투 필드에
+    else if (card.type !== 'attack' && (zone === 'player' || zone === 'battlefield' || zone === 'enemy')) {
       playCard(card.id);
     }
   }, [playCard]);
@@ -647,26 +648,46 @@ export function BattleScreen() {
   // 드래그 훅
   const { dragState, startDrag, registerDropZones } = useDrag(handleDrop);
 
-  // 프리뷰 데미지 계산 (공격 카드 + 적 영역 호버 시)
-  const previewDamage = useMemo(() => {
-    if (
-      !dragState.isDragging ||
-      !dragState.card ||
-      dragState.card.type !== 'attack' ||
-      dragState.currentZone !== 'enemy' ||
-      !enemy
-    ) {
-      return 0;
-    }
+  // 카드 효과 미리 계산 (플래그 기반 복합 프리뷰용)
+  const cardEffects = useMemo(() => {
+    if (!dragState.isDragging || !dragState.card) return null;
+    return getCardEffects(dragState.card, player);
+  }, [dragState.isDragging, dragState.card, player]);
 
-    // 카드 효과 계산
-    const effects = getCardEffects(dragState.card, player);
+  // 프리뷰 플래그 계산 (데미지/블록 효과 여부)
+  const previewFlags = useMemo(() => {
+    if (!cardEffects) return { damage: false, block: false };
+    return {
+      damage: cardEffects.damageToEnemy > 0,
+      block: cardEffects.blockToPlayer > 0,
+    };
+  }, [cardEffects]);
+
+  // 프리뷰 데미지 계산 (데미지 효과 있는 카드 + 적 영역 호버 시)
+  const previewDamage = useMemo(() => {
+    if (!previewFlags.damage) return 0;
+    if (dragState.currentZone !== 'enemy' || !enemy) return 0;
 
     // 적 방어력을 고려한 실제 HP 데미지
-    const actualDamage = Math.max(0, effects.damageToEnemy - enemy.block);
+    return Math.max(0, cardEffects!.damageToEnemy - enemy.block);
+  }, [previewFlags.damage, dragState.currentZone, enemy, cardEffects]);
 
-    return actualDamage;
-  }, [dragState.isDragging, dragState.card, dragState.currentZone, enemy, player]);
+  // 프리뷰 방어력 계산 (블록 효과 있는 카드 + 카드 외부 드래그 시)
+  const previewBlock = useMemo(() => {
+    if (!previewFlags.block) return 0;
+
+    // 마우스가 카드 영역 내부인지 확인
+    if (dragState.cardRect) {
+      const { left, right, top, bottom } = dragState.cardRect;
+      const { x, y } = dragState.position;
+      const isInsideCard = x >= left && x <= right && y >= top && y <= bottom;
+      if (isInsideCard) {
+        return 0;  // 카드 내부면 프리뷰 없음
+      }
+    }
+
+    return cardEffects!.blockToPlayer;
+  }, [previewFlags.block, dragState.cardRect, dragState.position, cardEffects]);
 
   // 드롭 존 등록
   useEffect(() => {
@@ -674,6 +695,7 @@ export function BattleScreen() {
       enemy: enemyZoneRef,
       battlefield: battlefieldRef,
       hand: handAreaRef,
+      player: playerZoneRef,
     });
   }, [registerDropZones]);
 
@@ -806,16 +828,19 @@ export function BattleScreen() {
   };
 
   // 드래그 중 유효한 드롭 존 하이라이트
-  const getDropZoneHighlight = (zone: 'enemy' | 'battlefield') => {
+  const getDropZoneHighlight = (zone: 'enemy' | 'player') => {
     if (!dragState.isDragging || !dragState.card) return '';
 
-    const isValidTarget =
-      (dragState.card.type === 'attack' && zone === 'enemy') ||
-      (dragState.card.type !== 'attack');
+    const effectiveTargetType = dragState.card.targetType
+      || (dragState.card.type === 'attack' ? 'enemy' : 'self');
 
-    return isValidTarget
-      ? 'ring-4 ring-green-500/50'
-      : 'ring-4 ring-red-500/30';
+    const isValidTarget =
+      (effectiveTargetType === 'enemy' && zone === 'enemy') ||
+      (effectiveTargetType === 'self' && zone === 'player');
+
+    if (!isValidTarget) return '';
+
+    return 'ring-4 ring-green-500/50';
   };
 
   // 현재 표시할 적 (실제 적 또는 사망 중인 적)
@@ -825,9 +850,12 @@ export function BattleScreen() {
     <div className="min-h-screen bg-gray-900 flex flex-col">
       {/* 드래그 오버레이 */}
       <DragOverlay
-        card={dragState.card}
+        startPosition={dragState.startPosition}
         position={dragState.position}
         isDragging={dragState.isDragging}
+        cardType={dragState.card?.type}
+        targetType={dragState.card?.targetType}
+        hasDamageEffect={previewFlags.damage}
       />
 
       {/* 상단 바 */}
@@ -841,7 +869,7 @@ export function BattleScreen() {
       {/* 전투 영역 */}
       <div
         ref={battlefieldRef}
-        className={`flex-1 flex items-center justify-around p-8 transition-all relative ${getDropZoneHighlight('battlefield')}`}
+        className="flex-1 flex items-center justify-around p-8 transition-all relative"
       >
         {/* 라운드 진행 UI */}
         <RoundProgress currentRound={run.round} totalRounds={run.totalRounds} regionName={getRegion(run.regionId).name} />
@@ -855,7 +883,10 @@ export function BattleScreen() {
               <CompanionDisplayCard key={companion.id} companion={companion} />
             ))}
             {/* 캐릭터 카드 */}
-            <div className="flex flex-col items-center">
+            <div
+              ref={playerZoneRef}
+              className={`flex flex-col items-center rounded-lg transition-all ${getDropZoneHighlight('player')}`}
+            >
               <CharacterCard
                 name={player.characterClass === 'paladin' ? '팔라딘' : '전사'}
                 hp={player.hp}
@@ -867,6 +898,7 @@ export function BattleScreen() {
                 isAttacking={battle.combatAnimation.playerAttacking}
                 isHit={battle.combatAnimation.playerHit}
                 isShieldHit={battle.combatAnimation.shieldHit}
+                previewBlock={previewBlock}
               />
               {/* 활성 버프 표시 */}
               <PlayerBuffs buffs={player.activeBuffs} />
@@ -1282,8 +1314,8 @@ export function BattleScreen() {
         </div>
 
         {/* 손패 (중앙, 부채꼴) */}
-        <div className="absolute inset-0 flex items-end justify-center pb-4">
-          <div className="flex items-end">
+        <div className="absolute inset-0 flex items-center justify-center">
+          <div className="flex items-center">
             <AnimatePresence mode="popLayout">
               {battle.hand.map((card, index) => (
                 <motion.div
@@ -1301,11 +1333,11 @@ export function BattleScreen() {
                     delay: index * ANIMATION_TIMING.CARD_STAGGER,
                   }}
                   style={getCardStyle(index, battle.hand.length)}
-                  className="hover:!-translate-y-8 hover:!rotate-0 hover:scale-105 hover:z-10 -ml-4 first:ml-0"
+                  className="hover:!rotate-0 hover:z-30 -ml-6 first:ml-0"
                 >
                   <Card
                     card={card}
-                    onDragStart={(e) => startDrag(card, index, e)}
+                    onDragStart={(e, cardRect) => startDrag(card, index, e, cardRect)}
                     disabled={!canAct || player.energy < card.cost}
                     isDragging={dragState.isDragging && dragState.card?.id === card.id}
                   />

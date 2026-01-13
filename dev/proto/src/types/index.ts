@@ -1,6 +1,7 @@
 // 카드 타입 정의
 
 export type CardType = 'attack' | 'skill' | 'power' | 'curse';
+export type TargetType = 'enemy' | 'self' | 'none';  // 타겟 지정 타입
 export type CharacterClass = 'warrior' | 'paladin' | 'berserker' | 'swordmaster';
 export type CardRarity = 'basic' | 'common' | 'rare' | 'special' | 'curse';
 
@@ -34,6 +35,7 @@ export interface Card {
   cardKey?: string;    // 카드 정의 키 (예: 'battlefield_will', 'strike')
   name: string;
   type: CardType;
+  targetType?: TargetType;  // 타겟 지정 타입 (없으면 type으로 자동 판단)
   cost: number;        // 에너지 비용
   rarity?: CardRarity;
   classRequired?: CharacterClass;  // 클래스 전용 카드 (해당 클래스만 사용 가능)
@@ -239,7 +241,7 @@ export interface BattleState {
 }
 
 // 드래그 상태
-export type DropZone = 'enemy' | 'battlefield' | 'hand' | null;
+export type DropZone = 'enemy' | 'battlefield' | 'hand' | 'player' | null;
 
 export interface DragState {
   isDragging: boolean;

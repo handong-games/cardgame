@@ -16,6 +16,11 @@
 | 전투화면 | 02. proto/02. battle-scene/screen.md | 전체 |
 | 승급힌트 | 02. proto/02. battle-scene/systems/advancement-hint.md | 전체 |
 | 카드미리보기 | 02. proto/02. battle-scene/systems/card-preview.md | 전체 |
+| 데미지프리뷰 | 02. proto/02. battle-scene/systems/card-preview.md | #데미지-프리뷰-damage-preview |
+| 블록프리뷰 | 02. proto/02. battle-scene/systems/card-preview.md | #블록-프리뷰-block-preview |
+| 드롭존하이라이트 | 02. proto/02. battle-scene/systems/card-preview.md | #드롭-존-하이라이트-drop-zone-highlight |
+| 카드경계감지 | 02. proto/02. battle-scene/systems/card-preview.md | #카드-경계-감지-card-boundary-detection |
+| 프리뷰해제애니메이션 | 02. proto/02. battle-scene/systems/card-preview.md | #프리뷰-해제-애니메이션-preview-exit-animation |
 
 ---
 
