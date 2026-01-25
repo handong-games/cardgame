@@ -30,9 +30,6 @@ export function DragOverlay({ startPosition, position, isDragging, cardType, tar
   const controlX = midX;
   const controlY = midY - curveOffset;
 
-  // 화살표 각도 계산 (끝점 방향)
-  const angle = Math.atan2(position.y - controlY, position.x - controlX) * (180 / Math.PI);
-
   return (
     <svg
       className="fixed inset-0 pointer-events-none z-40"

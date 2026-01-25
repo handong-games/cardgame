@@ -19,14 +19,6 @@ export function Card({ card, onClick, onDragStart, disabled, isDragging }: CardP
     curse: 'border-purple-500 bg-purple-900/80',
   };
 
-  // 타입별 대형 아이콘 (중앙 표시용)
-  const typeIcons = {
-    attack: '⚔️',
-    skill: '✨',
-    power: '⚡',
-    curse: '💀',
-  };
-
   // 타입별 소형 아이콘 (하단 표시용)
   const typeSmallIcons = {
     attack: '🗡️',

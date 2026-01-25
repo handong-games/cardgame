@@ -20,7 +20,9 @@ interface CharacterCardProps {
   isAttacking?: boolean;
   isHit?: boolean;
   isShieldHit?: boolean;
-  previewBlock?: number;  // 프리뷰 방어력
+  previewBlock?: number;      // 프리뷰 방어력
+  previewHeal?: number;       // 프리뷰 힐
+  previewSelfDamage?: number; // 프리뷰 자해 데미지
 }
 
 export function CharacterCard({
@@ -34,6 +36,8 @@ export function CharacterCard({
   isHit = false,
   isShieldHit = false,
   previewBlock = 0,
+  previewHeal = 0,
+  previewSelfDamage = 0,
 }: CharacterCardProps) {
   const cardControls = useAnimationControls();
   const shieldControls = useAnimationControls();
@@ -129,6 +133,8 @@ export function CharacterCard({
             current={hp}
             max={maxHp}
             color={isPlayer ? 'green' : 'red'}
+            previewHeal={previewHeal}
+            previewSelfDamage={previewSelfDamage}
           />
         </div>
       </div>
