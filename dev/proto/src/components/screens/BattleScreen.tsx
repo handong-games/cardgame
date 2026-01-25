@@ -1,24 +1,26 @@
-import { useEffect, useRef, useCallback, useMemo, useState } from 'react';
+import { useEffect, useRef, useCallback, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useGameStore } from '../../stores/gameStore';
-import { useDrag } from '../../hooks/useDrag';
-import { Card } from '../common/Card';
 import { CharacterCard } from '../battle/CharacterCard';
 import { EnemyCard } from '../battle/EnemyCard';
-import { DragOverlay } from '../battle/DragOverlay';
 import { PlayerBuffs } from '../battle/PlayerBuffs';
+import { SkillPanel } from '../battle/SkillPanel';
+import { DragOverlay } from '../battle/DragOverlay';
 import { RewardScreen } from './RewardScreen';
 import { TopBar } from '../ui/TopBar';
 import { GoldDrop } from '../effects/GoldDrop';
-import { cardVariants, ANIMATION_TIMING, DEATH_ANIMATION_DURATION } from '../../animations';
-import { getCardEffects } from '../../utils/cardEffects';
+import { CoinTossAnimation } from '../effects/CoinTossAnimation';
+import { DEATH_ANIMATION_DURATION } from '../../animations';
 import { getRegion } from '../../data/regions';
 import { getRegionAccessories, getAccessoryById } from '../../data/accessories';
 import { getRegionFacilities, getBloodAltarRewards, BLOOD_ALTAR_HIDDEN_REWARD } from '../../data/facilities';
 import { CARD_DEFINITIONS } from '../../data/cards';
 import { getTavernCompanions } from '../../data/companions';
-import type { BloodAltarReward } from '../../types';
-import type { Card as CardType, DropZone, Enemy, DestinationOption, DestinationType, Accessory, Facility, Companion } from '../../types';
+import type { BloodAltarReward, CoinTossResult, Skill } from '../../types';
+import type { Enemy, DestinationOption, DestinationType, Accessory, Facility, Companion } from '../../types';
+import { calculatePreviewEffects } from '../../utils/skillSystem';
+import { calculateCoinValues } from '../../utils/coinToss';
+import { useSkillDrag } from '../../hooks/useSkillDrag';
 
 // 라운드 진행 UI 컴포넌트
 function RoundProgress({ currentRound, totalRounds, regionName }: { currentRound: number; totalRounds: number; regionName: string }) {
@@ -602,8 +604,9 @@ export function BattleScreen() {
     run,
     destinationOptions,
     startRun,
-    playCard,
     endTurn,
+    tossCoins,
+    useSkill,
     selectDestination,
     showDestinationSelection,
     proceedToVillageAccessory,
@@ -624,85 +627,147 @@ export function BattleScreen() {
   const [selectedCompanion, setSelectedCompanion] = useState<string | null>(null);
   const [companionMoving, setCompanionMoving] = useState(false);
   const prevEnemyRef = useRef<Enemy | null>(null);
+  const tossButtonRef = useRef<HTMLButtonElement>(null);
+  const coinAnimationAreaRef = useRef<HTMLDivElement>(null);
+  // 코인 토스 애니메이션 상태 (모든 데이터를 하나의 객체로 관리)
+  const [coinTossState, setCoinTossState] = useState<{
+    isActive: boolean;
+    results: CoinTossResult[];
+    buttonPosition: { x: number; y: number };
+    animationAreaBounds: { left: number; top: number; width: number; height: number };
+  }>({
+    isActive: false,
+    results: [],
+    buttonPosition: { x: 0, y: 0 },
+    animationAreaBounds: { left: 0, top: 0, width: 0, height: 0 },
+  });
+  // 스킬 호버 프리뷰 상태
+  const [hoveredSkill, setHoveredSkill] = useState<Skill | null>(null);
+
+  // 스킬 드래그 (적 타겟 스킬용)
+  const handleSkillDropOnEnemy = useCallback((skill: Skill) => {
+    useSkill(skill.id);
+  }, [useSkill]);
+
+  const { dragState: skillDragState, startDrag: startSkillDrag, registerEnemyZone } = useSkillDrag(handleSkillDropOnEnemy);
+
+  // 코인 가치 계산
+  const coinValues = calculateCoinValues(battle.lastTossResults);
+  const headsValue = coinValues.heads;
+  const tailsValue = coinValues.tails;
 
   // 드롭 존 refs
   const enemyZoneRef = useRef<HTMLDivElement>(null);
   const battlefieldRef = useRef<HTMLDivElement>(null);
-  const handAreaRef = useRef<HTMLDivElement>(null);
   const playerZoneRef = useRef<HTMLDivElement>(null);
 
-  // 드롭 핸들러
-  const handleDrop = useCallback((card: CardType, zone: DropZone) => {
-    if (!zone || zone === 'hand') return;
+  // 코인 토스 핸들러
+  const handleCoinToss = useCallback(() => {
+    if (battle.hasTossedThisTurn || coinTossState.isActive) return;
 
-    // 공격 카드는 적 영역에만
-    if (card.type === 'attack' && zone === 'enemy') {
-      playCard(card.id);
-    }
-    // 스킬/파워 카드는 플레이어 영역 또는 전투 필드에
-    else if (card.type !== 'attack' && (zone === 'player' || zone === 'battlefield' || zone === 'enemy')) {
-      playCard(card.id);
-    }
-  }, [playCard]);
+    // 애니메이션 시작 전에 위치 캡처
+    let buttonPos = { x: 0, y: 0 };
+    let areaPos = { left: 0, top: 0, width: 0, height: 0 };
 
-  // 드래그 훅
-  const { dragState, startDrag, registerDropZones } = useDrag(handleDrop);
-
-  // 카드 효과 미리 계산 (플래그 기반 복합 프리뷰용)
-  const cardEffects = useMemo(() => {
-    if (!dragState.isDragging || !dragState.card) return null;
-    return getCardEffects(dragState.card, player);
-  }, [dragState.isDragging, dragState.card, player]);
-
-  // 프리뷰 플래그 계산 (데미지/블록 효과 여부)
-  const previewFlags = useMemo(() => {
-    if (!cardEffects) return { damage: false, block: false };
-    return {
-      damage: cardEffects.damageToEnemy > 0,
-      block: cardEffects.blockToPlayer > 0,
-    };
-  }, [cardEffects]);
-
-  // 프리뷰 데미지 계산 (데미지 효과 있는 카드 + 적 영역 호버 시)
-  const previewDamage = useMemo(() => {
-    if (!previewFlags.damage) return 0;
-    if (dragState.currentZone !== 'enemy' || !enemy) return 0;
-
-    // 적 방어력을 고려한 실제 HP 데미지
-    return Math.max(0, cardEffects!.damageToEnemy - enemy.block);
-  }, [previewFlags.damage, dragState.currentZone, enemy, cardEffects]);
-
-  // 프리뷰 방어력 계산 (블록 효과 있는 카드 + 카드 외부 드래그 시)
-  const previewBlock = useMemo(() => {
-    if (!previewFlags.block) return 0;
-
-    // 마우스가 카드 영역 내부인지 확인
-    if (dragState.cardRect) {
-      const { left, right, top, bottom } = dragState.cardRect;
-      const { x, y } = dragState.position;
-      const isInsideCard = x >= left && x <= right && y >= top && y <= bottom;
-      if (isInsideCard) {
-        return 0;  // 카드 내부면 프리뷰 없음
-      }
+    if (tossButtonRef.current) {
+      const rect = tossButtonRef.current.getBoundingClientRect();
+      buttonPos = { x: rect.left, y: rect.top };
     }
 
-    return cardEffects!.blockToPlayer;
-  }, [previewFlags.block, dragState.cardRect, dragState.position, cardEffects]);
+    if (coinAnimationAreaRef.current) {
+      const rect = coinAnimationAreaRef.current.getBoundingClientRect();
+      areaPos = {
+        left: rect.left,
+        top: rect.top,
+        width: rect.width,
+        height: rect.height,
+      };
+    }
 
-  // 드롭 존 등록
-  useEffect(() => {
-    registerDropZones({
-      enemy: enemyZoneRef,
-      battlefield: battlefieldRef,
-      hand: handAreaRef,
-      player: playerZoneRef,
+    // 코인 토스 실행
+    const results = tossCoins();
+
+    // 모든 데이터를 한 번에 설정 (원자적 업데이트)
+    setCoinTossState({
+      isActive: true,
+      results,
+      buttonPosition: buttonPos,
+      animationAreaBounds: areaPos,
     });
-  }, [registerDropZones]);
+  }, [battle.hasTossedThisTurn, coinTossState.isActive, tossCoins]);
+
+  // 각 동전 착지 시 콜백
+  // TODO: 코인 애니메이션과 통합 필요
+  const handleCoinLand = useCallback(() => {
+    // 임시: 개별 코인 착지는 더 이상 사용하지 않음
+    // 코인은 토스 시점에 이미 lastTossResults에 저장됨
+  }, []);
+
+  // 애니메이션 완료 시 콜백
+  const handleTossComplete = useCallback(() => {
+    setCoinTossState({
+      isActive: false,
+      results: [],
+      buttonPosition: { x: 0, y: 0 },
+      animationAreaBounds: { left: 0, top: 0, width: 0, height: 0 },
+    });
+  }, []);
+
+  // 턴 종료 핸들러 (애니메이션 상태 초기화 + 턴 종료)
+  const handleEndTurn = useCallback(() => {
+    // 진행 중인 애니메이션 상태 초기화
+    setCoinTossState({
+      isActive: false,
+      results: [],
+      buttonPosition: { x: 0, y: 0 },
+      animationAreaBounds: { left: 0, top: 0, width: 0, height: 0 },
+    });
+    // 턴 종료
+    endTurn();
+  }, [endTurn]);
+
+  // 스킬 호버 핸들러
+  const handleSkillHover = useCallback((skill: Skill | null) => {
+    setHoveredSkill(skill);
+  }, []);
+
+  // 프리뷰 효과 계산
+  // - 공격 스킬 (enemy 타겟): 드래그 중 + 적 영역 위일 때만
+  // - self/none 타겟: 기존처럼 호버 시 표시
+  const previewEffects = (() => {
+    // 스킬 드래그 중 + 적 영역 위
+    if (skillDragState.isDragging && skillDragState.skill && skillDragState.isOverEnemy) {
+      return calculatePreviewEffects(player, skillDragState.skill, enemy);
+    }
+    // self/none 타겟 스킬 호버 시
+    if (hoveredSkill && hoveredSkill.targetType !== 'enemy') {
+      return calculatePreviewEffects(player, hoveredSkill, enemy);
+    }
+    return null;
+  })();
 
   // 런 시작
   useEffect(() => {
     startRun();  // 새 런 시작 (라운드 1부터)
   }, [startRun]);
+
+  // 스킬 드래그용 적 영역 등록
+  useEffect(() => {
+    registerEnemyZone(enemyZoneRef);
+  }, [registerEnemyZone]);
+
+  // 화면 전환 시 코인 토스 상태 초기화
+  useEffect(() => {
+    const battlePhases = ['player_turn', 'enemy_turn'];
+    if (!battlePhases.includes(battle.phase)) {
+      setCoinTossState({
+        isActive: false,
+        results: [],
+        buttonPosition: { x: 0, y: 0 },
+        animationAreaBounds: { left: 0, top: 0, width: 0, height: 0 },
+      });
+    }
+  }, [battle.phase]);
 
   // 적 처치 감지 및 애니메이션 트리거
   useEffect(() => {
@@ -812,52 +877,13 @@ export function BattleScreen() {
   }
 
   const isPlayerTurn = battle.phase === 'player_turn';
-  const isAnimating = battle.animationPhase !== 'idle';
-  const canAct = isPlayerTurn && !isAnimating;
-
-  // 부채꼴 배열을 위한 카드 회전/위치 계산
-  const getCardStyle = (index: number, total: number) => {
-    const middle = (total - 1) / 2;
-    const offset = index - middle;
-    const rotation = offset * 5;
-    const translateY = Math.abs(offset) * 10;
-
-    return {
-      transform: `rotate(${rotation}deg) translateY(${translateY}px)`,
-    };
-  };
-
-  // 드래그 중 유효한 드롭 존 하이라이트
-  const getDropZoneHighlight = (zone: 'enemy' | 'player') => {
-    if (!dragState.isDragging || !dragState.card) return '';
-
-    const effectiveTargetType = dragState.card.targetType
-      || (dragState.card.type === 'attack' ? 'enemy' : 'self');
-
-    const isValidTarget =
-      (effectiveTargetType === 'enemy' && zone === 'enemy') ||
-      (effectiveTargetType === 'self' && zone === 'player');
-
-    if (!isValidTarget) return '';
-
-    return 'ring-4 ring-green-500/50';
-  };
+  const canAct = isPlayerTurn;
 
   // 현재 표시할 적 (실제 적 또는 사망 중인 적)
   const displayEnemy = enemy || dyingEnemy;
 
   return (
     <div className="min-h-screen bg-gray-900 flex flex-col">
-      {/* 드래그 오버레이 */}
-      <DragOverlay
-        startPosition={dragState.startPosition}
-        position={dragState.position}
-        isDragging={dragState.isDragging}
-        cardType={dragState.card?.type}
-        targetType={dragState.card?.targetType}
-        hasDamageEffect={previewFlags.damage}
-      />
-
       {/* 상단 바 */}
       <TopBar
         enemyName={displayEnemy?.name}
@@ -866,11 +892,13 @@ export function BattleScreen() {
         accessories={run.accessories}
       />
 
-      {/* 전투 영역 */}
-      <div
-        ref={battlefieldRef}
-        className="flex-1 flex items-center justify-around p-8 transition-all relative"
-      >
+      {/* 전투 영역 + 스킬 패널 */}
+      <div className="flex-1 flex flex-col">
+        {/* 전투 영역 */}
+        <div
+          ref={battlefieldRef}
+          className="flex-1 flex items-center justify-around p-8 transition-all relative"
+        >
         {/* 라운드 진행 UI */}
         <RoundProgress currentRound={run.round} totalRounds={run.totalRounds} regionName={getRegion(run.regionId).name} />
         {/* 유저 캐릭터 + 동료 */}
@@ -885,7 +913,7 @@ export function BattleScreen() {
             {/* 캐릭터 카드 */}
             <div
               ref={playerZoneRef}
-              className={`flex flex-col items-center rounded-lg transition-all ${getDropZoneHighlight('player')}`}
+              className="flex flex-col items-center rounded-lg transition-all"
             >
               <CharacterCard
                 name={player.characterClass === 'paladin' ? '팔라딘' : '전사'}
@@ -898,7 +926,9 @@ export function BattleScreen() {
                 isAttacking={battle.combatAnimation.playerAttacking}
                 isHit={battle.combatAnimation.playerHit}
                 isShieldHit={battle.combatAnimation.shieldHit}
-                previewBlock={previewBlock}
+                previewBlock={previewEffects?.block ?? 0}
+                previewHeal={previewEffects?.heal ?? 0}
+                previewSelfDamage={previewEffects?.selfDamage ?? 0}
               />
               {/* 활성 버프 표시 */}
               <PlayerBuffs buffs={player.activeBuffs} />
@@ -909,7 +939,7 @@ export function BattleScreen() {
         {/* 적 캐릭터 / 노드 선택 영역 */}
         <div
           ref={enemyZoneRef}
-          className={`transition-all rounded-lg relative ${getDropZoneHighlight('enemy')}`}
+          className="transition-all rounded-lg relative"
         >
           {/* 행선지 선택 모드 */}
           {battle.phase === 'destination_selection' && destinationOptions.length > 0 ? (
@@ -1269,7 +1299,7 @@ export function BattleScreen() {
                       enemy={displayEnemy}
                       isAttacking={battle.combatAnimation.enemyAttacking}
                       isHit={battle.combatAnimation.enemyHit}
-                      previewDamage={previewDamage}
+                      previewDamage={previewEffects?.damage ?? 0}
                     />
                   </motion.div>
                 )}
@@ -1288,83 +1318,105 @@ export function BattleScreen() {
         </div>
       </div>
 
-      {/* 하단 UI */}
-      <div
-        ref={handAreaRef}
-        className="h-64 bg-gray-800 border-t border-gray-700 relative"
-      >
-        {/* 에너지 (좌상단) */}
-        <div className="absolute top-4 left-4">
-          <div className="w-16 h-16 rounded-full border-2 border-gray-700 bg-gray-900 flex flex-col items-center justify-center">
-            <span className="text-xs text-gray-400">에너지</span>
-            <span className="text-xl font-bold text-yellow-500">
-              {player.energy}/{player.maxEnergy}
-            </span>
-          </div>
-        </div>
-
-        {/* 덱 (좌하단) */}
-        <div className="absolute bottom-4 left-4">
-          <div className="w-16 h-16 rounded-full border-2 border-gray-700 bg-gray-900 flex flex-col items-center justify-center">
-            <span className="text-xs text-gray-400">덱</span>
-            <span className="text-xl font-bold text-white">
-              {battle.deck.length}
-            </span>
-          </div>
-        </div>
-
-        {/* 손패 (중앙, 부채꼴) */}
-        <div className="absolute inset-0 flex items-center justify-center">
-          <div className="flex items-center">
-            <AnimatePresence mode="popLayout">
-              {battle.hand.map((card, index) => (
-                <motion.div
-                  key={card.id}
-                  layout
-                  variants={cardVariants}
-                  initial="initial"
-                  animate="animate"
-                  exit="exit"
-                  custom={{ index, total: battle.hand.length }}
-                  transition={{
-                    type: 'spring',
-                    stiffness: 300,
-                    damping: 25,
-                    delay: index * ANIMATION_TIMING.CARD_STAGGER,
-                  }}
-                  style={getCardStyle(index, battle.hand.length)}
-                  className="hover:!rotate-0 hover:z-30 -ml-6 first:ml-0"
-                >
-                  <Card
-                    card={card}
-                    onDragStart={(e, cardRect) => startDrag(card, index, e, cardRect)}
-                    disabled={!canAct || player.energy < card.cost}
-                    isDragging={dragState.isDragging && dragState.card?.id === card.id}
-                  />
-                </motion.div>
-              ))}
-            </AnimatePresence>
-            {battle.hand.length === 0 && battle.animationPhase === 'idle' && (
-              <div className="text-gray-500">손패가 비어있습니다</div>
-            )}
-          </div>
-        </div>
-
-        {/* 다음턴 버튼 (우측) */}
-        <div className="absolute top-1/2 right-4 -translate-y-1/2">
-          <button
-            onClick={endTurn}
-            disabled={!canAct}
-            className={`w-20 h-20 rounded-full font-bold transition-all flex items-center justify-center ${
-              canAct
-                ? 'bg-blue-600 text-white hover:bg-blue-700'
-                : 'bg-gray-600 text-gray-400 opacity-50 cursor-not-allowed'
-            }`}
-          >
-            다음턴
-          </button>
-        </div>
+      {/* 스킬 패널 (전투 영역 하단) */}
+      <div className="border-t border-gray-700 py-2 px-4">
+        <SkillPanel
+          skills={player.skills}
+          skillStates={player.skillStates}
+          lastTossResults={battle.lastTossResults}
+          isPlayerTurn={isPlayerTurn}
+          player={player}
+          enemy={enemy}
+          hoveredSkill={hoveredSkill}
+          onUseSkill={useSkill}
+          onSkillHover={handleSkillHover}
+          onSkillDragStart={startSkillDrag}
+          draggingSkillId={skillDragState.skill?.id ?? null}
+        />
       </div>
+    </div>
+
+    {/* 코인 영역 */}
+    <div
+      className="relative flex flex-col bg-gray-800 border-t border-gray-700"
+      style={{ height: 'calc((100vh - 48px) * 0.27)' }}
+    >
+      {/* 2-1. 상단: 코인 가치 UI (20% 높이) */}
+      <div className="h-[20%] flex items-center justify-center border-b border-gray-700 bg-gray-800/50">
+        {battle.lastTossResults.length > 0 ? (
+          <div className="flex gap-4 items-center">
+            <div className="flex items-center gap-2 bg-amber-500/20 px-4 py-2 rounded-lg">
+              <span className="text-2xl">↑</span>
+              <div className="flex flex-col">
+                <span className="text-xs text-amber-300">앞면</span>
+                <span className="text-xl font-bold text-amber-400">{headsValue}</span>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2 bg-blue-500/20 px-4 py-2 rounded-lg">
+              <span className="text-2xl">↓</span>
+              <div className="flex flex-col">
+                <span className="text-xs text-blue-300">뒷면</span>
+                <span className="text-xl font-bold text-blue-400">{tailsValue}</span>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div className="text-gray-400 text-xs">코인 토스 대기 중</div>
+        )}
+      </div>
+
+      {/* 2-2. 중앙: 동전 애니메이션 영역 (80% 높이) */}
+      <div
+        ref={coinAnimationAreaRef}
+        className="flex-1 relative flex items-center justify-center overflow-hidden"
+      >
+        <AnimatePresence>
+          {battle.phase === 'player_turn' && coinTossState.isActive && coinTossState.results.length > 0 && (
+            <CoinTossAnimation
+              results={coinTossState.results}
+              buttonPosition={coinTossState.buttonPosition}
+              animationAreaBounds={coinTossState.animationAreaBounds}
+              onCoinLand={handleCoinLand}
+              onComplete={handleTossComplete}
+            />
+          )}
+        </AnimatePresence>
+      </div>
+
+      {/* 2-3. 우측: 토글 버튼 (절대 배치) */}
+      <div className="absolute right-8 top-1/2 -translate-y-1/2">
+        <motion.button
+          ref={tossButtonRef}
+          onClick={battle.hasTossedThisTurn ? handleEndTurn : handleCoinToss}
+          disabled={!canAct}
+          whileHover={canAct ? { scale: 1.05 } : {}}
+          whileTap={canAct ? { scale: 0.95 } : {}}
+          className={`
+            px-4 py-2 rounded-lg font-bold transition-all flex items-center gap-2
+            ${!canAct
+              ? 'bg-gray-700 text-gray-500 cursor-not-allowed'
+              : battle.hasTossedThisTurn
+              ? 'bg-blue-600 text-white hover:bg-blue-700'
+              : 'bg-yellow-600 text-white hover:bg-yellow-500'}
+          `}
+        >
+          <span className="text-xl">
+            {battle.hasTossedThisTurn ? '▶' : '🪙'}
+          </span>
+          <span>{battle.hasTossedThisTurn ? '턴 종료' : '코인 토스'}</span>
+        </motion.button>
+      </div>
+    </div>
+
+      {/* 스킬 드래그 화살표 오버레이 */}
+      <DragOverlay
+        isDragging={skillDragState.isDragging}
+        startPosition={skillDragState.startPosition}
+        position={skillDragState.position}
+        targetType="enemy"
+        hasDamageEffect={true}
+      />
     </div>
   );
 }
