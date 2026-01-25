@@ -1,45 +1,49 @@
 import { create } from 'zustand';
-import type { GameState, Card, CharacterClass, Player, RunState } from '../types';
-import { createWarriorStarterDeck, createPaladinTestDeck, createAdvancementTestDeck, createRewardCards, createAdvancementRewardCards, createCard } from '../data/cards';
+import type { GameState, CharacterClass, Player, RunState, CoinTossResult, Skill } from '../types';
 import { createEnemy, createEliteEnemy, getNextIntent, ENEMY_DEFINITIONS, ROUND_ENEMIES } from '../data/enemies';
 import { generateDestinationOptions } from '../data/destinations';
 import { getRegion } from '../data/regions';
 import { getAccessoryById } from '../data/accessories';
 import { getCompanionById } from '../data/companions';
-import { getBloodAltarRewards, BLOOD_ALTAR_HIDDEN_REWARD } from '../data/facilities';
-import { ANIMATION_TIMING, TOTAL_ATTACK_DURATION } from '../animations';
-import { getCardEffects } from '../utils/cardEffects';
+import { getBloodAltarRewards } from '../data/facilities';
+import { INITIAL_COIN_INVENTORY } from '../data/coins';
+import { createStartingSkills, generateRewardSkills, resetSkillIdCounter } from '../data/skills';
+import { spendCoins as spendCoinResults, calculateCoinValues } from '../utils/coinToss';
+import { TOTAL_ATTACK_DURATION } from '../animations';
 import {
-  applyBuff,
   collectTurnStartBuffEffects,
   processBuffDurations,
 } from '../utils/buffSystem';
+import { tossAllCoins } from '../utils/coinToss';
 import {
-  getAvailableAdvancements,
-  processClassAdvancement,
-} from '../utils/advancementSystem';
-
-// 덱 셔플 함수
-function shuffle<T>(array: T[]): T[] {
-  const result = [...array];
-  for (let i = result.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [result[i], result[j]] = [result[j], result[i]];
-  }
-  return result;
-}
+  canUseSkill,
+  getSkillCosts,
+  calculateSkillEffects,
+  createSkillStates,
+  resetSkillStatesForNewTurn,
+  updateSkillStateAfterUse,
+  getSkillState,
+  applyBuffsToPlayer,
+  processGreedStack,
+} from '../utils/skillSystem';
 
 // 초기 플레이어 상태 생성
 function createInitialPlayer(characterClass: CharacterClass = 'warrior'): Player {
+  // 스킬 ID 카운터 리셋
+  resetSkillIdCounter();
+  const startingSkills = createStartingSkills(characterClass);
+
   return {
     hp: 50,
     maxHp: 50,
     block: 0,
-    energy: 3,
-    maxEnergy: 3,
+    // coins 제거됨 - battle.lastTossResults에서 계산
+    coinInventory: [...INITIAL_COIN_INVENTORY],
     gold: 0,
     characterClass,
     activeBuffs: [],
+    skills: startingSkills,
+    skillStates: createSkillStates(startingSkills),
   };
 }
 
@@ -74,12 +78,10 @@ const initialState: GameState = {
   enemy: null,
   battle: {
     phase: 'player_turn',
-    animationPhase: 'idle',
     combatAnimation: { ...defaultCombatAnimation },
     turn: 1,
-    deck: [],
-    hand: [],
-    discard: [],
+    hasTossedThisTurn: false,
+    lastTossResults: [],
   },
   reward: null,
   run: createInitialRun(),
@@ -91,13 +93,18 @@ interface GameActions {
   // 런 시작
   startRun: () => void;
   // 전투 시작 (enemyKey 선택적 - 없으면 현재 라운드 적 사용)
-  startBattle: (enemyKey?: string, deckType?: 'warrior' | 'paladin' | 'advancement') => void;
+  startBattle: (enemyKey?: string) => void;
   // 다음 라운드 시작
   startNextRound: () => void;
-  // 카드 드로우
-  drawCards: (count: number) => void;
-  // 카드 플레이
-  playCard: (cardId: string) => void;
+  // 코인 토스 시스템
+  tossCoins: () => CoinTossResult[];
+  addCoinResults: (results: CoinTossResult[]) => void;  // incrementCoins 대체
+  addCoins: (coinId: string, count: number) => void;
+  spendGold: (amount: number) => boolean;  // spendCoins → spendGold로 명확화
+  // 스킬 시스템
+  useSkill: (skillId: string) => { success: boolean; reason?: string };
+  addSkill: (skill: Skill) => void;
+  canUseSkill: (skillId: string) => { canUse: boolean; reason?: string };
   // 턴 종료
   endTurn: () => void;
   // 적 턴 실행
@@ -106,7 +113,7 @@ interface GameActions {
   resetGame: () => void;
   // 보상 시스템
   showReward: () => void;
-  selectRewardCard: (cardId: string) => void;
+  selectRewardSkill: (skillId: string) => void;
   skipReward: () => void;
   // 전직 시스템
   checkAdvancement: () => void;
@@ -133,7 +140,6 @@ export const useGameStore = create<GameState & GameActions>((set, get) => ({
 
   // 새로운 런 시작
   startRun: () => {
-    const deck = shuffle(createWarriorStarterDeck());
     const enemyKey = ROUND_ENEMIES[0]; // 라운드 1 적
     const enemy = createEnemy(enemyKey);
 
@@ -142,30 +148,17 @@ export const useGameStore = create<GameState & GameActions>((set, get) => ({
       enemy,
       battle: {
         phase: 'player_turn',
-        animationPhase: 'drawing',
         combatAnimation: { ...defaultCombatAnimation },
         turn: 1,
-        deck,
-        hand: [],
-        discard: [],
+        hasTossedThisTurn: false,
+        lastTossResults: [],
       },
       reward: null,
       run: createInitialRun(),
     });
-
-    // 초기 5장 드로우
-    get().drawCards(5);
-
-    // 드로우 애니메이션 완료 후 idle로 전환
-    const drawTime = ANIMATION_TIMING.DRAW_DURATION * 1000 + (5 * ANIMATION_TIMING.CARD_STAGGER * 1000);
-    setTimeout(() => {
-      set((state) => ({
-        battle: { ...state.battle, animationPhase: 'idle' },
-      }));
-    }, drawTime);
   },
 
-  // 다음 라운드 시작 (HP, 덱 유지)
+  // 다음 라운드 시작 (HP 유지)
   startNextRound: () => {
     const { player, battle, run } = get();
     const nextRound = run.round + 1;
@@ -183,26 +176,20 @@ export const useGameStore = create<GameState & GameActions>((set, get) => ({
     const enemyKey = ROUND_ENEMIES[nextRound - 1];
     const enemy = createEnemy(enemyKey);
 
-    // 모든 카드를 덱으로 모으고 셔플
-    const fullDeck = shuffle([...battle.deck, ...battle.hand, ...battle.discard]);
-
     set({
       player: {
         ...player,
         block: 0,           // 방어력 초기화
-        energy: player.maxEnergy,  // 에너지 회복
         activeBuffs: [],    // 버프 초기화
-        // HP는 그대로 유지
+        // HP, coinInventory는 유지
       },
       enemy,
       battle: {
         phase: 'player_turn',
-        animationPhase: 'drawing',
         combatAnimation: { ...defaultCombatAnimation },
         turn: 1,
-        deck: fullDeck,
-        hand: [],
-        discard: [],
+        hasTossedThisTurn: false,
+        lastTossResults: [],
       },
       reward: null,
       run: {
@@ -210,252 +197,344 @@ export const useGameStore = create<GameState & GameActions>((set, get) => ({
         round: nextRound,
       },
     });
-
-    // 5장 드로우
-    get().drawCards(5);
-
-    // 드로우 애니메이션 완료 후 idle로 전환
-    const drawTime = ANIMATION_TIMING.DRAW_DURATION * 1000 + (5 * ANIMATION_TIMING.CARD_STAGGER * 1000);
-    setTimeout(() => {
-      set((state) => ({
-        battle: { ...state.battle, animationPhase: 'idle' },
-      }));
-    }, drawTime);
   },
 
-  // 전투 시작 (레거시 지원 + 새 시스템)
-  startBattle: (enemyKey?: string, deckType: 'warrior' | 'paladin' | 'advancement' = 'advancement') => {
+  // 전투 시작
+  startBattle: (enemyKey?: string) => {
     // enemyKey가 없으면 startRun 호출
     if (!enemyKey) {
       get().startRun();
       return;
     }
 
-    // 레거시: deckType에 따라 덱 선택
-    let deck: Card[];
-    let characterClass: CharacterClass;
-
-    switch (deckType) {
-      case 'paladin':
-        deck = shuffle(createPaladinTestDeck());
-        characterClass = 'paladin';
-        break;
-      case 'advancement':
-        deck = shuffle(createAdvancementTestDeck());
-        characterClass = 'warrior';
-        break;
-      case 'warrior':
-      default:
-        deck = shuffle(createWarriorStarterDeck());
-        characterClass = 'warrior';
-        break;
-    }
     const enemy = createEnemy(enemyKey);
 
     set({
-      player: createInitialPlayer(characterClass),
+      player: createInitialPlayer('warrior'),
       enemy,
       battle: {
         phase: 'player_turn',
-        animationPhase: 'drawing',
         combatAnimation: { ...defaultCombatAnimation },
         turn: 1,
-        deck,
-        hand: [],
-        discard: [],
+        hasTossedThisTurn: false,
+        lastTossResults: [],
       },
       run: createInitialRun(),
     });
-
-    // 초기 5장 드로우
-    get().drawCards(5);
-
-    // 드로우 애니메이션 완료 후 idle로 전환
-    const drawTime = ANIMATION_TIMING.DRAW_DURATION * 1000 + (5 * ANIMATION_TIMING.CARD_STAGGER * 1000);
-    setTimeout(() => {
-      set((state) => ({
-        battle: { ...state.battle, animationPhase: 'idle' },
-      }));
-    }, drawTime);
   },
 
-  drawCards: (count: number) => {
-    set((state) => {
-      const { deck: deckInit, hand, discard: discardInit } = state.battle;
-      let deck = deckInit;
-      let discard = discardInit;
-      const drawnCards: Card[] = [];
+  // 코인 토스 실행
+  tossCoins: () => {
+    const { player, battle } = get();
 
-      for (let i = 0; i < count; i++) {
-        // 덱이 비어있으면 버린 카드 더미를 셔플하여 새 덱으로
-        if (deck.length === 0) {
-          if (discard.length === 0) break;
-          deck = shuffle(discard);
-          discard = [];
-        }
-        const card = deck.pop();
-        if (card) drawnCards.push(card);
-      }
+    // 이미 토스했으면 무시
+    if (battle.hasTossedThisTurn) {
+      return [];
+    }
 
-      return {
-        battle: {
-          ...state.battle,
-          deck,
-          hand: [...hand, ...drawnCards],
-          discard,
-        },
-      };
+    // 모든 동전 토스 (coins는 즉시 증가하지 않음)
+    const results = tossAllCoins(player.coinInventory);
+
+    set({
+      battle: {
+        ...battle,
+        hasTossedThisTurn: true,
+        lastTossResults: results,
+      },
+    });
+
+    return results;
+  },
+
+  // 코인 증가 (애니메이션 착지 시 호출)
+  // 코인 결과 추가 (incrementCoins 대체)
+  addCoinResults: (results: CoinTossResult[]) => {
+    const { battle } = get();
+    set({
+      battle: {
+        ...battle,
+        lastTossResults: [...battle.lastTossResults, ...results],
+      },
     });
   },
 
-  playCard: (cardId: string) => {
+  // 동전 추가 (보상 등)
+  addCoins: (coinId: string, count: number) => {
+    const { player } = get();
+    const newInventory = [...player.coinInventory];
+    const existing = newInventory.find(inv => inv.coinId === coinId);
+
+    if (existing) {
+      existing.count += count;
+    } else {
+      newInventory.push({ coinId, count });
+    }
+
+    set({
+      player: {
+        ...player,
+        coinInventory: newInventory,
+      },
+    });
+  },
+
+  // 코인 소비
+  // 골드 구매 (코인 소모)
+  spendGold: (amount: number) => {
+    const { player, battle } = get();
+
+    const available = calculateCoinValues(battle.lastTossResults);
+    if (available.total < amount) {
+      return false;
+    }
+
+    // 총 코인에서 차감 (앞면 우선)
+    const spendResult = spendCoinResults(battle.lastTossResults, amount, 0);
+    if (!spendResult.success) {
+      return false;
+    }
+
+    set({
+      player: {
+        ...player,
+        gold: player.gold + 1,
+      },
+      battle: {
+        ...get().battle,
+        lastTossResults: spendResult.remainingResults,
+      },
+    });
+
+    return true;
+  },
+
+  // 스킬 사용 가능 여부 확인
+  canUseSkill: (skillId: string) => {
+    const { player, battle } = get();
+
+    // 플레이어 턴이 아니면 사용 불가
+    if (battle.phase !== 'player_turn') {
+      return { canUse: false, reason: '플레이어 턴이 아닙니다' };
+    }
+
+    // 스킬 찾기
+    const skill = player.skills.find(s => s.id === skillId);
+    if (!skill) {
+      return { canUse: false, reason: '스킬을 찾을 수 없습니다' };
+    }
+
+    // 스킬 상태 찾기
+    const skillState = getSkillState(player.skillStates, skillId);
+
+    return canUseSkill(battle.lastTossResults, skill, skillState);
+  },
+
+  // 스킬 사용
+  useSkill: (skillId: string) => {
     const state = get();
     const { player, enemy, battle } = state;
 
-    if (battle.phase !== 'player_turn' || !enemy) return;
-
-    const cardIndex = battle.hand.findIndex((c) => c.id === cardId);
-    if (cardIndex === -1) return;
-
-    const card = battle.hand[cardIndex];
-
-    // 에너지 체크
-    if (player.energy < card.cost) return;
-
-    // 새로운 효과 시스템으로 카드 효과 계산
-    const effects = getCardEffects(card, player);
-
-    const newEnemy = { ...enemy };
-    let newPlayer: Player = {
-      ...player,
-      energy: player.energy - card.cost,
-      activeBuffs: [...player.activeBuffs],
-    };
-    const newHand = [...battle.hand];
-    let newDiscard = [...battle.discard];
-
-    // 데미지 적용 (적 방어력 고려)
-    let dealsDamage = false;
-    if (effects.damageToEnemy > 0) {
-      dealsDamage = true;
-      const actualDamage = Math.max(0, effects.damageToEnemy - newEnemy.block);
-      const remainingBlock = Math.max(0, newEnemy.block - effects.damageToEnemy);
-      newEnemy.block = remainingBlock;
-      newEnemy.hp = Math.max(0, newEnemy.hp - actualDamage);
+    // 플레이어 턴이 아니면 사용 불가
+    if (battle.phase !== 'player_turn') {
+      return { success: false, reason: '플레이어 턴이 아닙니다' };
     }
 
-    // 방어력 적용
-    if (effects.blockToPlayer > 0) {
-      newPlayer.block += effects.blockToPlayer;
+    // 스킬 찾기
+    const skill = player.skills.find(s => s.id === skillId);
+    if (!skill) {
+      return { success: false, reason: '스킬을 찾을 수 없습니다' };
     }
+
+    // 사용 가능 여부 확인
+    const skillState = getSkillState(player.skillStates, skillId);
+    const { canUse, reason } = canUseSkill(battle.lastTossResults, skill, skillState);
+    if (!canUse) {
+      return { success: false, reason };
+    }
+
+    // 코인 소모
+    const costs = getSkillCosts(skill);
+    const spendResult = spendCoinResults(battle.lastTossResults, costs.heads, costs.tails);
+
+    if (!spendResult.success) {
+      return { success: false, reason: spendResult.reason };
+    }
+
+    // 스킬 효과 계산
+    const effects = calculateSkillEffects(player, skill, enemy);
+
+    // 새 플레이어 상태
+    let newPlayer = { ...player };
+    newPlayer.block += effects.blockGained;
+    newPlayer.hp = Math.min(newPlayer.maxHp, newPlayer.hp + effects.healAmount);
+    newPlayer.hp = Math.max(0, newPlayer.hp - effects.selfDamage);
+    newPlayer.skillStates = updateSkillStateAfterUse(player.skillStates, skill);
 
     // 버프 적용
-    for (const buffId of effects.buffsToApply) {
-      newPlayer = applyBuff(newPlayer, buffId);
+    if (effects.buffsApplied.length > 0) {
+      newPlayer = applyBuffsToPlayer(newPlayer, effects.buffsApplied);
     }
 
-    // 드로우 처리
-    if (effects.drawCards > 0) {
-      // 드로우는 카드 사용 후 처리
+    // lastTossResults 업데이트 (코인 소모 반영)
+    let newLastTossResults = spendResult.remainingResults;
+
+    // 탐욕 스택 처리 (3스택 도달 시 보너스 토스 발동)
+    const greedResult = processGreedStack(newPlayer, newLastTossResults);
+    if (greedResult.triggered) {
+      newPlayer = greedResult.newPlayer;
+      newLastTossResults = greedResult.remainingResults;
+      // 탐욕 발동 로그 (나중에 UI 애니메이션으로 대체)
+      console.log('[탐욕 발동]', {
+        bonusToss: greedResult.bonusTossResults.map(r => r ? '앞면' : '뒷면'),
+        coinsConsumed: greedResult.coinsConsumed,
+      });
+    }
+
+    // 적 데미지 처리
+    let newEnemy = enemy ? { ...enemy } : null;
+    let newCombatAnimation = { ...battle.combatAnimation };
+
+    if (newEnemy && effects.damageDealt > 0) {
+      // 적 방어력 고려
+      const actualDamage = Math.max(0, effects.damageDealt - newEnemy.block);
+      const remainingBlock = Math.max(0, newEnemy.block - effects.damageDealt);
+      newEnemy.block = remainingBlock;
+      newEnemy.hp = Math.max(0, newEnemy.hp - actualDamage);
+
+      // 공격 애니메이션 설정
+      newCombatAnimation = {
+        playerAttacking: true,
+        enemyAttacking: false,
+        playerHit: false,
+        enemyHit: true,
+        shieldHit: enemy!.block > 0,
+      };
+    }
+
+    // 적 사망 체크
+    if (newEnemy && newEnemy.hp <= 0) {
+      // 골드 보상 추가
+      newPlayer.gold += newEnemy.goldReward;
+
+      set({
+        player: newPlayer,
+        enemy: newEnemy,
+        battle: {
+          ...battle,
+          phase: 'victory',
+          combatAnimation: newCombatAnimation,
+          lastTossResults: newLastTossResults,
+        },
+      });
+
+      // 보상 화면으로 전환
       setTimeout(() => {
-        get().drawCards(effects.drawCards);
-      }, 100);
+        get().showReward();
+      }, TOTAL_ATTACK_DURATION * 1000);
+
+      return { success: true };
     }
 
-    // 에너지 변경
-    if (effects.energyChange !== 0) {
-      newPlayer.energy = Math.max(0, newPlayer.energy + effects.energyChange);
+    // 플레이어 사망 체크
+    if (newPlayer.hp <= 0) {
+      set({
+        player: newPlayer,
+        enemy: newEnemy,
+        battle: {
+          ...battle,
+          phase: 'defeat',
+          lastTossResults: newLastTossResults,
+        },
+      });
+      return { success: true };
     }
 
-    // 손패에서 카드 제거
-    newHand.splice(cardIndex, 1);
-
-    // 파워 카드와 소모(exhaust) 카드는 버리지 않음 (사용 후 사라짐)
-    if (card.type !== 'power' && !card.exhaust) {
-      newDiscard = [...newDiscard, card];
-    }
-
-    // 적 처치 체크 - 승리 시 보상 화면으로
-    const isEnemyDefeated = newEnemy.hp <= 0;
-    const newPhase = isEnemyDefeated ? 'reward' : battle.phase;
-
-    // 적 처치 시 골드 획득
-    if (isEnemyDefeated && enemy) {
-      newPlayer = { ...newPlayer, gold: newPlayer.gold + enemy.goldReward };
-    }
-
-    // 승리 시 보상 카드 생성 (행선지 타입에 따라 차등)
-    const { run } = get();
-    const isElite = run.selectedDestinationType === 'elite';
-    const cardCount = isElite ? 4 : 3;  // 엘리트: 4장, 일반: 3장
-    const newReward = isEnemyDefeated
-      ? {
-          cards: createRewardCards(newPlayer.characterClass, cardCount),
-          isAdvancementReward: false,
-          isEliteReward: isElite,
-        }
-      : null;
-
-    // 공격 애니메이션 설정
-    const newCombatAnimation = dealsDamage
-      ? { ...defaultCombatAnimation, playerAttacking: true, enemyHit: true }
-      : battle.combatAnimation;
-
+    // 상태 업데이트
     set({
       player: newPlayer,
-      enemy: isEnemyDefeated ? null : newEnemy,
+      enemy: newEnemy,
       battle: {
         ...battle,
-        phase: newPhase,
-        hand: newHand,
-        discard: newDiscard,
         combatAnimation: newCombatAnimation,
+        lastTossResults: newLastTossResults,
       },
-      reward: newReward,
     });
 
-    // 공격 애니메이션 완료 후 상태 리셋
-    if (dealsDamage) {
+    // 애니메이션 리셋
+    if (effects.damageDealt > 0) {
       setTimeout(() => {
-        set((state) => ({
+        set((s) => ({
           battle: {
-            ...state.battle,
-            combatAnimation: { ...defaultCombatAnimation },
+            ...s.battle,
+            combatAnimation: {
+              playerAttacking: false,
+              enemyAttacking: false,
+              playerHit: false,
+              enemyHit: false,
+              shieldHit: false,
+            },
           },
         }));
       }, TOTAL_ATTACK_DURATION * 1000);
     }
+
+    // 코인 획득 효과 처리
+    if (effects.coinsGained > 0) {
+      // TODO: 앞면/뒷면 구분 필요
+      // 현재는 임시로 앞면으로 처리
+      const newCoins: CoinTossResult[] = [];
+      for (let i = 0; i < effects.coinsGained; i++) {
+        newCoins.push({
+          coinId: 'coin_1',
+          denomination: 1,
+          isHeads: true,
+        });
+      }
+      get().addCoinResults(newCoins);
+    }
+
+    return { success: true };
   },
 
-  endTurn: () => {
-    const handLength = get().battle.hand.length;
+  // 스킬 추가 (보상 등)
+  addSkill: (skill: Skill) => {
+    const { player } = get();
 
-    // 1. 버림 애니메이션 시작
+    // 이미 같은 스킬을 가지고 있는지 확인 (skillKey 기준)
+    const hasSkill = player.skills.some(s => s.skillKey === skill.skillKey);
+    if (hasSkill) return;
+
+    const newSkills = [...player.skills, skill];
+    const newSkillStates = [...player.skillStates, { skillId: skill.id, usedThisTurn: 0, cooldownRemaining: 0 }];
+
+    set({
+      player: {
+        ...player,
+        skills: newSkills,
+        skillStates: newSkillStates,
+      },
+    });
+  },
+
+  // 턴 종료
+  endTurn: () => {
+    const { battle } = get();
+
+    // 플레이어 턴이 아니면 무시
+    if (battle.phase !== 'player_turn') return;
+
+    // 적 턴으로 전환
     set((state) => ({
       battle: {
         ...state.battle,
-        animationPhase: 'discarding',
+        phase: 'enemy_turn',
       },
     }));
 
-    // 2. 애니메이션 완료 후 실제 상태 변경
-    const discardTime = ANIMATION_TIMING.DISCARD_DURATION * 1000 + (handLength * ANIMATION_TIMING.CARD_STAGGER * 1000);
+    // 적 턴 실행
     setTimeout(() => {
-      set((state) => ({
-        battle: {
-          ...state.battle,
-          phase: 'enemy_turn',
-          animationPhase: 'idle',
-          hand: [],
-          discard: [...state.battle.discard, ...state.battle.hand],
-        },
-      }));
-
-      // 적 턴 실행
-      setTimeout(() => {
-        get().executeEnemyTurn();
-      }, 300);
-    }, discardTime);
+      get().executeEnemyTurn();
+    }, 300);
   },
 
   executeEnemyTurn: () => {
@@ -490,7 +569,6 @@ export const useGameStore = create<GameState & GameActions>((set, get) => ({
     } else if (intent.type === 'defend') {
       newEnemy.block += intent.value;
     }
-    // buff는 프로토타입에서 단순화 (효과 없음)
 
     // 플레이어 사망 체크
     if (newPlayer.hp <= 0) {
@@ -543,10 +621,13 @@ export const useGameStore = create<GameState & GameActions>((set, get) => ({
         };
       }
 
-      // 플레이어 방어력 리셋, 에너지 회복
+      // 플레이어 상태 업데이트: 방어력 리셋, 코인 리셋
       let updatedPlayer = { ...currentState.player };
       updatedPlayer.block = 0;
-      updatedPlayer.energy = updatedPlayer.maxEnergy;
+      // 코인은 lastTossResults에서 관리됨
+
+      // 턴 시작 시 스킬 상태 리셋 (사용 횟수 초기화, 쿨다운 감소)
+      updatedPlayer.skillStates = resetSkillStatesForNewTurn(updatedPlayer.skillStates);
 
       // 턴 시작 시 버프 효과 처리
       const buffEffects = collectTurnStartBuffEffects(updatedPlayer);
@@ -561,51 +642,12 @@ export const useGameStore = create<GameState & GameActions>((set, get) => ({
         battle: {
           ...currentState.battle,
           phase: 'player_turn',
-          animationPhase: 'drawing',
           turn: nextTurn,
+          hasTossedThisTurn: false,
+          lastTossResults: [],
           combatAnimation: { ...defaultCombatAnimation },
         },
       });
-
-      // 새 턴 카드 드로우
-      get().drawCards(5);
-
-      // 드로우 애니메이션 완료 후 idle로 전환 + 저주 카드 패시브 처리
-      const drawTime = ANIMATION_TIMING.DRAW_DURATION * 1000 + (5 * ANIMATION_TIMING.CARD_STAGGER * 1000);
-      setTimeout(() => {
-        // 저주 카드 패시브 효과: 손에 있는 저주 카드마다 HP -3
-        const currentState = get();
-        const curseCardsInHand = currentState.battle.hand.filter(card => card.type === 'curse');
-
-        if (curseCardsInHand.length > 0) {
-          let curseDamage = 0;
-          for (const curseCard of curseCardsInHand) {
-            if (curseCard.passiveEffect?.trigger === 'turn_start' && curseCard.passiveEffect.type === 'damage') {
-              curseDamage += curseCard.passiveEffect.value;
-            }
-          }
-
-          if (curseDamage > 0) {
-            const newHp = Math.max(0, currentState.player.hp - curseDamage);
-            set({
-              player: { ...currentState.player, hp: newHp },
-              battle: { ...currentState.battle, animationPhase: 'idle' },
-            });
-
-            // 저주 데미지로 사망 체크
-            if (newHp <= 0) {
-              set((state) => ({
-                battle: { ...state.battle, phase: 'defeat' },
-              }));
-            }
-            return;
-          }
-        }
-
-        set((state) => ({
-          battle: { ...state.battle, animationPhase: 'idle' },
-        }));
-      }, drawTime);
     }, animationDelay);
   },
 
@@ -613,42 +655,31 @@ export const useGameStore = create<GameState & GameActions>((set, get) => ({
     set(initialState);
   },
 
-  // 보상 화면 표시 (수동 호출용)
+  // 보상 화면 표시
   showReward: () => {
     const { player } = get();
+    // 클래스에 맞는 보상 스킬 3개 생성
+    const rewardSkills = generateRewardSkills(player.characterClass, 3);
+
     set({
       battle: { ...get().battle, phase: 'reward' },
-      reward: { cards: createRewardCards(player.characterClass), isAdvancementReward: false },
+      reward: { skills: rewardSkills, isAdvancementReward: false },
     });
   },
 
-  // 보상 카드 선택
-  selectRewardCard: (cardId: string) => {
-    const { reward, battle } = get();
-    if (!reward || battle.phase !== 'reward') return;
+  // 보상 스킬 선택
+  selectRewardSkill: (skillId: string) => {
+    const { reward } = get();
+    if (!reward) return;
 
-    const selectedCard = reward.cards.find(c => c.id === cardId);
-    if (!selectedCard) return;
-
-    // 덱에 카드 추가 (전체 덱 = 드로우덱 + 손패 + 버린카드)
-    const fullDeck = [...battle.deck, ...battle.hand, ...battle.discard, selectedCard];
-
-    set((state) => ({
-      battle: {
-        ...state.battle,
-        deck: fullDeck,
-        hand: [],
-        discard: [],
-      },
-      reward: null,
-    }));
-
-    // 전직 보상이었으면 다음 전투로, 아니면 전직 체크
-    if (reward.isAdvancementReward) {
-      get().proceedToNextBattle();
-    } else {
-      get().checkAdvancement();
+    // 선택한 스킬 찾기
+    const selectedSkill = reward.skills.find(s => s.id === skillId);
+    if (selectedSkill) {
+      get().addSkill(selectedSkill);
     }
+
+    set({ reward: null });
+    get().proceedToNextBattle();
   },
 
   // 보상 스킵
@@ -657,107 +688,23 @@ export const useGameStore = create<GameState & GameActions>((set, get) => ({
     if (!reward) return;
 
     set({ reward: null });
-
-    // 전직 보상이었으면 다음 전투로, 아니면 전직 체크
-    if (reward.isAdvancementReward) {
-      get().proceedToNextBattle();
-    } else {
-      get().checkAdvancement();
-    }
+    get().proceedToNextBattle();
   },
 
-  // 전직 조건 체크
+  // 전직 조건 체크 (현재 미사용 - 추후 재설계 예정)
   checkAdvancement: () => {
-    const { player, battle } = get();
-
-    // 이미 전직한 경우 스킵
-    if (player.characterClass !== 'warrior') {
-      get().proceedToNextBattle();
-      return;
-    }
-
-    // 전체 덱 (현재 상태의 덱)
-    const fullDeck = [...battle.deck, ...battle.hand, ...battle.discard];
-
-    // 전직 가능한 클래스 확인
-    const availableAdvancements = getAvailableAdvancements(player.characterClass, fullDeck);
-
-    if (availableAdvancements.length === 0) {
-      // 전직 조건 미충족 - 다음 전투로
-      get().proceedToNextBattle();
-      return;
-    }
-
-    if (availableAdvancements.length === 1) {
-      // 단일 전직 가능 - 바로 보상 카드 표시
-      const targetClass = availableAdvancements[0];
-      const advancementCards = createAdvancementRewardCards(targetClass);
-
-      set({
-        battle: { ...battle, phase: 'class_advancement' },
-        reward: {
-          cards: advancementCards,
-          isAdvancementReward: true,
-          targetAdvancement: targetClass,
-        },
-      });
-    } else {
-      // 다중 전직 가능 - 선택 화면 표시
-      set({
-        battle: { ...battle, phase: 'class_advancement' },
-        reward: {
-          cards: [],
-          isAdvancementReward: true,
-          advancementOptions: availableAdvancements,
-        },
-      });
-    }
+    // 전직 시스템은 추후 별도 구현
+    get().proceedToNextBattle();
   },
 
-  // 다중 전직 시 클래스 선택
-  selectAdvancement: (targetClass: CharacterClass) => {
-    const { battle, reward } = get();
-    if (!reward || battle.phase !== 'class_advancement') return;
-
-    // 선택한 클래스의 보상 카드 생성
-    const advancementCards = createAdvancementRewardCards(targetClass);
-
-    set({
-      reward: {
-        ...reward,
-        cards: advancementCards,
-        advancementOptions: undefined,  // 선택 화면 숨김
-        targetAdvancement: targetClass,
-      },
-    });
+  // 다중 전직 시 클래스 선택 (현재 미사용)
+  selectAdvancement: (_targetClass: CharacterClass) => {
+    // 전직 시스템은 추후 별도 구현
   },
 
-  // 전직 확정 (전직 보상 카드 선택)
-  confirmAdvancement: (cardId: string) => {
-    const { player, reward, battle } = get();
-    if (!reward || battle.phase !== 'class_advancement' || !reward.targetAdvancement) return;
-
-    const selectedCard = reward.cards.find(c => c.id === cardId);
-    if (!selectedCard) return;
-
-    // 선택한 클래스로 전직
-    const newPlayer = processClassAdvancement(player, reward.targetAdvancement);
-
-    // 덱에 카드 추가
-    const fullDeck = [...battle.deck, ...battle.hand, ...battle.discard, selectedCard];
-
-    set({
-      player: { ...newPlayer, activeBuffs: [] }, // 전직 시 버프 초기화
-      battle: {
-        ...battle,
-        deck: fullDeck,
-        hand: [],
-        discard: [],
-      },
-      reward: null,
-    });
-
-    // 다음 전투로
+  // 전직 확정 (현재 미사용)
+  confirmAdvancement: (_cardId: string) => {
+    // 전직 시스템은 추후 별도 구현
     get().proceedToNextBattle();
   },
 
@@ -797,14 +744,19 @@ export const useGameStore = create<GameState & GameActions>((set, get) => ({
     const destinations = generateDestinationOptions(nextRound, run.totalRounds, region.bossKey);
 
     set({
-      battle: { ...battle, phase: 'destination_selection' },
+      battle: {
+        ...battle,
+        phase: 'destination_selection',
+        hasTossedThisTurn: false,
+        lastTossResults: [],
+      },
       destinationOptions: destinations,
     });
   },
 
   // 행선지 선택
   selectDestination: (destinationId: string) => {
-    const { destinationOptions, player, battle, run } = get();
+    const { destinationOptions, player, run } = get();
     const selectedDestination = destinationOptions.find(d => d.id === destinationId);
     if (!selectedDestination) return;
 
@@ -881,25 +833,19 @@ export const useGameStore = create<GameState & GameActions>((set, get) => ({
       }
     }
 
-    // 모든 카드를 덱으로 모으고 셔플
-    const fullDeck = shuffle([...battle.deck, ...battle.hand, ...battle.discard]);
-
     set({
       player: {
         ...player,
         block: 0,
-        energy: player.maxEnergy,
         activeBuffs: [],
       },
       enemy,
       battle: {
         phase: 'player_turn',
-        animationPhase: 'drawing',
         combatAnimation: { ...defaultCombatAnimation },
         turn: 1,
-        deck: fullDeck,
-        hand: [],
-        discard: [],
+        hasTossedThisTurn: false,
+        lastTossResults: [],
       },
       run: {
         ...run,
@@ -908,17 +854,6 @@ export const useGameStore = create<GameState & GameActions>((set, get) => ({
       },
       destinationOptions: [],
     });
-
-    // 5장 드로우
-    get().drawCards(5);
-
-    // 드로우 애니메이션 완료 후 idle로 전환
-    const drawTime = ANIMATION_TIMING.DRAW_DURATION * 1000 + (5 * ANIMATION_TIMING.CARD_STAGGER * 1000);
-    setTimeout(() => {
-      set((state) => ({
-        battle: { ...state.battle, animationPhase: 'idle' },
-      }));
-    }, drawTime);
   },
 
   // 마을 진입 연출 후 장신구 선택 화면으로
@@ -981,25 +916,15 @@ export const useGameStore = create<GameState & GameActions>((set, get) => ({
 
   // 동료 선택 (선술집)
   selectCompanion: (companionId: string) => {
-    const { run, battle } = get();
+    const { run } = get();
     const companion = getCompanionById(companionId);
     if (!companion) return;
 
     // 동료 획득
     const newCompanions = [...run.companions, companion];
 
-    // 연계 카드 덱에 추가
-    const linkedCard = createCard(companion.linkedCardId);
-    const fullDeck = [...battle.deck, ...battle.hand, ...battle.discard, linkedCard];
-
     set({
       run: { ...run, companions: newCompanions },
-      battle: {
-        ...battle,
-        deck: fullDeck,
-        hand: [],
-        discard: [],
-      },
     });
 
     // 다음 행선지 선택으로
@@ -1016,12 +941,11 @@ export const useGameStore = create<GameState & GameActions>((set, get) => ({
 
   // 피의 제단 보상 선택 (다중 선택)
   selectBloodAltarRewards: (rewardIds: string[]) => {
-    const { player, run, battle } = get();
+    const { player, run } = get();
     const rewards = getBloodAltarRewards();
 
     const newPlayer = { ...player };
     const newRun = { ...run, bloodAltarActivated: true };
-    const newDeck = [...battle.deck, ...battle.hand, ...battle.discard];
 
     // 각 선택된 보상 처리
     for (const rewardId of rewardIds) {
@@ -1051,10 +975,7 @@ export const useGameStore = create<GameState & GameActions>((set, get) => ({
       if (penalty.goldCost) {
         newPlayer.gold = Math.max(0, newPlayer.gold - penalty.goldCost);
       }
-      if (penalty.curseCard) {
-        const curseCard = createCard('blood_debt');
-        newDeck.push(curseCard);
-      }
+      // 저주 카드는 이제 덱이 없으므로 스킵
       if (penalty.monsterHpBuff) {
         newRun.monsterHpBuffPercent += penalty.monsterHpBuff;
       }
@@ -1063,20 +984,20 @@ export const useGameStore = create<GameState & GameActions>((set, get) => ({
       }
     }
 
-    // 히든 보상: 3개 모두 선택 시 최대 에너지 +1
+    // 히든 보상: 3개 모두 선택 시 추가 동전 획득
     if (rewardIds.length === 3) {
-      newPlayer.maxEnergy += BLOOD_ALTAR_HIDDEN_REWARD.maxEnergyBonus;
+      // 은 동전 1개 추가
+      const silverInv = newPlayer.coinInventory.find(inv => inv.coinId === 'silver_coin');
+      if (silverInv) {
+        silverInv.count += 1;
+      } else {
+        newPlayer.coinInventory = [...newPlayer.coinInventory, { coinId: 'silver_coin', count: 1 }];
+      }
     }
 
     set({
       player: newPlayer,
       run: newRun,
-      battle: {
-        ...battle,
-        deck: newDeck,
-        hand: [],
-        discard: [],
-      },
     });
 
     // 다음 행선지 선택으로
