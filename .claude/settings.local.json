@@ -27,7 +27,14 @@
       "mcp__ClaudeTalkToFigma__get_node_info",
       "mcp__ClaudeTalkToFigma__set_text_content",
       "mcp__ClaudeTalkToFigma__set_stroke_color",
-      "mcp__ClaudeTalkToFigma__set_fill_color"
+      "mcp__ClaudeTalkToFigma__set_fill_color",
+      "mcp__plugin_claude-mem_mcp-search__search",
+      "mcp__plugin_claude-mem_mcp-search__get_observations",
+      "mcp__sequential-thinking__sequentialthinking",
+      "mcp__plugin_claude-mem_mcp-search__timeline",
+      "Bash(timeout /t 5)",
+      "Bash(npm run dev:*)",
+      "Bash(npm run balance-check:*)"
     ]
   },
   "enableAllProjectMcpServers": true,
@@ -36,5 +43,8 @@
     "sequential-thinking",
     "shrimp-task-manager",
     "ClaudeTalkToFigma"
-  ]
+  ],
+  "enabledPlugins": {
+    "claude-mem@thedotmack": true
+  }
 }
