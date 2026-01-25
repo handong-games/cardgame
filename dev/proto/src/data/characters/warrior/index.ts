@@ -1,5 +1,6 @@
 import type { CharacterClass } from '../../../types';
 import { WARRIOR_CARD_DEFINITIONS, WARRIOR_STARTER_DECK } from './cards';
+import { WARRIOR_BUFF_DEFINITIONS, WARRIOR_BUFF_EVENT_EFFECTS } from './buffs';
 
 export interface ClassDefinition {
   id: CharacterClass;
@@ -21,4 +22,4 @@ export const WARRIOR_CLASS: ClassDefinition = {
   cardPool: ['strike', 'defend', 'bash'],
 };
 
-export { WARRIOR_CARD_DEFINITIONS, WARRIOR_STARTER_DECK };
+export { WARRIOR_CARD_DEFINITIONS, WARRIOR_STARTER_DECK, WARRIOR_BUFF_DEFINITIONS, WARRIOR_BUFF_EVENT_EFFECTS };
