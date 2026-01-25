@@ -21,6 +21,13 @@
 | 드롭존하이라이트 | 02. proto/02. battle-scene/systems/card-preview.md | #드롭-존-하이라이트-drop-zone-highlight |
 | 카드경계감지 | 02. proto/02. battle-scene/systems/card-preview.md | #카드-경계-감지-card-boundary-detection |
 | 프리뷰해제애니메이션 | 02. proto/02. battle-scene/systems/card-preview.md | #프리뷰-해제-애니메이션-preview-exit-animation |
+| 프리뷰시스템 | 02. proto/02. battle-scene/systems/preview-system/system.md | 전체 |
+| 프리뷰UI | 02. proto/02. battle-scene/systems/preview-system/ui.md | 전체 |
+| 프리뷰애니메이션 | 02. proto/02. battle-scene/systems/preview-system/animation.md | 전체 |
+| 스킬바 | 02. proto/02. battle-scene/ui/action-bar-ui.md | 전체 |
+| 스킬슬롯 | 02. proto/02. battle-scene/systems/skill-system/ui.md | 전체 |
+| 코인영역 | 02. proto/02. battle-scene/systems/resource-system/ui.md | 전체 |
+| 코인애니메이션 | 02. proto/02. battle-scene/systems/resource-system/animation.md | 전체 |
 
 ---
 
@@ -28,10 +35,21 @@
 
 | 이름 | 문서 경로 |
 |-----|----------|
+| 스킬시스템 | 02. proto/02. battle-scene/systems/skill-system/system.md |
+| 코인시스템 | 02. proto/02. battle-scene/systems/resource-system/system.md |
+| 프리뷰시스템 | 02. proto/02. battle-scene/systems/preview-system/system.md |
 | 전직시스템 | 02. proto/02. battle-scene/systems/class-advancement.md |
 | 목적지시스템 | 02. proto/02. battle-scene/systems/destination-system.md |
 | 지역시스템 | 02. proto/02. battle-scene/systems/region-system.md |
 | 마을시스템 | 02. proto/02. battle-scene/systems/village-system.md |
+
+---
+
+## 밸런스 레지스트리
+
+| 이름 | 문서 경로 |
+|-----|----------|
+| 밸런스설계 | design/balance-design.md |
 
 ---
 
@@ -54,6 +72,16 @@
 
 ---
 
+## Claude 워크플로우 레지스트리
+
+| 이름 | 문서 경로 |
+|-----|----------|
+| 스킬생성워크플로우 | 00. claude/skill-creation-workflow.md |
+| 프롬프트처리규칙 | 00. claude/command-workflow.md |
+| Git규칙 | 00. claude/github.md |
+
+---
+
 ## 문서 구조
 
 ```
@@ -61,7 +89,8 @@
 ├── 00. claude/        # Claude 설정 문서
 │   ├── doc-index.md       # 이 파일
 │   ├── command-workflow.md # 프롬프트 처리 규칙
-│   └── github.md          # Git 규칙
+│   ├── github.md          # Git 규칙
+│   └── skill-creation-workflow.md # 스킬 생성 절차
 ├── 01. project/       # 프로젝트 기획
 │   └── 01. one-pager.md
 ├── 02. proto/         # 프로토타입 설계
@@ -72,6 +101,8 @@
 │       ├── animation.md   # 애니메이션
 │       └── systems/       # 시스템 문서
 ├── 03. wireframe/     # 와이어프레임
+├── design/            # 게임 설계
+│   └── balance-design.md # 밸런스 설계
 └── contents/          # 게임 콘텐츠
     ├── cards.md
     ├── paladin.md
