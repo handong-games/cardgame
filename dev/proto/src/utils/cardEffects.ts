@@ -20,9 +20,10 @@ export function checkCondition(
       if (typeof conditionValue !== 'number') return false;
       return player.hp < conditionValue;
 
-    case 'energy_above':
+    case 'coins_above':
+      // TODO: lastTossResults 기반으로 계산 필요
       if (typeof conditionValue !== 'number') return false;
-      return player.energy > conditionValue;
+      return false;  // 임시로 비활성화
 
     default:
       return false;

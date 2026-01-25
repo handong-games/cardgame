@@ -7,6 +7,8 @@ export const CLASS_ICONS: Record<CharacterClass, string> = {
   paladin: '⚔️',
   berserker: '🔥',
   swordmaster: '⚔️',
+  rogue: '🗡️',
+  mage: '🔮',
 };
 
 // 클래스별 색상
@@ -15,6 +17,8 @@ export const CLASS_COLORS: Record<CharacterClass, string> = {
   paladin: '#FFD700',
   berserker: '#FF4444',
   swordmaster: '#4488FF',
+  rogue: '#888888',
+  mage: '#888888',
 };
 
 // 클래스 한글명
@@ -23,6 +27,8 @@ export const CLASS_NAMES: Record<CharacterClass, string> = {
   paladin: '팔라딘',
   berserker: '버서커',
   swordmaster: '검사',
+  rogue: '도적',
+  mage: '마법사',
 };
 
 // 전직 힌트 정보 타입

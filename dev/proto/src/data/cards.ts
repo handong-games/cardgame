@@ -10,6 +10,8 @@ const CLASS_REWARD_POOLS: Record<CharacterClass, string[]> = {
   paladin: PALADIN_REWARD_POOL,
   berserker: COMMON_CARD_POOL,  // TODO: 버서커 전용 풀
   swordmaster: COMMON_CARD_POOL,  // TODO: 검사 전용 풀
+  rogue: COMMON_CARD_POOL,  // TODO: 도적 전용 풀
+  mage: COMMON_CARD_POOL,  // TODO: 마법사 전용 풀
 };
 
 // 모든 카드 정의 통합 (캐릭터별 카드 + 공통 카드 + 저주 카드 병합)

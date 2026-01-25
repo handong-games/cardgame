@@ -53,6 +53,24 @@ export const ADVANCEMENT_DEFINITIONS: Record<CharacterClass, AdvancementDefiniti
     auraId: 'blade_mastery',
     auraDescription: '카드 사용 3회마다 카드 1장 드로우',
   },
+  rogue: {
+    id: 'rogue',
+    name: '도적',
+    description: '(미구현)',
+    icon: '🗡️',
+    color: '#888888',
+    requiredCardIds: [],
+    auraDescription: '',
+  },
+  mage: {
+    id: 'mage',
+    name: '마법사',
+    description: '(미구현)',
+    icon: '🔮',
+    color: '#888888',
+    requiredCardIds: [],
+    auraDescription: '',
+  },
 };
 
 // 전직 가능 여부 확인 (기본 클래스에서만 전직 가능)
@@ -69,4 +87,6 @@ export const ADVANCEMENT_EXCLUSIVE_CARDS: Record<CharacterClass, string[]> = {
   paladin: ['aura_of_devotion', 'holy_strike', 'shield_of_purification'],
   berserker: [], // TODO: 버서커 고유 카드 추가
   swordmaster: [], // TODO: 검사 고유 카드 추가
+  rogue: [], // TODO: 도적 고유 카드 추가
+  mage: [], // TODO: 마법사 고유 카드 추가
 };
