@@ -1,0 +1,30 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* 마크다운 에디터 다크 테마 커스텀 */
+.w-md-editor {
+  --color-canvas-default: #1e293b !important;
+  --color-fg-default: #e2e8f0 !important;
+  --color-border-default: #334155 !important;
+}
+
+.w-md-editor-text-pre > code,
+.w-md-editor-text-input {
+  font-size: 14px !important;
+  line-height: 1.6 !important;
+}
+
+/* 이미지 뷰어 커스텀 */
+.PhotoView-Slider__BannerWrap {
+  background-color: rgba(0, 0, 0, 0.8) !important;
+}

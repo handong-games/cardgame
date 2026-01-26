@@ -40,7 +40,7 @@
 ### 전사 (Warrior)
 | 요소 | 설명 |
 |------|------|
-| 주색 | Dusty Red #B85450 |
+| 주색 | Dusty Red #bb5955 |
 | 보조색 | Worn Gray #6B7B8B |
 | 악센트 | Leather Brown #8B6914 (금색 X) |
 | 특징 | 허름하고 낡은 갑옷, 자기 키만한 낡은 검 |
@@ -82,6 +82,9 @@ big head small body 2-2.5 head ratio,
 large expressive round eyes,
 rosy blushing cheeks on both sides,
 warm friendly smile expression,
+body facing right diagonal direction,
+three-quarter view angled to right,
+character looking toward front-right,
 vertical portrait 2:3 ratio
 ```
 
@@ -125,7 +128,10 @@ scary fierce expression,
 complex detailed armor,
 wooden frame,
 gold trim gold decorations,
-shiny new armor
+shiny new armor,
+facing left,
+looking left,
+back view
 ```
 
 ---
@@ -164,6 +170,7 @@ shiny new armor
 | 크고 동그란 눈? | □ |
 | 양 볼에 홍조 있음? | □ |
 | 따뜻하고 친근한 표정? | □ |
+| 몸이 우측 대각선을 향함? | □ |
 | 수채화 느낌 채색? | □ |
 | 낡은 양피지 테두리? | □ |
 | 둥근 사각형 카드 형태? | □ |
