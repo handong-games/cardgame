@@ -21,6 +21,17 @@ const ALLOWED_CATEGORIES = [
 // 허용된 이미지 확장자
 const IMAGE_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg']
 
+interface AssetMetadata {
+  prompt?: string
+  negative?: string
+  model?: string
+  generatedAt?: string
+  parameters?: {
+    aspectRatio?: string
+    [key: string]: unknown
+  }
+}
+
 interface AssetInfo {
   name: string
   category: string
@@ -28,12 +39,27 @@ interface AssetInfo {
   url: string
   size: number
   modified: Date
+  metadata?: AssetMetadata
 }
 
 // 이미지 파일인지 확인
 function isImageFile(filename: string): boolean {
   const ext = path.extname(filename).toLowerCase()
   return IMAGE_EXTENSIONS.includes(ext)
+}
+
+// 메타데이터 파일 읽기
+async function readMetadata(imagePath: string): Promise<AssetMetadata | undefined> {
+  // 이미지 확장자 제거하고 .meta.json 붙이기
+  const baseName = imagePath.replace(/\.[^.]+$/, '')
+  const metaPath = `${baseName}.meta.json`
+
+  try {
+    const content = await fs.readFile(metaPath, 'utf-8')
+    return JSON.parse(content) as AssetMetadata
+  } catch {
+    return undefined
+  }
 }
 
 // 카테고리별 에셋 조회
@@ -49,6 +75,9 @@ async function getAssetsInCategory(category: string): Promise<AssetInfo[]> {
         const filePath = path.join(categoryPath, entry.name)
         const stat = await fs.stat(filePath)
 
+        // 메타데이터 파일 읽기 시도
+        const metadata = await readMetadata(filePath)
+
         assets.push({
           name: entry.name,
           category,
@@ -56,6 +85,7 @@ async function getAssetsInCategory(category: string): Promise<AssetInfo[]> {
           url: `/api/assets/file/${category}/${entry.name}`,
           size: stat.size,
           modified: stat.mtime,
+          metadata,
         })
       }
     }

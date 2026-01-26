@@ -71,6 +71,17 @@ export async function saveDoc(docPath: string, content: string): Promise<void> {
 }
 
 // 에셋 API
+export interface AssetMetadata {
+  prompt?: string
+  negative?: string
+  model?: string
+  generatedAt?: string
+  parameters?: {
+    aspectRatio?: string
+    [key: string]: unknown
+  }
+}
+
 export interface AssetInfo {
   name: string
   category: string
@@ -78,6 +89,7 @@ export interface AssetInfo {
   url: string
   size: number
   modified: string
+  metadata?: AssetMetadata
 }
 
 export interface AssetsResponse {

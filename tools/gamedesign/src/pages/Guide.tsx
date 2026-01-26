@@ -584,78 +584,7 @@ creature looking toward front-left`}
       </section>
 
       {/* 실전 예시 */}
-      <section className="bg-slate-800 rounded-xl p-6 border border-slate-700">
-        <h3 className="text-xl font-semibold text-emerald-400 mb-4">📝 실전 프롬프트 예시</h3>
-
-        <div className="space-y-6">
-          {/* 캐릭터 예시 */}
-          <div>
-            <h4 className="font-medium text-emerald-400 mb-3">🦸 팔라딘 캐릭터 프롬프트</h4>
-            <pre className="text-xs text-slate-300 bg-slate-900 p-4 rounded-lg overflow-x-auto">
-{`hand-drawn storybook illustration style,
-pencil sketch with watercolor coloring,
-warm cozy fairy tale atmosphere,
-
-cute chibi paladin character portrait,
-big head small body SD proportions 2.5 heads tall,
-large expressive round eyes with sparkle,
-rosy blushing cheeks on both sides,
-warm gentle smile, friendly expression,
-
-shining golden armor with elegant design,
-holy knight appearance, warm golden glow,
-body facing right diagonal direction,
-three-quarter view angled to right,
-
-vintage aged parchment card border,
-rounded rectangle card shape,
-worn torn vintage paper corners,
-textured beige paper background,
-vertical portrait 2:3 ratio
-
---negative
-scary dark menacing, sharp teeth,
-realistic 3D render, cold colors,
-facing left, looking left, back view`}
-            </pre>
-          </div>
-
-          {/* 몬스터 예시 */}
-          <div>
-            <h4 className="font-medium text-red-400 mb-3">👹 숲 고블린 몬스터 프롬프트</h4>
-            <pre className="text-xs text-slate-300 bg-slate-900 p-4 rounded-lg overflow-x-auto">
-{`hand-drawn storybook illustration style,
-pencil sketch with watercolor coloring,
-dark fairytale medieval fantasy atmosphere,
-
-menacing forest goblin creature portrait,
-exaggerated threatening proportions,
-glowing yellow piercing eyes with slitted pupils,
-sharp teeth visible in wicked malicious grin,
-feral wild villainous expression,
-
-sickly green rough skin, pointed sharp ears,
-ragged dirty cloth clothing,
-jagged wooden club weapon,
-angular sharp body shapes,
-body facing left diagonal direction,
-three-quarter view angled to left,
-
-vintage aged parchment card border,
-rounded rectangle card shape,
-worn torn vintage paper corners,
-textured beige paper background,
-vertical portrait 2:3 ratio
-
---negative
-cute friendly adorable kawaii,
-chibi SD proportions, rosy blushing cheeks,
-playful innocent expression,
-facing right, looking right, back view`}
-            </pre>
-          </div>
-        </div>
-      </section>
+      <PromptExamples />
 
       {/* 일관성 유지 팁 */}
       <section className="bg-gradient-to-r from-amber-900/30 to-slate-800 rounded-xl p-6 border border-amber-700/50">
@@ -715,6 +644,406 @@ facing right, looking right, back view`}
         </div>
       </section>
     </div>
+  )
+}
+
+type ExampleCategory = 'character' | 'monster-t1' | 'monster-t2' | 'monster-t3' | 'background'
+
+interface PromptExample {
+  id: string
+  name: string
+  nameEn: string
+  prompt: string
+  negative: string
+}
+
+const PROMPT_EXAMPLES: Record<ExampleCategory, PromptExample[]> = {
+  'character': [
+    {
+      id: 'warrior',
+      name: '전사',
+      nameEn: 'Warrior',
+      prompt: `hand-drawn storybook illustration style,
+pencil sketch with watercolor coloring,
+vintage aged parchment card border,
+rounded rectangle card shape,
+worn torn vintage paper corners,
+textured beige paper background,
+
+cute chibi SD proportions 2-2.5 head ratio,
+adorable brave warrior character,
+steel armor with red accents,
+short sword and round shield,
+rosy blushing cheeks on both sides,
+large expressive round eyes,
+confident friendly smile,
+body facing right diagonal direction,
+three-quarter view angled to right,
+warm cozy fairy tale atmosphere`,
+      negative: `scary menacing dark, sharp teeth fangs, glowing eyes, facing left, looking left, back view, realistic, 3D render, CGI, cold colors, blue dominant`
+    },
+    {
+      id: 'paladin',
+      name: '팔라딘',
+      nameEn: 'Paladin',
+      prompt: `hand-drawn storybook illustration style,
+pencil sketch with watercolor coloring,
+vintage aged parchment card border,
+rounded rectangle card shape,
+worn torn vintage paper corners,
+textured beige paper background,
+
+cute chibi SD proportions 2-2.5 head ratio,
+adorable noble paladin character,
+golden shining plate armor,
+holy sword with glowing runes,
+rosy blushing cheeks on both sides,
+large expressive gentle round eyes,
+serene confident smile,
+body facing right diagonal direction,
+three-quarter view angled to right,
+warm divine holy light atmosphere`,
+      negative: `scary menacing dark, sharp teeth fangs, glowing red eyes, facing left, looking left, back view, realistic, 3D render, evil corrupted, dark colors`
+    }
+  ],
+  'monster-t1': [
+    {
+      id: 'poison-slime',
+      name: '독슬라임',
+      nameEn: 'Poison Slime',
+      prompt: `hand-drawn storybook illustration style,
+pencil sketch with watercolor coloring,
+vintage aged parchment card border,
+rounded rectangle card shape,
+dark fairytale medieval fantasy,
+
+menacing slime creature,
+toxic green translucent body,
+glowing yellow-green core,
+acidic bubbles on surface,
+sharp angular body shape,
+piercing glowing yellow eyes,
+feral malicious expression,
+dripping corrosive slime,
+body facing left diagonal direction,
+three-quarter view angled to left,
+ominous forest background hints`,
+      negative: `cute adorable kawaii, rosy blushing cheeks, chibi SD proportions, friendly smile, facing right, looking right, pastel colors, warm atmosphere`
+    },
+    {
+      id: 'venom-shroom',
+      name: '독버섯',
+      nameEn: 'Venom Shroom',
+      prompt: `hand-drawn storybook illustration style,
+pencil sketch with watercolor coloring,
+vintage aged parchment card border,
+dark fairytale medieval fantasy,
+
+menacing mushroom creature,
+toxic purple spotted cap,
+glowing spore particles,
+gnarled twisted stem body,
+sharp teeth visible in mouth,
+piercing toxic green eyes,
+villainous cunning expression,
+poisonous aura emanating,
+body facing left diagonal direction,
+three-quarter view angled to left,
+decaying forest floor setting`,
+      negative: `cute adorable kawaii, rosy blushing cheeks, chibi SD proportions, friendly smile, facing right, looking right, pastel colors, playful innocent`
+    },
+    {
+      id: 'wicked-goblin',
+      name: '사악한 고블린',
+      nameEn: 'Wicked Goblin',
+      prompt: `hand-drawn storybook illustration style,
+pencil sketch with watercolor coloring,
+vintage aged parchment card border,
+dark fairytale medieval fantasy,
+
+menacing small goblin creature,
+sickly green wrinkled skin,
+pointed ears and sharp nose,
+crude rusty dagger weapon,
+sharp teeth fangs visible,
+glowing yellow malicious eyes,
+feral wicked grin expression,
+hunched predatory posture,
+body facing left diagonal direction,
+three-quarter view angled to left,
+shadowy forest ambush setting`,
+      negative: `cute adorable kawaii, rosy blushing cheeks, chibi SD proportions, friendly smile, facing right, looking right, clean bright colors`
+    }
+  ],
+  'monster-t2': [
+    {
+      id: 'cunning-foxwolf',
+      name: '교활한 늑대여우',
+      nameEn: 'Cunning Foxwolf',
+      prompt: `hand-drawn storybook illustration style,
+pencil sketch with watercolor coloring,
+vintage aged parchment card border,
+dark fairytale medieval fantasy,
+
+menacing fox-wolf hybrid creature,
+sleek dark crimson fur,
+multiple flowing tails with fire tips,
+sharp angular facial features,
+calculating intelligent eyes,
+glowing amber piercing gaze,
+cunning predatory smirk,
+medium-sized threatening build,
+battle scars on fur,
+body facing left diagonal direction,
+three-quarter view angled to left,
+moonlit forest clearing setting`,
+      negative: `cute adorable kawaii, rosy blushing cheeks, chibi SD proportions, friendly playful, facing right, looking right, soft fluffy appearance`
+    },
+    {
+      id: 'rotting-golem',
+      name: '썩은 골렘',
+      nameEn: 'Rotting Golem',
+      prompt: `hand-drawn storybook illustration style,
+pencil sketch with watercolor coloring,
+vintage aged parchment card border,
+dark fairytale medieval fantasy,
+
+menacing corrupted moss golem,
+decaying stone and rotting plants,
+glowing toxic green cracks,
+twisted gnarled tree limbs,
+hollow burning eye sockets,
+eerie green flame eyes,
+slow menacing presence,
+medium imposing figure,
+fungal growths covering body,
+body facing left diagonal direction,
+three-quarter view angled to left,
+swamp forest environment`,
+      negative: `cute adorable kawaii, rosy blushing cheeks, chibi SD proportions, friendly nature spirit, facing right, looking right, vibrant healthy green`
+    }
+  ],
+  'monster-t3': [
+    {
+      id: 'corrupted-king',
+      name: '부패의 왕',
+      nameEn: 'Corrupted Mushroom King',
+      prompt: `hand-drawn storybook illustration style,
+pencil sketch with watercolor coloring,
+vintage aged parchment card border,
+dark fairytale medieval fantasy,
+
+imposing corrupted mushroom monarch,
+massive twisted crown of fungi,
+toxic spore cloud surrounding,
+throne made of dead trees,
+multiple glowing eyes,
+dominating overwhelming presence,
+ancient evil wisdom expression,
+dark purple and sickly green palette,
+reality-warping aura effects,
+large boss-tier monster proportions,
+body facing left diagonal direction,
+three-quarter view angled to left,
+corrupted forest throne room setting`,
+      negative: `cute adorable kawaii, rosy blushing cheeks, chibi SD proportions, friendly smile, facing right, looking right, small weak, pastel colors, healthy forest`
+    },
+    {
+      id: 'yokai-gumiho',
+      name: '요괴 구미호',
+      nameEn: 'Yokai Nine-Tailed Fox',
+      prompt: `hand-drawn storybook illustration style,
+pencil sketch with watercolor coloring,
+vintage aged parchment card border,
+dark fairytale medieval fantasy,
+
+majestic malevolent nine-tailed fox spirit,
+nine flowing spectral tails,
+ethereal ghostly flame aura,
+ancient demonic beauty,
+piercing crimson glowing eyes,
+dominating seductive menace expression,
+sharp elegant claws and fangs,
+supernatural proportions,
+soul orbs floating nearby,
+dark purple and blood red palette,
+large boss-tier monster size,
+body facing left diagonal direction,
+three-quarter view angled to left,
+haunted moonlit shrine setting`,
+      negative: `cute adorable kawaii, rosy blushing cheeks, chibi SD proportions, friendly playful fox, facing right, looking right, small cute tails, warm friendly atmosphere`
+    }
+  ],
+  'background': [
+    {
+      id: 'forest-battle',
+      name: '숲 전투 배경',
+      nameEn: 'Forest Battle',
+      prompt: `hand-drawn storybook illustration style,
+pencil sketch with watercolor coloring,
+wide panoramic landscape format,
+dark fairytale forest clearing,
+ancient twisted trees surrounding,
+dramatic lighting through canopy,
+mystical fog effects,
+battle-scarred ground,
+fallen leaves and debris,
+tense dramatic atmosphere,
+deep greens and earth browns,
+amber sunset light filtering through,
+no characters or creatures visible,
+empty scene ready for card game`,
+      negative: `characters, creatures, monsters, people, modern elements, buildings, technology, bright cheerful, cute cartoon style`
+    },
+    {
+      id: 'dungeon-entrance',
+      name: '던전 입구',
+      nameEn: 'Dungeon Entrance',
+      prompt: `hand-drawn storybook illustration style,
+pencil sketch with watercolor coloring,
+wide panoramic landscape format,
+ominous dungeon entrance,
+ancient stone archway,
+carved runes glowing faintly,
+descending stone stairs,
+cobwebs and cracks in stone,
+eerie blue-green torchlight,
+mysterious fog from within,
+cold oppressive atmosphere,
+gray stone and dark shadows,
+hints of treasure beyond,
+no characters or creatures visible,
+empty scene ready for card game`,
+      negative: `characters, creatures, monsters, people, modern elements, bright sunlight, cheerful atmosphere, cute style, colorful`
+    }
+  ]
+}
+
+function PromptExamples() {
+  const [selectedCategory, setSelectedCategory] = useState<ExampleCategory>('character')
+  const [selectedExample, setSelectedExample] = useState<string>('warrior')
+
+  const categories = [
+    { id: 'character' as ExampleCategory, label: '캐릭터', icon: '🦸', color: 'emerald' },
+    { id: 'monster-t1' as ExampleCategory, label: '몬스터 T1', icon: '👹', color: 'yellow' },
+    { id: 'monster-t2' as ExampleCategory, label: '몬스터 T2', icon: '👺', color: 'orange' },
+    { id: 'monster-t3' as ExampleCategory, label: '몬스터 T3', icon: '🐉', color: 'red' },
+    { id: 'background' as ExampleCategory, label: '배경', icon: '🏞️', color: 'blue' },
+  ]
+
+  const currentExamples = PROMPT_EXAMPLES[selectedCategory]
+  const currentExample = currentExamples.find(e => e.id === selectedExample) || currentExamples[0]
+
+  const handleCategoryChange = (category: ExampleCategory) => {
+    setSelectedCategory(category)
+    setSelectedExample(PROMPT_EXAMPLES[category][0].id)
+  }
+
+  const getCategoryColor = (category: ExampleCategory) => {
+    const cat = categories.find(c => c.id === category)
+    return cat?.color || 'slate'
+  }
+
+  return (
+    <section className="bg-slate-800 rounded-xl p-6 border border-slate-700">
+      <h3 className="text-xl font-semibold text-emerald-400 mb-4">📝 실전 프롬프트 예시</h3>
+      <p className="text-slate-300 text-sm mb-6">
+        버튼을 클릭하여 다양한 에셋의 실제 프롬프트 예시를 확인할 수 있습니다.
+        각 프롬프트는 5레이어 시스템을 적용한 완성 형태입니다.
+      </p>
+
+      {/* 카테고리 선택 */}
+      <div className="flex flex-wrap gap-2 mb-4">
+        {categories.map((cat) => (
+          <button
+            key={cat.id}
+            onClick={() => handleCategoryChange(cat.id)}
+            className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+              selectedCategory === cat.id
+                ? cat.color === 'emerald' ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-900/50'
+                : cat.color === 'yellow' ? 'bg-yellow-600 text-white shadow-lg shadow-yellow-900/50'
+                : cat.color === 'orange' ? 'bg-orange-600 text-white shadow-lg shadow-orange-900/50'
+                : cat.color === 'red' ? 'bg-red-600 text-white shadow-lg shadow-red-900/50'
+                : 'bg-blue-600 text-white shadow-lg shadow-blue-900/50'
+                : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
+            }`}
+          >
+            <span className="mr-2">{cat.icon}</span>
+            {cat.label}
+          </button>
+        ))}
+      </div>
+
+      {/* 에셋 선택 */}
+      <div className="flex flex-wrap gap-2 mb-6 pb-4 border-b border-slate-700">
+        {currentExamples.map((example) => (
+          <button
+            key={example.id}
+            onClick={() => setSelectedExample(example.id)}
+            className={`px-3 py-1.5 rounded text-sm transition-all ${
+              selectedExample === example.id
+                ? 'bg-slate-600 text-white ring-2 ring-slate-400'
+                : 'bg-slate-900 text-slate-400 hover:bg-slate-700 hover:text-slate-200'
+            }`}
+          >
+            {example.name}
+            <span className="text-slate-500 ml-1 text-xs">({example.nameEn})</span>
+          </button>
+        ))}
+      </div>
+
+      {/* 프롬프트 표시 */}
+      <div className="space-y-4">
+        <div>
+          <div className="flex items-center gap-2 mb-2">
+            <h4 className={`font-medium ${
+              getCategoryColor(selectedCategory) === 'emerald' ? 'text-emerald-400' :
+              getCategoryColor(selectedCategory) === 'red' ? 'text-red-400' :
+              getCategoryColor(selectedCategory) === 'orange' ? 'text-orange-400' :
+              getCategoryColor(selectedCategory) === 'yellow' ? 'text-yellow-400' :
+              'text-blue-400'
+            }`}>
+              ✅ 프롬프트 (Prompt)
+            </h4>
+            <span className="text-xs text-slate-500 bg-slate-900 px-2 py-0.5 rounded">
+              {currentExample.name} - {currentExample.nameEn}
+            </span>
+          </div>
+          <pre className="bg-slate-900 p-4 rounded-lg text-sm text-slate-300 overflow-x-auto whitespace-pre-wrap max-h-64 overflow-y-auto">
+            {currentExample.prompt}
+          </pre>
+        </div>
+
+        <div>
+          <h4 className="font-medium text-red-400 mb-2">❌ 네거티브 프롬프트 (Negative)</h4>
+          <pre className="bg-red-950/30 border border-red-900/50 p-4 rounded-lg text-sm text-red-200 overflow-x-auto whitespace-pre-wrap">
+            {currentExample.negative}
+          </pre>
+        </div>
+      </div>
+
+      {/* 복사 버튼 */}
+      <div className="flex gap-3 mt-4">
+        <button
+          onClick={() => navigator.clipboard.writeText(currentExample.prompt)}
+          className="px-4 py-2 bg-emerald-700 hover:bg-emerald-600 text-white text-sm rounded-lg transition-colors"
+        >
+          📋 프롬프트 복사
+        </button>
+        <button
+          onClick={() => navigator.clipboard.writeText(currentExample.negative)}
+          className="px-4 py-2 bg-red-700 hover:bg-red-600 text-white text-sm rounded-lg transition-colors"
+        >
+          📋 네거티브 복사
+        </button>
+        <button
+          onClick={() => navigator.clipboard.writeText(`${currentExample.prompt}\n\n--negative\n${currentExample.negative}`)}
+          className="px-4 py-2 bg-slate-700 hover:bg-slate-600 text-white text-sm rounded-lg transition-colors"
+        >
+          📋 전체 복사
+        </button>
+      </div>
+    </section>
   )
 }
 
