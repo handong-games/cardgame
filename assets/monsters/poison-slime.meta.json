@@ -1,0 +1,9 @@
+{
+  "prompt": "hand-drawn storybook illustration style,\npencil sketch with watercolor coloring,\nvintage aged parchment card border,\nrounded rectangle card shape,\ndark fairytale medieval fantasy,\nmenacing slime creature,\ntoxic green translucent body,\nglowing yellow-green core,\nacidic bubbles on surface,\nsharp angular body shape,\npiercing glowing yellow eyes,\nferal malicious expression,\ndripping corrosive slime,\nbody facing left diagonal direction,\nthree-quarter view angled to left,\nominous forest background hints",
+  "negative": "cute adorable kawaii, rosy blushing cheeks, chibi SD proportions, friendly smile, facing right, looking right, pastel colors, warm atmosphere",
+  "model": "nano banana pro",
+  "generatedAt": "2026-01-27T04:30:00Z",
+  "parameters": {
+    "aspectRatio": "1:1"
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "prompt": "hand-drawn storybook illustration style,\npencil sketch with watercolor coloring,\nvintage aged parchment card border,\ndark fairytale medieval fantasy,\nmenacing fox-wolf hybrid creature,\nsleek dark crimson fur,\nmultiple flowing tails with fire tips,\nsharp angular facial features,\ncalculating intelligent eyes,\nglowing amber piercing gaze,\ncunning predatory smirk,\nmedium-sized threatening build,\nbattle scars on fur,\nbody facing left diagonal direction,\nthree-quarter view angled to left,\nmoonlit forest clearing setting",
+  "negative": "cute adorable kawaii, rosy blushing cheeks, chibi SD proportions, friendly playful, facing right, looking right, soft fluffy appearance",
+  "model": "nano banana pro",
+  "generatedAt": "2026-01-27T04:31:00Z",
+  "parameters": {
+    "aspectRatio": "1:1"
+  }
+}

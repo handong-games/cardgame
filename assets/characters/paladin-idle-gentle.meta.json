@@ -1,7 +1,7 @@
 {
   "prompt": "hand-drawn storybook illustration style,\npencil sketch with watercolor coloring,\nvintage aged parchment card border,\nrounded rectangle card shape,\nworn torn vintage paper corners,\ntextured beige paper background,\n\ncute chibi SD proportions 2-2.5 head ratio,\nadorable noble paladin character,\ngolden shining plate armor,\nholy sword with glowing runes,\nrosy blushing cheeks on both sides,\nlarge expressive gentle round eyes,\nserene confident smile,\nbody facing right diagonal direction,\nthree-quarter view angled to right,\nwarm divine holy light atmosphere",
   "negative": "scary menacing dark, sharp teeth fangs, glowing red eyes, facing left, looking left, back view, realistic, 3D render, evil corrupted, dark colors",
-  "model": "gemini-2.0-flash-exp",
+  "model": "nano banana pro",
   "generatedAt": "2026-01-26T10:30:00Z",
   "parameters": {
     "aspectRatio": "1:1"

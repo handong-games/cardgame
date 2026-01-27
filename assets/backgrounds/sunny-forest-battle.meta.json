@@ -1,7 +1,7 @@
 {
   "prompt": "hand-drawn storybook illustration style,\npencil sketch with watercolor coloring,\nwide panoramic landscape format,\nbright enchanted forest clearing,\nancient trees with golden sunlight filtering through,\nsoft dappled light effects,\nmystical warm atmosphere,\nwildflowers scattered on forest floor,\ngentle morning mist,\ncozy fairy tale forest setting,\ndeep greens and warm golden tones,\nsunbeams creating beautiful light rays,\nno characters or creatures visible,\nempty scene ready for card game battle",
   "negative": "characters, creatures, monsters, people, modern elements, buildings, technology, dark gloomy, horror style, night scene",
-  "model": "gemini-2.0-flash-exp",
+  "model": "api: gemini-3-pro-image-preview",
   "generatedAt": "2026-01-25T15:00:00Z",
   "parameters": {
     "aspectRatio": "16:9"
