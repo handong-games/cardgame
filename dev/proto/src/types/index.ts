@@ -29,7 +29,7 @@ export interface CoinInventory {
 
 // 스킬 효과 타입
 export interface SkillEffect {
-  type: 'damage' | 'block' | 'heal' | 'apply_buff' | 'coin_gain'
+  type: 'damage' | 'block' | 'heal' | 'apply_buff' | 'apply_debuff' | 'coin_gain'
     | 'dot'          // 지속 데미지 (독, 화상)
     | 'lifesteal'    // 흡혈
     | 'evasion'      // 회피
@@ -41,6 +41,7 @@ export interface SkillEffect {
   buffId?: string;  // apply_buff일 때 사용
   dotTurns?: number;  // DoT 지속 턴 수
   debuffId?: string;  // 디버프 ID (독, 화상 등)
+  duration?: number;  // 디버프 지속 시간 (턴)
 }
 
 // 조건부 스킬 효과
@@ -79,7 +80,7 @@ export interface SkillState {
   usedThisTurn: number;       // 이번 턴 사용 횟수
   cooldownRemaining: number;  // 남은 쿨다운 턴
 }
-export type TargetType = 'enemy' | 'self' | 'none';  // 타겟 지정 타입
+export type TargetType = 'enemy' | 'self' | 'none' | 'all_enemies';  // 타겟 지정 타입
 export type CharacterClass = 'warrior' | 'paladin' | 'berserker' | 'swordmaster' | 'rogue' | 'mage';
 export type CardRarity = 'basic' | 'common' | 'rare' | 'special' | 'curse';
 
@@ -98,7 +99,9 @@ export type ConditionType = 'buff_active' | 'hp_below' | 'coins_above'
   | 'enemy_has_debuff'  // 적 디버프 보유
   | 'enemy_hp_below'    // 적 HP N% 미만
   | 'on_hit'            // 적중 시
-  | 'on_kill';          // 처치 시
+  | 'on_kill'           // 처치 시
+  | 'last_attacked_target'  // 연속 베기용 (직전 공격 대상)
+  | 'all_tails';        // 절망의 일격용 (모든 코인이 뒷면)
 
 export interface ConditionalEffect {
   condition: ConditionType;
@@ -179,7 +182,7 @@ export interface Player {
 
   // 코인은 battle.lastTossResults에서 계산됨 (Player.coins 제거됨)
   coinInventory: CoinInventory[];   // 보유 동전 목록
-  gold: number;        // 보유 골드
+  souls: number;        // 보유 영혼
   characterClass: CharacterClass;
   activeBuffs: ActiveBuff[];
   // 스킬 시스템
@@ -198,13 +201,13 @@ export interface Enemy {
   maxHp: number;
   block: number;
   intent: EnemyIntent;  // 다음 행동 의도
-  goldReward: number;   // 처치 시 골드 보상
+  soulReward: number;   // 처치 시 영혼 보상
   activeDebuffs?: ActiveDebuff[];  // 활성 디버프 (독, 화상 등)
 }
 
 // 적 의도 (다음 턴에 할 행동)
 export interface EnemyIntent {
-  type: 'attack' | 'defend' | 'buff';
+  type: 'attack' | 'defend' | 'buff' | 'debuff';
   value: number;
 }
 
@@ -274,11 +277,11 @@ export interface Facility {
 }
 
 // 피의 제단 보상 타입
-export type BloodAltarRewardType = 'gold' | 'maxHp' | 'accessory';
+export type BloodAltarRewardType = 'soul' | 'maxHp' | 'accessory';
 
 export interface BloodAltarPenalty {
   hpCost?: number;           // 즉시 HP 손실
-  goldCost?: number;         // 즉시 골드 손실
+  soulCost?: number;         // 즉시 영혼 손실
   curseCard?: boolean;       // 저주 카드 획득
   monsterHpBuff?: number;    // 몬스터 HP 강화 비율 (0.2 = 20%)
   monsterAttackBuff?: number; // 몬스터 공격력 강화 비율
@@ -291,7 +294,7 @@ export interface BloodAltarReward {
   description: string;
   emoji: string;
   // 보상
-  goldReward?: number;       // 골드 보상
+  soulReward?: number;       // 영혼 보상
   maxHpReward?: number;      // 최대 HP 증가
   accessoryId?: string;      // 장신구 보상
   // 패널티
@@ -343,6 +346,7 @@ export interface BattleState {
   turn: number;
   hasTossedThisTurn: boolean;      // 이번 턴 코인 토스 여부
   lastTossResults: CoinTossResult[];  // 마지막 토스 결과 (애니메이션용)
+  lastAttackedTargetId?: string;   // 연속 베기 추적용 (직전 공격 대상 ID)
 }
 
 // 드래그 상태

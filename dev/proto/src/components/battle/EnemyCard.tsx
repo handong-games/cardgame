@@ -1,5 +1,5 @@
 import { motion, useAnimationControls } from 'framer-motion';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { Enemy } from '../../types';
 import { HPBar } from '../common/HPBar';
 import {
@@ -9,6 +9,7 @@ import {
   blockNumberAnimation,
   COMBAT_TIMING,
 } from '../../animations';
+import { getBuffDefinition } from '../../utils/buffSystem';
 
 interface EnemyCardProps {
   enemy: Enemy;
@@ -27,17 +28,25 @@ export function EnemyCard({
   const shieldControls = useAnimationControls();
   const blockNumberControls = useAnimationControls();
   const prevBlock = useRef(enemy.block);
+  const [hoveredDebuff, setHoveredDebuff] = useState<string | null>(null);
 
   const intentIcons = {
     attack: '⚔️',
     defend: '🛡️',
     buff: '✨',
+    debuff: '💢',
   };
 
   const intentLabels = {
     attack: '공격',
     defend: '방어',
     buff: '강화',
+    debuff: '디버프',
+  };
+
+  const debuffIcons: Record<string, string> = {
+    weak: '💢',
+    vulnerable: '🎯',
   };
 
   // 공격 애니메이션
@@ -135,6 +144,58 @@ export function EnemyCard({
           👾
         </div>
       </div>
+
+      {/* 디버프 표시 */}
+      {enemy.activeDebuffs && enemy.activeDebuffs.length > 0 && (
+        <div className="mt-2 flex gap-1 flex-wrap justify-center">
+          {enemy.activeDebuffs.map((debuff, index) => {
+            const debuffDef = getBuffDefinition(debuff.debuffId);
+            if (!debuffDef) return null;
+
+            return (
+              <div
+                key={`${debuff.debuffId}-${index}`}
+                className="relative"
+                onMouseEnter={() => setHoveredDebuff(debuff.debuffId)}
+                onMouseLeave={() => setHoveredDebuff(null)}
+              >
+                {/* 디버프 아이콘 */}
+                <div className="w-10 h-10 rounded-full bg-red-900 border-2 border-red-500 flex items-center justify-center cursor-help">
+                  <span className="text-lg">{debuffIcons[debuff.debuffId] || '💀'}</span>
+                </div>
+
+                {/* 스택 수 표시 */}
+                {debuff.stacks > 1 && (
+                  <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-gray-900 border border-red-500 rounded-full flex items-center justify-center text-xs font-bold text-white">
+                    {debuff.stacks}
+                  </div>
+                )}
+
+                {/* 남은 턴 수 표시 */}
+                {typeof debuff.remainingDuration === 'number' && (
+                  <div className="absolute -top-1 -right-1 w-5 h-5 bg-gray-900 border border-yellow-500 rounded-full flex items-center justify-center text-xs font-bold text-yellow-400">
+                    {debuff.remainingDuration}
+                  </div>
+                )}
+
+                {/* 호버 시 툴팁 */}
+                {hoveredDebuff === debuff.debuffId && (
+                  <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 border-2 border-red-500 rounded-lg text-sm whitespace-nowrap z-10 shadow-lg">
+                    <div className="font-bold text-red-400 mb-1">{debuffDef.name}</div>
+                    <div className="text-gray-300 text-xs">{debuffDef.description}</div>
+                    {debuff.stacks > 1 && (
+                      <div className="text-yellow-400 text-xs mt-1">스택: {debuff.stacks}</div>
+                    )}
+                    {typeof debuff.remainingDuration === 'number' && (
+                      <div className="text-blue-400 text-xs">남은 턴: {debuff.remainingDuration}</div>
+                    )}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
     </motion.div>
   );
 }

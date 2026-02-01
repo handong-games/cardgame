@@ -7,15 +7,18 @@ import type {
   Player,
 } from '../types';
 import { PALADIN_BUFF_DEFINITIONS, PALADIN_BUFF_EVENT_EFFECTS } from '../data/characters/paladin';
+import { WARRIOR_BUFF_DEFINITIONS, WARRIOR_BUFF_EVENT_EFFECTS } from '../data/characters/warrior';
 
 // 모든 버프 정의 통합
 const ALL_BUFF_DEFINITIONS: Record<string, Buff> = {
   ...PALADIN_BUFF_DEFINITIONS,
+  ...WARRIOR_BUFF_DEFINITIONS,
 };
 
 // 모든 버프 이벤트 효과 통합
 const ALL_BUFF_EVENT_EFFECTS: Record<string, BuffEventEffect[]> = {
   ...PALADIN_BUFF_EVENT_EFFECTS,
+  ...WARRIOR_BUFF_EVENT_EFFECTS,
 };
 
 // 버프 정의 조회

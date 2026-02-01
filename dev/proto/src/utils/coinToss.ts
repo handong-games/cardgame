@@ -141,36 +141,33 @@ export function spendCoins(
     };
   }
 
-  // 앞면 코인 소모 (큰 단위부터)
-  const headsCoins = results.filter(r => r.isHeads)
-    .sort((a, b) => b.denomination - a.denomination);
-  const tailsCoins = results.filter(r => !r.isHeads)
-    .sort((a, b) => b.denomination - a.denomination);
-
+  // ✅ 수정: 인덱스 기반 코인 소모
+  const consumedIndices = new Set<number>();
   const consumedHeads: CoinTossResult[] = [];
   const consumedTails: CoinTossResult[] = [];
 
+  // 앞면 코인 소모 (왼쪽부터 순차적으로)
   let headsSpent = 0;
-  for (const coin of headsCoins) {
-    if (headsSpent >= headsNeeded) break;
-    consumedHeads.push(coin);
-    headsSpent += coin.denomination;
+  for (let i = 0; i < results.length && headsSpent < headsNeeded; i++) {
+    if (results[i].isHeads) {
+      consumedIndices.add(i);
+      consumedHeads.push(results[i]);
+      headsSpent += results[i].denomination;
+    }
   }
 
+  // 뒷면 코인 소모 (앞면에서 사용하지 않은 것 중에서)
   let tailsSpent = 0;
-  for (const coin of tailsCoins) {
-    if (tailsSpent >= tailsNeeded) break;
-    consumedTails.push(coin);
-    tailsSpent += coin.denomination;
+  for (let i = 0; i < results.length && tailsSpent < tailsNeeded; i++) {
+    if (!results[i].isHeads && !consumedIndices.has(i)) {
+      consumedIndices.add(i);
+      consumedTails.push(results[i]);
+      tailsSpent += results[i].denomination;
+    }
   }
 
-  // 남은 코인들
-  const consumedIds = new Set([
-    ...consumedHeads.map(c => c.coinId),
-    ...consumedTails.map(c => c.coinId),
-  ]);
-
-  const remaining = results.filter(r => !consumedIds.has(r.coinId));
+  // ✅ 인덱스 기반 필터링: 소모되지 않은 코인만 남김
+  const remaining = results.filter((_, index) => !consumedIndices.has(index));
 
   return {
     success: true,

@@ -32,17 +32,17 @@ export const REGION_FACILITIES: Record<string, Facility[]> = {
 export const BLOOD_ALTAR_REWARDS: BloodAltarReward[] = [
   {
     id: 'blood_wealth',
-    type: 'gold',
-    name: '피의 재물',
-    description: '"부를 갈망하는가?"',
-    emoji: '💰',
+    type: 'soul',
+    name: '영혼의 재물',
+    description: '"영혼을 갈망하는가?"',
+    emoji: '👻',
     // 보상
-    goldReward: 80,
+    soulReward: 80,
     // 패널티
     penalty: {
       hpCost: 10,
     },
-    rewardText: '+80 골드',
+    rewardText: '+80 영혼',
     penaltyText: 'HP -10',
   },
   {

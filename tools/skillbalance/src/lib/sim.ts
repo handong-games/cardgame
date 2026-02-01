@@ -310,7 +310,7 @@ export const simulate = (
   preferenceWeight: StrategyWeight = 1,
 ): SimulationResult => {
   let hp = monster.hp;
-  let playerHp = 50;
+  let playerHp = 60;
   let turn = 1;
   const state: SimState = {
     attackStageShift: 0,

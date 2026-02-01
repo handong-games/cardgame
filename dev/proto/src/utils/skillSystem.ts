@@ -1,6 +1,7 @@
-import type { Player, Enemy, Skill, SkillState, SkillEffect, ActiveBuff, PreviewEffects, CoinTossResult } from '../types';
+import type { Player, Enemy, Skill, SkillState, SkillEffect, ActiveBuff, PreviewEffects, CoinTossResult, BattleState } from '../types';
 import { GREED_CONSTANTS } from '../data/buffs/common';
 import { calculateCoinValues, spendCoins } from './coinToss';
+import { getBuffEventEffects, getBuffDefinition } from './buffSystem';
 
 /**
  * 스킬의 실제 앞면/뒷면 비용 반환
@@ -72,13 +73,15 @@ export interface SkillEffectResult {
   selfDamage: number;        // 자해 데미지
   coinsGained: number;       // 획득 코인
   buffsApplied: { buffId: string; stacks: number }[];
+  debuffsApplied?: { debuffId: string; stacks: number; duration: number }[];  // 적용할 디버프
 }
 
 // 스킬 효과 계산 (상태 변경 없이 결과만 반환)
 export function calculateSkillEffects(
   player: Player,
   skill: Skill,
-  enemy?: Enemy | null
+  enemy?: Enemy | null,
+  battleState?: BattleState
 ): SkillEffectResult {
   const result: SkillEffectResult = {
     damageDealt: 0,
@@ -87,6 +90,7 @@ export function calculateSkillEffects(
     selfDamage: 0,
     coinsGained: 0,
     buffsApplied: [],
+    debuffsApplied: [],
   };
 
   // 기본 효과 처리
@@ -94,10 +98,23 @@ export function calculateSkillEffects(
     applyEffect(effect, result);
   }
 
+  // on_attack 버프 이벤트 효과 처리
+  const hasDamageEffect = skill.effects.some(e => e.type === 'damage' && e.target !== 'self');
+  if (hasDamageEffect) {
+    for (const activeBuff of player.activeBuffs) {
+      const buffEventEffects = getBuffEventEffects(activeBuff.buffId, 'on_attack');
+      for (const buffEffect of buffEventEffects) {
+        if (buffEffect.type === 'damage' && buffEffect.target === 'enemy') {
+          result.damageDealt += buffEffect.value * activeBuff.stacks;
+        }
+      }
+    }
+  }
+
   // 조건부 효과 처리
   if (skill.conditionalEffects) {
     for (const conditional of skill.conditionalEffects) {
-      if (checkCondition(player, conditional.condition, conditional.conditionValue, enemy)) {
+      if (checkCondition(player, conditional.condition, conditional.conditionValue, enemy, battleState)) {
         applyEffect(conditional.effect, result);
       }
     }
@@ -130,6 +147,16 @@ function applyEffect(effect: SkillEffect, result: SkillEffectResult): void {
         result.buffsApplied.push({ buffId: effect.buffId, stacks: effect.value });
       }
       break;
+    case 'apply_debuff':
+      if (effect.debuffId) {
+        result.debuffsApplied = result.debuffsApplied || [];
+        result.debuffsApplied.push({
+          debuffId: effect.debuffId,
+          stacks: effect.value,
+          duration: effect.duration || 1,
+        });
+      }
+      break;
   }
 }
 
@@ -138,7 +165,8 @@ function checkCondition(
   player: Player,
   condition: string,
   value: string | number,
-  enemy?: Enemy | null
+  enemy?: Enemy | null,
+  battleState?: BattleState
 ): boolean {
   switch (condition) {
     case 'coins_above':
@@ -155,6 +183,15 @@ function checkCondition(
       if (!enemy) return false;
       const enemyHpPercent = (enemy.hp / enemy.maxHp) * 100;
       return enemyHpPercent < (value as number);
+    case 'last_attacked_target':
+      // 연속 베기용: 직전 공격 대상과 현재 대상이 같은지
+      if (!battleState || !enemy) return false;
+      return battleState.lastAttackedTargetId === enemy.id;
+    case 'all_tails':
+      // 절망의 일격용: 모든 코인이 뒷면인지
+      if (!battleState) return false;
+      const tossResults = battleState.lastTossResults || [];
+      return tossResults.length > 0 && tossResults.every(r => !r.isHeads);
     default:
       return false;
   }
@@ -215,14 +252,23 @@ export function applyBuffsToPlayer(
   const newBuffs: ActiveBuff[] = [...player.activeBuffs];
 
   for (const buff of buffs) {
+    const buffDef = getBuffDefinition(buff.buffId);
+    if (!buffDef) {
+      console.warn(`Unknown buff: ${buff.buffId}`);
+      continue;
+    }
+
     const existing = newBuffs.find(b => b.buffId === buff.buffId);
     if (existing) {
-      existing.stacks += buff.stacks;
+      if (buffDef.stackable) {
+        existing.stacks += buff.stacks;
+      }
+      existing.remainingDuration = buffDef.duration;
     } else {
       newBuffs.push({
         buffId: buff.buffId,
         stacks: buff.stacks,
-        remainingDuration: 'combat',  // 전투 종료까지
+        remainingDuration: buffDef.duration,  // 정의에서 가져옴
       });
     }
   }
@@ -234,7 +280,8 @@ export function applyBuffsToPlayer(
 export function calculatePreviewEffects(
   player: Player,
   skill: Skill,
-  enemy?: Enemy | null
+  enemy?: Enemy | null,
+  battleState?: BattleState
 ): PreviewEffects {
   const result: PreviewEffects = {
     damage: 0,
@@ -251,10 +298,23 @@ export function calculatePreviewEffects(
     applyPreviewEffect(effect, result);
   }
 
+  // on_attack 버프 이벤트 효과 처리 (프리뷰)
+  const hasDamageEffect = skill.effects.some(e => e.type === 'damage' && e.target !== 'self');
+  if (hasDamageEffect) {
+    for (const activeBuff of player.activeBuffs) {
+      const buffEventEffects = getBuffEventEffects(activeBuff.buffId, 'on_attack');
+      for (const buffEffect of buffEventEffects) {
+        if (buffEffect.type === 'damage' && buffEffect.target === 'enemy') {
+          result.damage += buffEffect.value * activeBuff.stacks;
+        }
+      }
+    }
+  }
+
   // 조건부 효과 처리
   if (skill.conditionalEffects) {
     for (const conditional of skill.conditionalEffects) {
-      if (checkCondition(player, conditional.condition, conditional.conditionValue, enemy)) {
+      if (checkCondition(player, conditional.condition, conditional.conditionValue, enemy, battleState)) {
         applyPreviewEffect(conditional.effect, result);
         result.conditionsMet.push(conditional.condition);
       }

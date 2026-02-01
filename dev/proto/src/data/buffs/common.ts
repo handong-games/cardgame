@@ -35,3 +35,28 @@ export const GREED_CONSTANTS = {
   THRESHOLD: 3, // 발동까지 필요한 스택 수
   BONUS_TOSS_COUNT: 1, // 발동 시 추가 코인 토스 횟수
 };
+
+/**
+ * 공용 디버프 정의
+ *
+ * 적에게 적용되는 디버프 (약화, 취약 등)
+ */
+export const COMMON_DEBUFF_DEFINITIONS: Record<string, Buff> = {
+  weak: {
+    id: 'weak',
+    name: '약화',
+    type: 'debuff',
+    duration: 1,  // 기본 1턴 (스킬에서 duration 지정)
+    stackable: true,
+    description: '공격력 -1 (스택당)',
+  },
+
+  vulnerable: {
+    id: 'vulnerable',
+    name: '취약',
+    type: 'debuff',
+    duration: 1,  // 기본 1턴 (스킬에서 duration 지정)
+    stackable: true,
+    description: '받는 데미지 +1 (스택당)',
+  },
+};

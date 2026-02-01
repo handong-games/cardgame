@@ -1,0 +1,21 @@
+services:
+  skillbalance:
+    build: .
+    ports:
+      - "5173:5173"
+      - "5178:5178"
+    environment:
+      - PORT=5178
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - GEMINI_MODEL=gemini-3-flash-preview
+      - NODE_TLS_REJECT_UNAUTHORIZED=0
+      - CHOKIDAR_USEPOLLING=1
+      - WATCHPACK_POLLING=true
+      - WDS_SOCKET_PORT=5173
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - skillbalance_data:/app/server/data
+
+volumes:
+  skillbalance_data:

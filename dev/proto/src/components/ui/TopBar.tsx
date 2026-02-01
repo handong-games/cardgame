@@ -3,15 +3,15 @@ import type { Accessory } from '../../types';
 
 interface TopBarProps {
   enemyName?: string;
-  gold: number;
-  goldPulse?: boolean;  // 골드 획득 시 펄스 효과
+  souls: number;
+  soulPulse?: boolean;  // 영혼 획득 시 펄스 효과
   accessories?: Accessory[];  // 획득한 장신구들
 }
 
 export function TopBar({
   enemyName,
-  gold,
-  goldPulse = false,
+  souls,
+  soulPulse = false,
   accessories = [],
 }: TopBarProps) {
   return (
@@ -54,16 +54,16 @@ export function TopBar({
           </div>
         )}
 
-        {/* 오른쪽: 골드 */}
+        {/* 오른쪽: 영혼 */}
         <motion.div
           className="flex items-center gap-2"
-          animate={goldPulse ? {
+          animate={soulPulse ? {
             scale: [1, 1.2, 1],
             transition: { duration: 0.3 }
           } : {}}
         >
-          <span className="text-2xl">💰</span>
-          <span className="text-yellow-400 font-bold text-lg">{gold}</span>
+          <span className="text-2xl">👻</span>
+          <span className="text-purple-400 font-bold text-lg">{souls}</span>
         </motion.div>
       </div>
     </div>

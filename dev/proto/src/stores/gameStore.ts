@@ -13,6 +13,8 @@ import { TOTAL_ATTACK_DURATION } from '../animations';
 import {
   collectTurnStartBuffEffects,
   processBuffDurations,
+  getBuffDefinition,
+  getBuffEventEffects,
 } from '../utils/buffSystem';
 import { tossAllCoins } from '../utils/coinToss';
 import {
@@ -39,7 +41,7 @@ function createInitialPlayer(characterClass: CharacterClass = 'warrior'): Player
     block: 0,
     // coins 제거됨 - battle.lastTossResults에서 계산
     coinInventory: [...INITIAL_COIN_INVENTORY],
-    gold: 0,
+    souls: 0,
     characterClass,
     activeBuffs: [],
     skills: startingSkills,
@@ -297,7 +299,7 @@ export const useGameStore = create<GameState & GameActions>((set, get) => ({
     set({
       player: {
         ...player,
-        gold: player.gold + 1,
+        souls: player.souls + 1,
       },
       battle: {
         ...get().battle,
@@ -360,8 +362,8 @@ export const useGameStore = create<GameState & GameActions>((set, get) => ({
       return { success: false, reason: spendResult.reason };
     }
 
-    // 스킬 효과 계산
-    const effects = calculateSkillEffects(player, skill, enemy);
+    // 스킬 효과 계산 (battleState 추가)
+    const effects = calculateSkillEffects(player, skill, enemy, battle);
 
     // 새 플레이어 상태
     let newPlayer = { ...player };
@@ -394,27 +396,80 @@ export const useGameStore = create<GameState & GameActions>((set, get) => ({
     let newEnemy = enemy ? { ...enemy } : null;
     let newCombatAnimation = { ...battle.combatAnimation };
 
-    if (newEnemy && effects.damageDealt > 0) {
-      // 적 방어력 고려
-      const actualDamage = Math.max(0, effects.damageDealt - newEnemy.block);
-      const remainingBlock = Math.max(0, newEnemy.block - effects.damageDealt);
-      newEnemy.block = remainingBlock;
-      newEnemy.hp = Math.max(0, newEnemy.hp - actualDamage);
+    if (newEnemy) {
+      // all_enemies 타입도 현재는 단일 적에게 적용
+      // TODO: 다적 전투 시스템 도입 시 배열 순회로 변경
+      const shouldApplyToEnemy =
+        skill.targetType === 'enemy' ||
+        skill.targetType === 'all_enemies';
 
-      // 공격 애니메이션 설정
-      newCombatAnimation = {
-        playerAttacking: true,
-        enemyAttacking: false,
-        playerHit: false,
-        enemyHit: true,
-        shieldHit: enemy!.block > 0,
-      };
+      if (shouldApplyToEnemy) {
+        // 데미지 처리
+        if (effects.damageDealt > 0) {
+          // 취약(vulnerable) 디버프 적용
+          let finalDamage = effects.damageDealt;
+          const vulnerableDebuff = newEnemy.activeDebuffs?.find(d => d.debuffId === 'vulnerable');
+          if (vulnerableDebuff) {
+            finalDamage += vulnerableDebuff.stacks;  // 받는 데미지 증가
+          }
+
+          // 적 방어력 고려
+          const actualDamage = Math.max(0, finalDamage - newEnemy.block);
+          const remainingBlock = Math.max(0, newEnemy.block - finalDamage);
+          newEnemy.block = remainingBlock;
+          newEnemy.hp = Math.max(0, newEnemy.hp - actualDamage);
+
+          // 공격 애니메이션 설정
+          newCombatAnimation = {
+            playerAttacking: true,
+            enemyAttacking: false,
+            playerHit: false,
+            enemyHit: true,
+            shieldHit: enemy!.block > 0,
+          };
+        }
+
+        // 디버프 적용
+        if (effects.debuffsApplied && effects.debuffsApplied.length > 0) {
+          newEnemy.activeDebuffs = newEnemy.activeDebuffs || [];
+          for (const debuff of effects.debuffsApplied) {
+            const existing = newEnemy.activeDebuffs.find(d => d.debuffId === debuff.debuffId);
+            if (existing) {
+              existing.stacks += debuff.stacks;
+              existing.remainingDuration = debuff.duration;  // 갱신
+            } else {
+              newEnemy.activeDebuffs.push({
+                debuffId: debuff.debuffId,
+                stacks: debuff.stacks,
+                remainingDuration: debuff.duration,
+              });
+            }
+          }
+        }
+      }
+
+      // on_attack 이벤트로 소모되는 버프 제거 (duration=1)
+      if (effects.damageDealt > 0) {
+        newPlayer.activeBuffs = newPlayer.activeBuffs.filter(buff => {
+          const buffDef = getBuffDefinition(buff.buffId);
+          if (!buffDef) return true;
+
+          // duration이 1이고 on_attack 이벤트가 있으면 제거
+          if (buffDef.duration === 1) {
+            const hasOnAttackEvent = getBuffEventEffects(buff.buffId, 'on_attack').length > 0;
+            if (hasOnAttackEvent) {
+              return false;  // 제거
+            }
+          }
+          return true;  // 유지
+        });
+      }
     }
 
     // 적 사망 체크
     if (newEnemy && newEnemy.hp <= 0) {
-      // 골드 보상 추가
-      newPlayer.gold += newEnemy.goldReward;
+      // 영혼 보상 추가
+      newPlayer.souls += newEnemy.soulReward;
 
       set({
         player: newPlayer,
@@ -457,6 +512,7 @@ export const useGameStore = create<GameState & GameActions>((set, get) => ({
         ...battle,
         combatAnimation: newCombatAnimation,
         lastTossResults: newLastTossResults,
+        lastAttackedTargetId: enemy?.id,  // 연속 베기 추적
       },
     });
 
@@ -561,9 +617,16 @@ export const useGameStore = create<GameState & GameActions>((set, get) => ({
         shieldHit: willHitShield,
       };
 
+      // 약화(weak) 디버프 적용
+      let damage = intent.value;
+      const weakDebuff = newEnemy.activeDebuffs?.find(d => d.debuffId === 'weak');
+      if (weakDebuff) {
+        damage = Math.max(0, damage - weakDebuff.stacks);  // 공격력 감소
+      }
+
       // 플레이어 방어력 고려 데미지 계산
-      const actualDamage = Math.max(0, intent.value - newPlayer.block);
-      const remainingBlock = Math.max(0, newPlayer.block - intent.value);
+      const actualDamage = Math.max(0, damage - newPlayer.block);
+      const remainingBlock = Math.max(0, newPlayer.block - damage);
       newPlayer.block = remainingBlock;
       newPlayer.hp = Math.max(0, newPlayer.hp - actualDamage);
     } else if (intent.type === 'defend') {
@@ -636,15 +699,31 @@ export const useGameStore = create<GameState & GameActions>((set, get) => ({
       // 턴 종료 시 버프 지속시간 처리
       updatedPlayer = processBuffDurations(updatedPlayer);
 
+      // 적 디버프 지속시간 처리
+      let updatedEnemy = { ...currentEnemy, intent: nextIntent };
+      if (updatedEnemy.activeDebuffs && updatedEnemy.activeDebuffs.length > 0) {
+        updatedEnemy.activeDebuffs = updatedEnemy.activeDebuffs
+          .map(debuff => ({
+            ...debuff,
+            remainingDuration: debuff.remainingDuration - 1,
+          }))
+          .filter(debuff => debuff.remainingDuration > 0);
+
+        if (updatedEnemy.activeDebuffs.length === 0) {
+          updatedEnemy.activeDebuffs = undefined;
+        }
+      }
+
       set({
         player: updatedPlayer,
-        enemy: { ...currentEnemy, intent: nextIntent },
+        enemy: updatedEnemy,
         battle: {
           ...currentState.battle,
           phase: 'player_turn',
           turn: nextTurn,
           hasTossedThisTurn: false,
           lastTossResults: [],
+          lastAttackedTargetId: undefined,  // 턴 시작 시 초기화
           combatAnimation: { ...defaultCombatAnimation },
         },
       });
@@ -953,8 +1032,8 @@ export const useGameStore = create<GameState & GameActions>((set, get) => ({
       if (!reward) continue;
 
       // 보상 적용
-      if (reward.goldReward) {
-        newPlayer.gold += reward.goldReward;
+      if (reward.soulReward) {
+        newPlayer.souls += reward.soulReward;
       }
       if (reward.maxHpReward) {
         newPlayer.maxHp += reward.maxHpReward;
@@ -972,8 +1051,8 @@ export const useGameStore = create<GameState & GameActions>((set, get) => ({
       if (penalty.hpCost) {
         newPlayer.hp = Math.max(1, newPlayer.hp - penalty.hpCost);
       }
-      if (penalty.goldCost) {
-        newPlayer.gold = Math.max(0, newPlayer.gold - penalty.goldCost);
+      if (penalty.soulCost) {
+        newPlayer.souls = Math.max(0, newPlayer.souls - penalty.soulCost);
       }
       // 저주 카드는 이제 덱이 없으므로 스킵
       if (penalty.monsterHpBuff) {

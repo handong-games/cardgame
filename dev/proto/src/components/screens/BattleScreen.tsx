@@ -8,7 +8,7 @@ import { SkillPanel } from '../battle/SkillPanel';
 import { DragOverlay } from '../battle/DragOverlay';
 import { RewardScreen } from './RewardScreen';
 import { TopBar } from '../ui/TopBar';
-import { GoldDrop } from '../effects/GoldDrop';
+import { SoulDrop } from '../effects/SoulDrop';
 import { CoinTossAnimation } from '../effects/CoinTossAnimation';
 import { DEATH_ANIMATION_DURATION } from '../../animations';
 import { getRegion } from '../../data/regions';
@@ -619,8 +619,8 @@ export function BattleScreen() {
 
   // 사망 애니메이션 상태
   const [dyingEnemy, setDyingEnemy] = useState<Enemy | null>(null);
-  const [showGoldDrop, setShowGoldDrop] = useState(false);
-  const [goldPulse, setGoldPulse] = useState(false);
+  const [showSoulDrop, setShowSoulDrop] = useState(false);
+  const [soulPulse, setSoulPulse] = useState(false);
   const [selectedBloodAltarRewards, setSelectedBloodAltarRewards] = useState<string[]>([]);
   const [showHiddenReward, setShowHiddenReward] = useState(false);
   // 정령의 샘 동료 선택 상태
@@ -775,9 +775,9 @@ export function BattleScreen() {
     if (prevEnemyRef.current && !enemy && battle.phase === 'reward' && !dyingEnemy) {
       setDyingEnemy(prevEnemyRef.current);
 
-      // 사망 애니메이션 70% 시점에 골드 드랍 시작
+      // 사망 애니메이션 70% 시점에 영혼 드롭 시작
       setTimeout(() => {
-        setShowGoldDrop(true);
+        setShowSoulDrop(true);
       }, DEATH_ANIMATION_DURATION * 0.7 * 1000);
     }
 
@@ -787,15 +787,15 @@ export function BattleScreen() {
     }
   }, [enemy, battle.phase, dyingEnemy]);
 
-  // 골드 드랍 완료 핸들러
-  const handleGoldDropComplete = useCallback(() => {
-    setShowGoldDrop(false);
+  // 영혼 드롭 완료 핸들러
+  const handleSoulDropComplete = useCallback(() => {
+    setShowSoulDrop(false);
     setDyingEnemy(null);
     prevEnemyRef.current = null;  // 무한 반복 방지
-    setGoldPulse(true);
+    setSoulPulse(true);
 
     // 펄스 효과 종료
-    setTimeout(() => setGoldPulse(false), 300);
+    setTimeout(() => setSoulPulse(false), 300);
   }, []);
 
   // 보상/전직 화면 (사망 애니메이션 중에는 전투 화면 유지)
@@ -887,8 +887,8 @@ export function BattleScreen() {
       {/* 상단 바 */}
       <TopBar
         enemyName={displayEnemy?.name}
-        gold={player.gold}
-        goldPulse={goldPulse}
+        souls={player.souls}
+        soulPulse={soulPulse}
         accessories={run.accessories}
       />
 
@@ -1305,12 +1305,12 @@ export function BattleScreen() {
                 )}
               </AnimatePresence>
 
-              {/* 골드 드랍 애니메이션 (몬스터 위치) */}
+              {/* 영혼 드롭 애니메이션 (몬스터 위치) */}
               {dyingEnemy && (
-                <GoldDrop
-                  amount={dyingEnemy.goldReward}
-                  show={showGoldDrop}
-                  onComplete={handleGoldDropComplete}
+                <SoulDrop
+                  amount={dyingEnemy.soulReward}
+                  show={showSoulDrop}
+                  onComplete={handleSoulDropComplete}
                 />
               )}
             </>

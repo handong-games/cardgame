@@ -80,11 +80,11 @@ export function DevTools() {
     useGameStore.getState().showDestinationSelection();
   }, []);
 
-  // 골드 추가
-  const addGold = useCallback((amount: number) => {
+  // 영혼 추가
+  const addSoul = useCallback((amount: number) => {
     const store = useGameStore.getState();
     useGameStore.setState({
-      player: { ...store.player, gold: store.player.gold + amount },
+      player: { ...store.player, souls: store.player.souls + amount },
     });
   }, []);
 
@@ -137,7 +137,7 @@ export function DevTools() {
             <div>Phase: <span className="text-white">{battle.phase}</span></div>
             <div>Round: <span className="text-white">{run.round}/{run.totalRounds}</span></div>
             <div>HP: <span className="text-white">{player.hp}/{player.maxHp}</span></div>
-            <div>Gold: <span className="text-yellow-400">{player.gold}</span></div>
+            <div>Souls: <span className="text-purple-400">{player.souls}</span></div>
           </div>
 
           {/* 마을 섹션 */}
@@ -171,7 +171,7 @@ export function DevTools() {
           <div className="px-3 py-2">
             <div className="text-gray-500 text-xs mb-2">👤 플레이어</div>
             <div className="flex flex-wrap gap-1">
-              <DevButton onClick={() => addGold(50)}>+50G</DevButton>
+              <DevButton onClick={() => addSoul(50)}>+50 영혼</DevButton>
               <DevButton onClick={() => healPlayer(20)}>+20HP</DevButton>
               <DevButton onClick={() => setPlayerHp(1)}>HP=1</DevButton>
               <DevButton onClick={() => setPlayerHp(player.maxHp)}>Full HP</DevButton>
