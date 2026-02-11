@@ -89,3 +89,5 @@ package-lock.json
 .eslintcache
 *v8.log
 /lib/
+
+.env
