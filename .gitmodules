@@ -1,0 +1,3 @@
+[submodule "projects/gameplan"]
+	path = projects/gameplan
+	url = https://github.com/handong-games/gameplan.git
