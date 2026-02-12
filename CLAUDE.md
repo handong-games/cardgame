@@ -1,5 +1,24 @@
 # CLAUDE.md
 
+## 프로젝트 개요
+
+Slay the Spire 스타일 덱빌더 + Dice & Fold 아트 스타일의 카드 게임 개발 프로젝트.
+
+### 하위 프로젝트 (Submodule)
+
+#### projects/gameplan
+- **저장소**: https://github.com/handong-games/gameplan
+- **용도**: 전투 밸런스 수치 기획, 시뮬레이션, 시각화
+- **포함 내용**:
+  - 전투 시뮬레이터 엔진 (Python)
+  - 밸런스 대시보드 웹앱 (FastAPI + React)
+  - 기획서 16종 (몬스터, 스킬, 속성, 전투 시스템 등)
+  - Notion 자동 동기화 스크립트
+- **독립 실행**: `cd projects/gameplan && claude` 로 별도 Claude 세션 가능
+- **업데이트**: `git submodule update --remote projects/gameplan`
+
+---
+
 ## User Preferences & Context
 
 ### 1. Language Guidelines (언어 지침)
