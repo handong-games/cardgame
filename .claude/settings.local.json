@@ -34,7 +34,11 @@
       "mcp__plugin_claude-mem_mcp-search__timeline",
       "Bash(timeout /t 5)",
       "Bash(npm run dev:*)",
-      "Bash(npm run balance-check:*)"
+      "Bash(npm run balance-check:*)",
+      "Bash(git fetch:*)",
+      "Bash(git show-ref:*)",
+      "Bash(git rebase:*)",
+      "Bash(find:*)"
     ]
   },
   "enableAllProjectMcpServers": true,
