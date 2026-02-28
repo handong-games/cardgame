@@ -1,0 +1,9 @@
+{
+  "prompt": "hand-drawn storybook illustration style,\npencil sketch with watercolor coloring,\nvintage aged parchment card border,\nrounded rectangle card shape,\nworn torn vintage paper corners,\ntextured beige paper background,\ncute chibi SD proportions 2-2.5 head ratio,\nadorable brave warrior character,\nsteel armor with red accents,\nshort sword and round shield,\nrosy blushing cheeks on both sides,\nlarge expressive round eyes,\nconfident friendly smile,\nbody facing right diagonal direction,\nthree-quarter view angled to right,\nwarm cozy fairy tale atmosphere",
+  "negative": "scary menacing dark, sharp teeth fangs, glowing eyes, facing left, looking left, back view, realistic, 3D render, CGI, cold colors, blue dominant",
+  "model": "nano banana pro",
+  "generatedAt": "2026-01-27T00:00:00Z",
+  "parameters": {
+    "aspectRatio": "1:1"
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "prompt": "layered silhouette background,\ndark muted color palette,\nstrong vignette effect darker edges,\nlow saturation restrained colors,\nminimal atmospheric scene,\nwide 16:9 aspect ratio,\nno characters no creatures,\n\ndark forest silhouette background,\nlayered tree silhouettes against gradient sky,\ndeep teal to dark green gradient,\npine trees and oak shapes in shadow,\ndistant mountain silhouette,\nmysterious foggy atmosphere,\ncenter area lighter for card placement,\nno detailed leaves or branches just shapes",
+  "negative": "detailed textures and patterns, bright vibrant saturated colors, characters people creatures, realistic detailed forest, complex busy composition, strong lighting effects god rays, particles sparkles effects, clear daylight scene",
+  "model": "external",
+  "generatedAt": "2026-02-08T00:00:00Z",
+  "parameters": {
+    "aspectRatio": "16:9",
+    "style": "dark-layered-silhouette"
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "prompt": "layered silhouette background,\ndark muted color palette,\nelegant vignette effect darker edges,\nlow saturation restrained colors,\nminimal atmospheric scene,\nwide 16:9 aspect ratio,\nno characters no creatures,\n\ndark castle silhouette background,\nlayered tower and battlement silhouettes,\ndeep burgundy to dark purple gradient,\ngothic spire shapes against sky,\ndistant castle wall outlines,\nmajestic royal atmosphere,\ncenter area lighter for cards,\nno detailed architecture just silhouettes",
+  "negative": "detailed textures and patterns, bright vibrant saturated colors, characters people creatures, realistic detailed castle, complex busy composition, strong lighting effects god rays chandeliers, particles sparkles effects, throne room interior",
+  "model": "external",
+  "generatedAt": "2026-02-08T00:00:00Z",
+  "parameters": {
+    "aspectRatio": "16:9",
+    "style": "dark-layered-silhouette"
+  }
+}
