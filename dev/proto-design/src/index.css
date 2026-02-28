@@ -1,0 +1,370 @@
+@import url('https://fonts.googleapis.com/css2?family=Nanum+Gothic+Coding:wght@400;700&family=Space+Grotesk:wght@400;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* ═══════════════════════════════════════════════════════════════
+   * v4.0 Dark Frame Edition 색상 팔레트
+   * ═══════════════════════════════════════════════════════════════ */
+  --dark-charcoal: #1E1E24;
+  --dark-deep: #2A2A32;
+  --dark-graphite: #4A4A55;
+  --dark-surface: #16161C;
+
+  --sepia-parchment: #F5E6D3;
+  --sepia-aged: #E8D5C4;
+  --coin-gold: #DAA520;
+  --coin-bronze: #CD7F32;
+  --sun-gold: #FFD700;
+  --moon-silver: #C0C0C0;
+  --ink-brown: #3D2914;
+  
+  /* ═══════════════════════════════════════════════════════════════
+   * 카드 비율 시스템 (2:3 = AI 생성 이미지 비율 512x768 기준)
+   * ═══════════════════════════════════════════════════════════════ */
+  --card-aspect-ratio: 2 / 3;
+  
+  /* 
+   * 반응형 카드 크기 계산
+   * ─────────────────────────────────────────────────────────────────
+   * 1. 화면 너비 기준(vw)과 높이 기준(vh) 중 작은 값 선택
+   * 2. 높이 기준은 2:3 비율로 변환 (× 0.667)
+   * 3. clamp()로 최소/최대 크기 제한
+   * ─────────────────────────────────────────────────────────────────
+   */
+  --card-base-vw: 14vw;                    /* 화면 너비의 14% */
+  --card-base-vh: calc(48vh * 0.667);      /* 화면 높이의 48% → 2:3 변환 */
+  
+   /* 캐릭터 카드: 플레이어 영역 (100%) */
+   --character-card-width: clamp(190px, min(var(--card-base-vw), var(--card-base-vh)), 275px);
+   /* 몬스터 카드: 적 영역 (100% - 캐릭터와 동일) */
+   --enemy-card-width: clamp(190px, min(var(--card-base-vw), var(--card-base-vh)), 275px);
+  
+  /* ═══════════════════════════════════════════════════════════════
+   * 카드 내부 요소 - 카드 크기 비례 스케일링
+   * ─────────────────────────────────────────────────────────────────
+   * 각 요소는 카드 너비 대비 비율(%)로 계산
+   * 예: shield 18% = 카드 너비 160px → shield 28.8px
+   * ═══════════════════════════════════════════════════════════════ */
+  
+   /* 방패 아이콘 (카드 너비의 16~18%) */
+   --character-shield-size: clamp(34px, calc(var(--card-base-vw) * 0.18), 48px);
+   --enemy-shield-size: clamp(34px, calc(var(--card-base-vw) * 0.18), 48px);
+  
+   /* 캐릭터 이모지/폴백 (카드 너비의 22~26%) */
+   --character-emoji-size: clamp(2.8rem, calc(var(--card-base-vw) * 0.26), 4.2rem);
+   --enemy-emoji-size: clamp(2.8rem, calc(var(--card-base-vw) * 0.26), 4.2rem);
+  
+   /* 카드 이름 폰트 (카드 너비의 7~9%) */
+   --character-name-size: clamp(0.95rem, calc(var(--card-base-vw) * 0.08), 1.25rem);
+   --enemy-name-size: clamp(0.95rem, calc(var(--card-base-vw) * 0.08), 1.25rem);
+  
+  /* 테두리/모서리 (카드 너비의 2~6%) */
+  --card-border-width: clamp(3px, calc(var(--card-base-vw) * 0.025), 5px);
+  --card-border-radius: clamp(10px, calc(var(--card-base-vw) * 0.06), 16px);
+  
+   /* HP 영역 패딩 */
+   --character-hp-padding: clamp(6px, calc(var(--card-base-vw) * 0.05), 12px);
+   --enemy-hp-padding: clamp(6px, calc(var(--card-base-vw) * 0.05), 12px);
+  
+  /* 코인 코너 장식 (카드 너비의 5~6%) */
+  --coin-corner-size: clamp(8px, calc(var(--card-base-vw) * 0.06), 14px);
+}
+
+body {
+  font-family: 'Space Grotesk', 'Nanum Gothic Coding', system-ui, sans-serif;
+  background-color: #1a1a2e;
+}
+
+.skill-ui {
+  font-family: 'Space Grotesk', 'Nanum Gothic Coding', system-ui, sans-serif;
+}
+
+.skill-ui pre,
+.skill-ui code,
+.skill-ui .mono {
+  font-family: 'Nanum Gothic Coding', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono',
+    'Courier New', monospace;
+}
+
+@layer components {
+  .card-frame {
+    border: 3px solid var(--dark-graphite);
+    border-radius: 12px;
+    background: linear-gradient(to bottom, var(--dark-charcoal), var(--dark-deep));
+    box-shadow: 
+      0 4px 12px rgba(0, 0, 0, 0.6),
+      inset 0 1px 0 rgba(255, 255, 255, 0.03);
+  }
+
+  .card-frame-ridged {
+    position: relative;
+    border: 3px solid var(--dark-graphite);
+    border-radius: 12px;
+    background: linear-gradient(to bottom, var(--dark-charcoal), var(--dark-deep));
+  }
+
+  .card-frame-ridged::before {
+    content: '';
+    position: absolute;
+    inset: -4px;
+    border: 1px solid rgba(74, 74, 85, 0.4);
+    border-radius: 14px;
+    pointer-events: none;
+    opacity: 0.6;
+  }
+
+  .coin-corner {
+    position: absolute;
+    width: var(--coin-corner-size);
+    height: var(--coin-corner-size);
+    border-radius: 50%;
+    overflow: hidden;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.3);
+    z-index: 10;
+  }
+
+  .coin-corner img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  /* 금색 구분선 - HP 영역 위 */
+  .gold-divider {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--dark-graphite), rgba(255, 255, 255, 0.1), var(--dark-graphite), transparent);
+    margin: 0;
+  }
+
+  /* 동전 워터마크 배경 */
+  .coin-watermark {
+    position: relative;
+  }
+
+  .coin-watermark::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at center, rgba(255, 255, 255, 0.03) 0%, transparent 50%);
+    opacity: 0.3;
+    pointer-events: none;
+  }
+
+  /* 카드 내부 HP 영역 */
+  .card-hp-section {
+    background: linear-gradient(to bottom, rgba(30, 30, 36, 0.9), rgba(42, 42, 50, 0.95));
+    padding: 8px;
+    border-bottom-left-radius: 9px;
+    border-bottom-right-radius: 9px;
+  }
+
+  .hp-bar-container {
+    background: var(--dark-surface);
+    border: 2px solid var(--dark-graphite);
+    border-radius: 6px;
+    overflow: hidden;
+  }
+
+  .battle-bg {
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+  }
+
+  .sepia-overlay {
+    position: relative;
+  }
+
+  .sepia-overlay::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to bottom, rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0.2));
+    pointer-events: none;
+  }
+
+  .gold-text {
+    color: var(--coin-gold);
+    text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+  }
+
+  .ink-text {
+    color: var(--ink-brown);
+  }
+
+  .character-card {
+    width: var(--character-card-width);
+    aspect-ratio: var(--card-aspect-ratio);
+    background: transparent;
+    border: none;
+    border-radius: var(--card-border-radius);
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+
+
+  .character-card .card-hp-section {
+    padding: var(--character-hp-padding);
+  }
+
+  .character-card .card-shield {
+    width: var(--character-shield-size);
+    height: var(--character-shield-size);
+    font-size: calc(var(--character-shield-size) * 0.5);
+  }
+
+  .character-card .card-emoji {
+    font-size: var(--character-emoji-size);
+  }
+
+  .character-card .card-name {
+    padding: calc(var(--character-hp-padding) * 0.6) 0;
+    font-size: var(--character-name-size);
+  }
+
+  .enemy-card {
+    width: var(--enemy-card-width);
+    aspect-ratio: var(--card-aspect-ratio);
+    background: transparent;
+    border: none;
+    border-radius: var(--card-border-radius);
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+
+
+  .enemy-card .card-hp-section {
+    padding: var(--enemy-hp-padding);
+  }
+
+  .enemy-card .card-shield {
+    width: var(--enemy-shield-size);
+    height: var(--enemy-shield-size);
+    font-size: calc(var(--enemy-shield-size) * 0.5);
+  }
+
+  .enemy-card .card-emoji {
+    font-size: var(--enemy-emoji-size);
+  }
+
+  .enemy-card .card-name {
+    padding: calc(var(--enemy-hp-padding) * 0.6) 0;
+    font-size: var(--enemy-name-size);
+  }
+
+  .skill-slot-coin {
+    background: linear-gradient(to bottom, var(--dark-charcoal), var(--dark-deep));
+    border: 2px solid var(--dark-graphite);
+    border-radius: 8px;
+  }
+
+  .skill-slot-coin:hover {
+    border-color: rgba(255, 255, 255, 0.2);
+    box-shadow: 0 0 8px rgba(255, 255, 255, 0.1);
+  }
+}
+
+@layer utilities {
+  .text-shadow-sm {
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  }
+
+  .text-shadow-gold {
+    text-shadow: 0 0 4px rgba(255, 215, 0, 0.5);
+  }
+
+  .border-ridged {
+    border-style: ridge;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+ * 반응형 미디어 쿼리
+ * ─────────────────────────────────────────────────────────────────
+ * --card-base-vw, --card-base-vh만 조정하면 모든 카드 요소가 자동 스케일링
+ * ═══════════════════════════════════════════════════════════════ */
+
+@media (max-width: 1024px) {
+   :root {
+     --card-base-vw: 14vw;
+     --card-base-vh: calc(32vh * 0.75);
+     --character-card-width: clamp(115px, min(var(--card-base-vw), var(--card-base-vh)), 165px);
+     --enemy-card-width: clamp(115px, min(var(--card-base-vw), var(--card-base-vh)), 165px);
+   }
+}
+
+@media (max-width: 768px) {
+   :root {
+     --card-base-vw: 20vw;
+     --card-base-vh: calc(28vh * 0.75);
+     --character-card-width: clamp(100px, min(var(--card-base-vw), var(--card-base-vh)), 150px);
+     --enemy-card-width: clamp(100px, min(var(--card-base-vw), var(--card-base-vh)), 150px);
+   }
+}
+
+@media (max-width: 480px) {
+   :root {
+     --card-base-vw: 26vw;
+     --card-base-vh: calc(24vh * 0.75);
+     --character-card-width: clamp(85px, min(var(--card-base-vw), var(--card-base-vh)), 130px);
+     --enemy-card-width: clamp(85px, min(var(--card-base-vw), var(--card-base-vh)), 130px);
+   }
+}
+
+@media (min-width: 1920px) {
+   :root {
+     --card-base-vw: 11vw;
+     --card-base-vh: calc(42vh * 0.75);
+     --character-card-width: clamp(200px, min(var(--card-base-vw), var(--card-base-vh)), 280px);
+     --enemy-card-width: clamp(200px, min(var(--card-base-vw), var(--card-base-vh)), 280px);
+   }
+}
+
+@media (min-width: 2560px) {
+   :root {
+     --card-base-vw: 9vw;
+     --card-base-vh: calc(44vh * 0.75);
+     --character-card-width: clamp(230px, min(var(--card-base-vw), var(--card-base-vh)), 320px);
+     --enemy-card-width: clamp(230px, min(var(--card-base-vw), var(--card-base-vh)), 320px);
+   }
+}
+
+@media (min-width: 3840px) {
+   :root {
+     --card-base-vw: 7.5vw;
+     --card-base-vh: calc(48vh * 0.75);
+     --character-card-width: clamp(280px, min(var(--card-base-vw), var(--card-base-vh)), 400px);
+     --enemy-card-width: clamp(280px, min(var(--card-base-vw), var(--card-base-vh)), 400px);
+   }
+}
+
+@media (orientation: portrait) and (max-width: 1024px) {
+  :root {
+    --card-base-vh: calc(20vh * 0.75);
+  }
+}
+
+@media (max-height: 700px) and (min-width: 1024px) {
+   :root {
+     --card-base-vh: calc(28vh * 0.75);
+     --character-card-width: clamp(110px, min(var(--card-base-vw), var(--card-base-vh)), 165px);
+     --enemy-card-width: clamp(110px, min(var(--card-base-vw), var(--card-base-vh)), 165px);
+   }
+}
+
+@media (max-height: 600px) and (min-width: 768px) {
+   :root {
+     --card-base-vh: calc(24vh * 0.75);
+     --character-card-width: clamp(95px, min(var(--card-base-vw), var(--card-base-vh)), 145px);
+     --enemy-card-width: clamp(95px, min(var(--card-base-vw), var(--card-base-vh)), 145px);
+   }
+}
