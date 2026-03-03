@@ -1,7 +1,8 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { useEffect, useState, useMemo, useRef } from 'react';
 import type { CoinTossResult } from '../../types';
-import { COIN_TOSS_PHYSICS } from '../../animations/coinAnimations';
+import { COIN_TOSS_PHYSICS, getScaledCoinPhysics } from '../../animations/coinAnimations';
+import { useAnimSpeed } from '../../hooks/useAnimSpeed';
 import sunCoinImg from '@assets/coins/coin-heads.png';
 import moonCoinImg from '@assets/coins/coin-tails.png';
 
@@ -76,6 +77,7 @@ export function CoinTossAnimation({
   onCoinLand,
   onComplete,
 }: CoinTossAnimationProps) {
+  const speedM = useAnimSpeed();
   const [isVisible, setIsVisible] = useState(false);
   const [coinStates, setCoinStates] = useState<Map<number, CoinState>>(new Map());
   const onCompleteRef = useRef(onComplete);
@@ -131,7 +133,7 @@ export function CoinTossAnimation({
         }
         return newStates;
       });
-    }, 200);
+    }, 200 * speedM);
   };
 
   const handleCoinReachedCounter = (index: number, isHeads: boolean, denomination: number) => {
@@ -153,7 +155,7 @@ export function CoinTossAnimation({
         setIsVisible(false);
         onCompleteRef.current();
         hasStartedRef.current = false;
-      }, 100);
+      }, 100 * speedM);
     }
   };
 
@@ -205,7 +207,7 @@ export function CoinTossAnimation({
                     opacity: 0.8,
                   }}
                   transition={{
-                    duration: 0.4,
+                    duration: 0.4 * speedM,
                     ease: [0.4, 0, 0.2, 1],
                   }}
                   onAnimationComplete={() => {
@@ -247,8 +249,8 @@ export function CoinTossAnimation({
                   opacity: [0, 1, 1],
                 }}
                 transition={{
-                  duration: COIN_TOSS_PHYSICS.FLIGHT_DURATION * 1.2,
-                  delay: trajectory.delay,
+                  duration: COIN_TOSS_PHYSICS.FLIGHT_DURATION * 1.2 * speedM,
+                  delay: trajectory.delay * speedM,
                   ease: [0.2, 0.8, 0.4, 1],
                   times: [0, 0.4, 1],
                 }}

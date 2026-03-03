@@ -46,9 +46,9 @@ const COMPONENTS: LayoutComponent[] = [
   { id: 'b4', name: 'B-4 코인 플립', zone: 'B', x: 660, y: 460, w: 600, h: 300, description: '코인 플립 애니메이션 (화면 중앙)', color: '#FFD700', details: { '코인 크기': '80x80px', '최대': '10개 (2줄)', '중심': 'x:960' } },
 
   // Zone B — 코인 조작 패널 (B-3 하단 중앙)
-  { id: 'b3-1a', name: 'B-3-1a 코인 주머니', zone: 'B', x: 904, y: 600, w: 112, h: 112, description: '코인 주머니 (탭하면 코인 플립)', color: '#FFD700', details: { '크기': '112×112px (56px × scale-2)', '상태': '흔들림 애니메이션 (플립 가능 시)' } },
-  { id: 'b3-1b', name: 'B-3-1b 코인 현황', zone: 'B', x: 860, y: 720, w: 200, h: 30, description: '앞면/뒷면 코인 + 남은/전체', color: '#FFD700', details: { '앞면': '☀ #FFD700', '뒷면': '🌙 #C0C0C0', '포맷': '남은: N/전체: M' } },
-  { id: 'b3-1c', name: 'B-3-1c 턴 종료', zone: 'B', x: 880, y: 760, w: 160, h: 44, description: '턴 종료 버튼', color: '#4A90C0', details: { '활성': 'gradient blue', '비활성': '"대기 중" 회색', '모양': 'rounded-xl' } },
+  { id: 'b3-1a', name: 'B-3-1a 코인 주머니', zone: 'B', x: 904, y: 680, w: 112, h: 112, description: '코인 주머니 (탭하면 코인 플립)', color: '#FFD700', details: { '크기': '112×112px (56px × scale-2)', '상태': '흔들림 애니메이션 (플립 가능 시)' } },
+  { id: 'b3-1b', name: 'B-3-1b 코인 현황', zone: 'B', x: 860, y: 800, w: 200, h: 30, description: '앞면/뒷면 코인 + 남은/전체', color: '#FFD700', details: { '앞면': '☀ #FFD700', '뒷면': '🌙 #C0C0C0', '포맷': '남은: N/전체: M' } },
+  { id: 'b3-1c', name: 'B-3-1c 턴 종료', zone: 'B', x: 1580, y: 700, w: 200, h: 52, description: '턴 종료 버튼 (우측 독립 배치, 접근성 향상)', color: '#4A90C0', details: { '활성': 'gradient blue', '비활성': '"대기 중" 회색', '모양': 'rounded-xl', '배치': '적 카드 하단 우측' } },
   { id: 'b6', name: 'B-6 라운드 진행바', zone: 'B', x: 600, y: 65, w: 720, h: 8, description: '라운드 진행바 (Zone B 상단, pill shape)', color: '#D4A574', details: { '노드': '8개 (일반/보스)', '모양': 'pill, pointer-events-none', '상태': '완료/현재/미래' } },
 
   // Zone C (y:856, h:224) — 스킬 슬롯
@@ -228,7 +228,7 @@ function WireframePreview({
         {/* 장식 요소 — 코인 플립 */}
         <div
           className="absolute flex items-center gap-[0.5%] pointer-events-none"
-          style={{ left: toPercent(820, 1920), top: toPercent(590, 1080) }}
+          style={{ left: toPercent(820, 1920), top: toPercent(670, 1080) }}
         >
           {['#FFD700', '#FFD700', '#FFD700', '#C0C0C0', '#C0C0C0'].map((fill, i) => (
             <div
@@ -275,10 +275,10 @@ function WireframePreview({
           12/18
         </div>
 
-        {/* 장식 — 코인 현황 (Zone B 중앙) */}
+        {/* 장식 — 코인 현황 (Zone B 하단) */}
         <div
           className="absolute flex items-center justify-center gap-[0.8%] pointer-events-none"
-          style={{ left: toPercent(910, 1920), top: toPercent(730, 1080) }}
+          style={{ left: toPercent(910, 1920), top: toPercent(810, 1080) }}
         >
           <div className="flex items-center gap-1">
             <div className="rounded-full" style={{ width: 8, height: 8, backgroundColor: '#FFD700' }} />

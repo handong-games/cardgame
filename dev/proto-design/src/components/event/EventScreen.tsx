@@ -1,7 +1,10 @@
 import { useState, useEffect, useCallback } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useGameStore } from '../../stores/gameStore';
+import { GameButton } from '../ui/GameButton';
+import { useAnimSpeed } from '../../hooks/useAnimSpeed';
 import type { EventChoice, EventCategory } from '../../types';
+import soulIcon from '@assets/icons/icon-soul.png';
 
 const CATEGORY_COLORS: Record<EventCategory, { accent: string; border: string; bg: string; label: string }> = {
   A: { accent: 'text-[#6B9E78]', border: 'border-[#6B9E78]', bg: 'bg-[#6B9E78]/10', label: '관대한 이벤트' },
@@ -10,16 +13,16 @@ const CATEGORY_COLORS: Record<EventCategory, { accent: string; border: string; b
   D: { accent: 'text-[#C45555]', border: 'border-[#C45555]', bg: 'bg-[#C45555]/10', label: '시련' },
 };
 
-function CoinFlipAnimation({ onComplete }: { onComplete: () => void }) {
+function CoinFlipAnimation({ onComplete, speedMultiplier }: { onComplete: () => void; speedMultiplier: number }) {
   const [flipping, setFlipping] = useState(true);
 
   useEffect(() => {
     const timer = setTimeout(() => {
       setFlipping(false);
       onComplete();
-    }, 1500);
+    }, 1500 * speedMultiplier);
     return () => clearTimeout(timer);
-  }, [onComplete]);
+  }, [onComplete, speedMultiplier]);
 
   return (
     <motion.div
@@ -33,14 +36,14 @@ function CoinFlipAnimation({ onComplete }: { onComplete: () => void }) {
           rotateY: [0, 180, 360, 540, 720],
           scale: [1, 1.2, 1, 1.2, 1],
         } : {}}
-        transition={{ duration: 1.5, ease: 'easeInOut' }}
+        transition={{ duration: 1.5 * speedMultiplier, ease: 'easeInOut' }}
       >
         🪙
       </motion.span>
       <motion.p
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ delay: 0.3 }}
+        transition={{ delay: 0.3 * speedMultiplier }}
         className="text-gray-400 text-sm mt-4"
       >
         운명의 동전이 돌아간다...
@@ -114,6 +117,7 @@ function EffectDisplay({ effects }: { effects: Array<{ type: string; value: numb
     <div className="flex flex-wrap gap-2 mt-3">
       {effects.map((effect, i) => {
         let icon = '';
+        let iconImg: string | null = null;
         let text = '';
         let color = '';
 
@@ -129,12 +133,12 @@ function EffectDisplay({ effects }: { effects: Array<{ type: string; value: numb
             color = 'text-red-400 bg-red-400/10';
             break;
           case 'soul_gain':
-            icon = '👻';
+            iconImg = soulIcon;
             text = `소울 +${effect.value}`;
             color = 'text-purple-400 bg-purple-400/10';
             break;
           case 'soul_cost':
-            icon = '👻';
+            iconImg = soulIcon;
             text = `소울 -${effect.value}`;
             color = 'text-red-400 bg-red-400/10';
             break;
@@ -155,7 +159,7 @@ function EffectDisplay({ effects }: { effects: Array<{ type: string; value: numb
             transition={{ delay: i * 0.1 }}
             className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-medium ${color}`}
           >
-            {icon} {text}
+            {iconImg ? <img src={iconImg} alt="소울" className="w-4 h-4 object-contain" /> : icon} {text}
           </motion.span>
         );
       })}
@@ -165,6 +169,7 @@ function EffectDisplay({ effects }: { effects: Array<{ type: string; value: numb
 
 export function EventScreen() {
   const { event: eventState, player, selectEventChoice, abandonEvent, closeEvent } = useGameStore();
+  const speedM = useAnimSpeed();
   const [narrationComplete, setNarrationComplete] = useState(false);
   const [displayedText, setDisplayedText] = useState('');
 
@@ -172,9 +177,7 @@ export function EventScreen() {
   const phase = eventState?.phase ?? 'narration';
   const result = eventState?.result;
 
-  const handleCoinFlipComplete = useCallback(() => {
-    // 상태 전환은 gameStore의 setTimeout이 처리
-  }, []);
+  const handleCoinFlipComplete = useCallback(() => {}, []);
 
   useEffect(() => {
     if (!eventDef || phase !== 'narration') return;
@@ -183,10 +186,17 @@ export function EventScreen() {
     setNarrationComplete(false);
 
     const text = eventDef.narration;
-    let index = 0;
 
+    if (speedM <= 0.1) {
+      setDisplayedText(text);
+      setNarrationComplete(true);
+      return;
+    }
+
+    let index = 0;
+    const charsPerTick = speedM < 0.5 ? 8 : 3;
     const interval = setInterval(() => {
-      index += 3;
+      index += charsPerTick;
       if (index >= text.length) {
         setDisplayedText(text);
         setNarrationComplete(true);
@@ -194,10 +204,10 @@ export function EventScreen() {
       } else {
         setDisplayedText(text.slice(0, index));
       }
-    }, 50);
+    }, 50 * speedM);
 
     return () => clearInterval(interval);
-  }, [eventDef, phase]);
+  }, [eventDef, phase, speedM]);
 
   useEffect(() => {
     if (narrationComplete && phase === 'narration') {
@@ -208,10 +218,10 @@ export function EventScreen() {
             event: { ...currentEvent, phase: 'choosing' },
           });
         }
-      }, 800);
+      }, 800 * speedM);
       return () => clearTimeout(timer);
     }
-  }, [narrationComplete, phase]);
+  }, [narrationComplete, phase, speedM]);
 
   if (!eventState || !eventDef) return null;
 
@@ -309,7 +319,7 @@ export function EventScreen() {
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
               >
-                <CoinFlipAnimation onComplete={handleCoinFlipComplete} />
+                <CoinFlipAnimation onComplete={handleCoinFlipComplete} speedMultiplier={speedM} />
               </motion.div>
             )}
 
@@ -331,17 +341,17 @@ export function EventScreen() {
 
                 <EffectDisplay effects={result.effects} />
 
-                <motion.button
+                <GameButton
+                  variant="primary"
+                  size="lg"
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.6 }}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
                   onClick={closeEvent}
-                  className="mt-6 px-8 py-3 rounded-xl bg-gradient-to-b from-[#D4A574] to-[#B8895A] text-[#16161C] font-bold text-lg shadow-lg shadow-[#D4A574]/20 hover:from-[#E0B584] hover:to-[#C4976A] transition-all"
+                  className="mt-6"
                 >
                   계속 →
-                </motion.button>
+                </GameButton>
               </motion.div>
             )}
 
@@ -366,20 +376,19 @@ export function EventScreen() {
             transition={{ delay: 0.5 }}
             className="px-8 py-4 border-t border-[#4A4A55]/50 flex justify-center"
           >
-            <motion.button
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
+            <GameButton
+              variant="secondary"
+              size="sm"
               onClick={abandonEvent}
-              className="px-6 py-2 rounded-lg border border-gray-600 text-gray-400 hover:text-gray-200 hover:border-gray-400 transition-colors text-sm"
             >
               포기하기
-            </motion.button>
+            </GameButton>
           </motion.div>
         )}
 
         {/* 하단 정보 바 */}
         <div className="px-8 py-3 bg-[#16161C] border-t border-[#4A4A55]/30 flex items-center justify-between text-xs text-gray-500">
-          <span>👻 {player.souls} 소울</span>
+          <span className="inline-flex items-center gap-1"><img src={soulIcon} alt="소울" className="w-3.5 h-3.5 object-contain" /> {player.souls} 소울</span>
           <span>💚 {player.hp}/{player.maxHp} HP</span>
         </div>
       </motion.div>

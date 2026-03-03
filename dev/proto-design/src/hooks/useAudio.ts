@@ -1,43 +1,9 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useEffect, useCallback, useRef } from 'react';
+import { useSettingsStore } from '../stores/settingsStore';
 
 const TRACKS: Record<string, HTMLAudioElement> = {};
 
 type TrackName = 'battle' | 'main';
-
-const STORAGE_KEY = 'gameAudio';
-
-interface AudioSettings {
-  isMuted: boolean;
-  volume: number;
-}
-
-function loadSettings(): AudioSettings {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) {
-      const parsed: unknown = JSON.parse(raw);
-      if (
-        typeof parsed === 'object' &&
-        parsed !== null &&
-        'isMuted' in parsed &&
-        'volume' in parsed
-      ) {
-        const settings = parsed as AudioSettings;
-        return {
-          isMuted: Boolean(settings.isMuted),
-          volume: Math.max(0, Math.min(1, Number(settings.volume))),
-        };
-      }
-    }
-  } catch { /* intentional: localStorage may be unavailable */ }
-  return { isMuted: false, volume: 0.5 };
-}
-
-function saveSettings(settings: AudioSettings): void {
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
-  } catch { /* intentional: localStorage may be unavailable */ }
-}
 
 const FADE_DURATION_MS = 500;
 const FADE_INTERVAL_MS = 25;
@@ -109,13 +75,11 @@ if (typeof document !== 'undefined') {
 }
 
 export function useAudio() {
-  const [isMuted, setIsMuted] = useState(() => loadSettings().isMuted);
-  const [volume, setVolumeState] = useState(() => loadSettings().volume);
+  const isMuted = useSettingsStore((s) => s.isMuted);
+  const volume = useSettingsStore((s) => s.masterVolume);
+  const toggleMute = useSettingsStore((s) => s.toggleMute);
+  const setVolume = useSettingsStore((s) => s.setMasterVolume);
   const currentTrackRef = useRef<TrackName | null>(null);
-
-  useEffect(() => {
-    saveSettings({ isMuted, volume });
-  }, [isMuted, volume]);
 
   useEffect(() => {
     const track = currentTrackRef.current;
@@ -123,14 +87,6 @@ export function useAudio() {
     const audio = TRACKS[track];
     if (audio) audio.volume = isMuted ? 0 : volume;
   }, [isMuted, volume]);
-
-  const toggleMute = useCallback(() => {
-    setIsMuted((prev) => !prev);
-  }, []);
-
-  const setVolume = useCallback((v: number) => {
-    setVolumeState(Math.max(0, Math.min(1, v)));
-  }, []);
 
   const switchBgm = useCallback(
     (trackName: 'battle' | 'main') => {

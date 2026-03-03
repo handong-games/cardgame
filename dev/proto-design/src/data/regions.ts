@@ -5,8 +5,8 @@ export const REGIONS: Record<string, Region> = {
     id: 'forgotten_dungeon',
     name: '잊혀진 숲',
     description: '안개에 뒤덮인 고대의 숲. 슬라임과 고블린이 서식한다.',
-    totalRounds: 7,
-    bossKey: 'dark_knight',
+    totalRounds: 8,
+    bossKey: 'ancient_grove_lord',
     bgTheme: 'forest',
   },
   // 추후 확장용 지역들

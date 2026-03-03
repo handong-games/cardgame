@@ -10,12 +10,26 @@ export const WARRIOR_SKILL_DEFINITIONS: Record<string, Omit<Skill, 'id'>> = {
     icon: '⚔️',
     headsCost: 1,
     tailsCost: 0,
-    maxUsePerTurn: 0,  // 무제한
+    maxUsePerTurn: 0,
     targetType: 'enemy',
     effects: [
-      { type: 'damage', value: 4, target: 'enemy' },
+      { type: 'damage', value: 3, target: 'enemy' },
     ],
-    description: '앞면 1로 4 데미지.',
+    description: '앞면 1로 3 데미지.',
+  },
+
+  fighting_spirit: {
+    skillKey: 'fighting_spirit',
+    name: '투지',
+    icon: '💪',
+    headsCost: 0,
+    tailsCost: 3,
+    maxUsePerTurn: 1,
+    targetType: 'self',
+    effects: [
+      { type: 'heal', value: 4 },
+    ],
+    description: '뒷면 3으로 HP 4 회복. 턴당 1회.',
   },
 
   // ===== 보상 스킬 (8개) =====
@@ -156,12 +170,12 @@ export const WARRIOR_SKILL_DEFINITIONS: Record<string, Omit<Skill, 'id'>> = {
     icon: '🛡️',
     headsCost: 1,
     tailsCost: 0,
-    maxUsePerTurn: 0,
+    maxUsePerTurn: 3,
     targetType: 'self',
     effects: [
-      { type: 'block', value: 4 },
+      { type: 'block', value: 3 },
     ],
-    description: '앞면 1로 이번 턴 받는 피해를 4 감소.',
+    description: '앞면 1로 이번 턴 받는 피해를 3 감소. 턴당 3회.',
   },
 
   regenerative_defense: {
@@ -215,7 +229,7 @@ export const WARRIOR_SKILL_DEFINITIONS: Record<string, Omit<Skill, 'id'>> = {
 };
 
 // 워리어 시작 스킬 키 목록
-export const WARRIOR_STARTING_SKILLS = ['basic_strike', 'defense'];
+export const WARRIOR_STARTING_SKILLS = ['basic_strike', 'defense', 'fighting_spirit'];
 
 // 워리어 보상 스킬 풀 (보상으로 획득 가능)
 export const WARRIOR_REWARD_SKILL_POOL = [

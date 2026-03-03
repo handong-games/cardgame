@@ -1,16 +1,24 @@
-// 전투 애니메이션 정의
+import { getCurrentSpeedMultiplier } from '../stores/settingsStore';
 
-// 타이밍 상수
 export const COMBAT_TIMING = {
-  PEEK_DURATION: 0.1,      // 뒤로 빠지는 시간
-  HIT_DURATION: 0.15,      // 앞으로 치는 시간
-  RETURN_DURATION: 0.15,   // 원위치 복귀 시간
-  SHAKE_DURATION: 0.3,     // 흔들림 시간
-  SHIELD_SHAKE: 0.2,       // 방패 흔들림 시간
+  PEEK_DURATION: 0.1,
+  HIT_DURATION: 0.15,
+  RETURN_DURATION: 0.15,
+  SHAKE_DURATION: 0.3,
+  SHIELD_SHAKE: 0.2,
 } as const;
 
-// Peek & Hit 애니메이션 (공격자)
-// 유저: 오른쪽으로 공격 (뒤로 → 앞으로 → 원위치)
+export function getScaledCombatTiming() {
+  const m = getCurrentSpeedMultiplier();
+  return {
+    PEEK_DURATION: COMBAT_TIMING.PEEK_DURATION * m,
+    HIT_DURATION: COMBAT_TIMING.HIT_DURATION * m,
+    RETURN_DURATION: COMBAT_TIMING.RETURN_DURATION * m,
+    SHAKE_DURATION: COMBAT_TIMING.SHAKE_DURATION * m,
+    SHIELD_SHAKE: COMBAT_TIMING.SHIELD_SHAKE * m,
+  };
+}
+
 export const playerAttackAnimation = {
   x: [0, -20, 30, 0],
   transition: {
@@ -20,7 +28,6 @@ export const playerAttackAnimation = {
   },
 };
 
-// 적: 왼쪽으로 공격 (뒤로 → 앞으로 → 원위치)
 export const enemyAttackAnimation = {
   x: [0, 20, -30, 0],
   transition: {
@@ -30,7 +37,6 @@ export const enemyAttackAnimation = {
   },
 };
 
-// 피격 흔들림 애니메이션
 export const hitReactAnimation = {
   x: [0, -10, 10, -5, 0],
   transition: {
@@ -40,7 +46,6 @@ export const hitReactAnimation = {
   },
 };
 
-// 방패 흔들림 애니메이션 (방어력 감소 시)
 export const shieldShakeAnimation = {
   rotate: [0, -15, 15, -10, 0],
   scale: [1, 1.1, 1],
@@ -51,7 +56,6 @@ export const shieldShakeAnimation = {
   },
 };
 
-// 방어력 숫자 애니메이션 (변경 시)
 export const blockNumberAnimation = {
   scale: [1, 1.3, 1],
   transition: {
@@ -61,7 +65,6 @@ export const blockNumberAnimation = {
   },
 };
 
-// 몬스터 사망 애니메이션 (페이드아웃 + 축소 + 위로 이동)
 export const enemyDeathAnimation = {
   opacity: [1, 0],
   scale: [1, 0.5],
@@ -72,11 +75,57 @@ export const enemyDeathAnimation = {
   },
 };
 
-// 전체 애니메이션 시간
 export const TOTAL_ATTACK_DURATION =
   COMBAT_TIMING.PEEK_DURATION +
   COMBAT_TIMING.HIT_DURATION +
   COMBAT_TIMING.RETURN_DURATION;
 
-// 사망 애니메이션 시간
 export const DEATH_ANIMATION_DURATION = 0.5;
+
+export function getScaledAttackDuration(): number {
+  return TOTAL_ATTACK_DURATION * getCurrentSpeedMultiplier();
+}
+
+export function getScaledDeathDuration(): number {
+  return DEATH_ANIMATION_DURATION * getCurrentSpeedMultiplier();
+}
+
+export function getScaledPlayerAttack() {
+  const m = getCurrentSpeedMultiplier();
+  return {
+    ...playerAttackAnimation,
+    transition: { ...playerAttackAnimation.transition, duration: playerAttackAnimation.transition.duration * m },
+  };
+}
+
+export function getScaledEnemyAttack() {
+  const m = getCurrentSpeedMultiplier();
+  return {
+    ...enemyAttackAnimation,
+    transition: { ...enemyAttackAnimation.transition, duration: enemyAttackAnimation.transition.duration * m },
+  };
+}
+
+export function getScaledHitReact() {
+  const m = getCurrentSpeedMultiplier();
+  return {
+    ...hitReactAnimation,
+    transition: { ...hitReactAnimation.transition, duration: hitReactAnimation.transition.duration * m },
+  };
+}
+
+export function getScaledShieldShake() {
+  const m = getCurrentSpeedMultiplier();
+  return {
+    ...shieldShakeAnimation,
+    transition: { ...shieldShakeAnimation.transition, duration: shieldShakeAnimation.transition.duration * m },
+  };
+}
+
+export function getScaledBlockNumber() {
+  const m = getCurrentSpeedMultiplier();
+  return {
+    ...blockNumberAnimation,
+    transition: { ...blockNumberAnimation.transition, duration: blockNumberAnimation.transition.duration * m },
+  };
+}

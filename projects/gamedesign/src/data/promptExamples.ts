@@ -277,7 +277,7 @@ scary dark menacing`
       group: '스킬 카드 프레임',
       prompt: `game card frame design for fantasy RPG skill card,
 empty frame template without skill illustration,
-portrait 5:7 vertical ratio,
+square 1:1 ratio,
 
 dark charcoal frame background #1E1E24,
 deep gray inner area #2A2A32,
@@ -297,8 +297,8 @@ professional game UI asset,
 2D flat design,
 isolated on solid white background,
 
-output resolution 512x716 pixels,
-final usage 140x196 pixels after downscaling`,
+output resolution 512x512 pixels,
+final usage 140x140 pixels after downscaling`,
       negative: FRAME_NEGATIVE
     },
     {
@@ -308,7 +308,7 @@ final usage 140x196 pixels after downscaling`,
       group: '스킬 카드 프레임',
       prompt: `game card frame design for fantasy RPG skill card,
 empty frame template without skill illustration,
-portrait 5:7 vertical ratio,
+square 1:1 ratio,
 
 dark charcoal frame background #1E1E24,
 deep gray inner area #2A2A32,
@@ -328,8 +328,8 @@ professional game UI asset,
 2D flat design,
 isolated on solid white background,
 
-output resolution 512x716 pixels,
-final usage 140x196 pixels after downscaling`,
+output resolution 512x512 pixels,
+final usage 140x140 pixels after downscaling`,
       negative: FRAME_NEGATIVE
     },
     {
@@ -339,7 +339,7 @@ final usage 140x196 pixels after downscaling`,
       group: '스킬 카드 프레임',
       prompt: `game card frame design for fantasy RPG skill card,
 empty frame template without skill illustration,
-portrait 5:7 vertical ratio,
+square 1:1 ratio,
 
 dark charcoal frame background #1E1E24,
 deep gray inner area #2A2A32,
@@ -359,8 +359,8 @@ professional game UI asset,
 2D flat design,
 isolated on solid white background,
 
-output resolution 512x716 pixels,
-final usage 140x196 pixels after downscaling`,
+output resolution 512x512 pixels,
+final usage 140x140 pixels after downscaling`,
       negative: FRAME_NEGATIVE
     },
     {
@@ -370,7 +370,7 @@ final usage 140x196 pixels after downscaling`,
       group: '스킬 카드 프레임',
       prompt: `game card frame design for fantasy RPG skill card,
 empty frame template without skill illustration,
-portrait 5:7 vertical ratio,
+square 1:1 ratio,
 
 dark charcoal frame background #1E1E24,
 deep gray inner area #2A2A32,
@@ -390,8 +390,8 @@ professional game UI asset,
 2D flat design,
 isolated on solid white background,
 
-output resolution 512x716 pixels,
-final usage 140x196 pixels after downscaling`,
+output resolution 512x512 pixels,
+final usage 140x140 pixels after downscaling`,
       negative: FRAME_NEGATIVE
     }
   ],
@@ -1446,7 +1446,7 @@ slightly desaturated red for dark fantasy feel`,
       negative: UI_NEGATIVE
     },
 
-    // ---- 상태 아이콘 (7종) ----
+    // ---- 상태 아이콘 (8종) ----
     {
       id: 'icon-poison',
       name: '독',
@@ -1545,6 +1545,20 @@ fierce empowered atmosphere,
 dark fantasy status effect icon`,
       negative: UI_NEGATIVE
     },
+    {
+      id: 'icon-weak',
+      name: '약화',
+      nameEn: 'Weak',
+      group: '상태 아이콘',
+      prompt: `${UI_ICON_STYLE},
+
+broken sword with downward droop,
+muted orange-brown color #8B6B4A,
+wilting blade bending downward,
+weakened diminished power atmosphere,
+dark fantasy status effect icon`,
+      negative: UI_NEGATIVE
+    },
 
     // ---- 리소스 아이콘 (4종) ----
     {
@@ -1582,10 +1596,10 @@ dark fantasy resource icon`,
       group: '리소스 아이콘',
       prompt: `${UI_ICON_STYLE},
 
-diamond gemstone with inner sparkle,
-warm gold color #D4A574,
-faceted gem shape with light refraction,
-precious luminous glow,
+ghostly wisp soul flame floating upward,
+ethereal cyan-white color #A0D8E8,
+translucent spirit silhouette with soft glow trail,
+mysterious otherworldly luminescence,
 dark fantasy resource icon`,
       negative: UI_NEGATIVE
     },
@@ -1734,7 +1748,7 @@ dark fantasy turn phase icon`,
       negative: UI_NEGATIVE
     },
 
-    // ---- 라운드 노드 (5종) ----
+    // ---- 라운드 노드 (6종) ----
     {
       id: 'icon-node-monster',
       name: '몬스터 노드',
@@ -1803,6 +1817,218 @@ regal crown silhouette with pointed peaks,
 white or cream icon on dark red circle,
 final boss encounter node,
 dark fantasy map node icon`,
+      negative: UI_NEGATIVE
+    },
+    {
+      id: 'icon-node-rest',
+      name: '휴식 노드',
+      nameEn: 'Rest Node',
+      group: '라운드 노드',
+      prompt: `${UI_NODE_STYLE},
+
+campfire flame icon on warm brown circular badge background #6B4423,
+simple flame silhouette with small sparks,
+white or cream icon on colored circle,
+rest recovery healing node,
+dark fantasy map node icon`,
+      negative: UI_NEGATIVE
+    },
+
+    // ---- 스킬 아이콘 (14종) ----
+    {
+      id: 'icon-skill-basic-strike',
+      name: '기본 공격',
+      nameEn: 'Basic Strike',
+      group: '스킬 아이콘',
+      prompt: `${UI_ICON_STYLE},
+
+single straight sword pointing upward,
+warm steel gray color #5A5F6B,
+simple clean blade silhouette,
+minimal no-frills weapon,
+dark fantasy skill icon`,
+      negative: UI_NEGATIVE
+    },
+    {
+      id: 'icon-skill-defense',
+      name: '방어',
+      nameEn: 'Defense',
+      group: '스킬 아이콘',
+      prompt: `${UI_ICON_STYLE},
+
+round shield with horizontal bar across center,
+steel blue color #4A90C0,
+sturdy solid shield silhouette,
+protective blocking stance,
+dark fantasy skill icon`,
+      negative: UI_NEGATIVE
+    },
+    {
+      id: 'icon-skill-fighting-spirit',
+      name: '투지',
+      nameEn: 'Fighting Spirit',
+      group: '스킬 아이콘',
+      prompt: `${UI_ICON_STYLE},
+
+clenched fist with upward energy lines,
+warm red-orange color #C07050,
+strong determined fist raised,
+fighting spirit vitality aura,
+dark fantasy skill icon`,
+      negative: UI_NEGATIVE
+    },
+    {
+      id: 'icon-skill-combo-strike',
+      name: '연속 베기',
+      nameEn: 'Combo Strike',
+      group: '스킬 아이콘',
+      prompt: `${UI_ICON_STYLE},
+
+two crossed daggers with motion slash lines,
+coral red color #C05050,
+dual blade cross pattern,
+swift consecutive attack feel,
+dark fantasy skill icon`,
+      negative: UI_NEGATIVE
+    },
+    {
+      id: 'icon-skill-cleave',
+      name: '분산 공격',
+      nameEn: 'Cleave',
+      group: '스킬 아이콘',
+      prompt: `${UI_ICON_STYLE},
+
+wide horizontal slash arc with radiating impact,
+electric blue color #4A7AC0,
+broad sweeping blade trail,
+area attack wide spread feel,
+dark fantasy skill icon`,
+      negative: UI_NEGATIVE
+    },
+    {
+      id: 'icon-skill-weakening-strike',
+      name: '약화 공격',
+      nameEn: 'Weakening Strike',
+      group: '스킬 아이콘',
+      prompt: `${UI_ICON_STYLE},
+
+sword with cracked zigzag impact lines,
+muted purple color #6B4B8C,
+blade with fracture marks radiating,
+weakening debilitating strike,
+dark fantasy skill icon`,
+      negative: UI_NEGATIVE
+    },
+    {
+      id: 'icon-skill-weakening-blow',
+      name: '약화의 일격',
+      nameEn: 'Weakening Blow',
+      group: '스킬 아이콘',
+      prompt: `${UI_ICON_STYLE},
+
+hammer with shockwave ripples expanding outward,
+muted purple color #6B4B8C,
+heavy impact with concentric rings,
+area weakening crushing blow,
+dark fantasy skill icon`,
+      negative: UI_NEGATIVE
+    },
+    {
+      id: 'icon-skill-charge',
+      name: '차지',
+      nameEn: 'Charge Attack',
+      group: '스킬 아이콘',
+      prompt: `${UI_ICON_STYLE},
+
+lightning bolt striking downward with energy sparks,
+electric amber color #DAA520,
+jagged bolt with small spark particles,
+charged power accumulation,
+dark fantasy skill icon`,
+      negative: UI_NEGATIVE
+    },
+    {
+      id: 'icon-skill-vulnerable-strike',
+      name: '취약 공격',
+      nameEn: 'Vulnerable Strike',
+      group: '스킬 아이콘',
+      prompt: `${UI_ICON_STYLE},
+
+crosshair target reticle with crack lines through center,
+dark red color #8B4049,
+precise targeting with shatter marks,
+vulnerability exploiting strike,
+dark fantasy skill icon`,
+      negative: UI_NEGATIVE
+    },
+    {
+      id: 'icon-skill-desperate-strike',
+      name: '절망의 일격',
+      nameEn: 'Desperate Strike',
+      group: '스킬 아이콘',
+      prompt: `${UI_ICON_STYLE},
+
+skull with single large sword piercing through top,
+dark crimson color #6B2030,
+jagged desperate energy radiating,
+last resort all-or-nothing attack,
+dark fantasy skill icon`,
+      negative: UI_NEGATIVE
+    },
+    {
+      id: 'icon-skill-focus',
+      name: '집중',
+      nameEn: 'Focus',
+      group: '스킬 아이콘',
+      prompt: `${UI_ICON_STYLE},
+
+single eye symbol with radiating focus lines,
+warm gold color #D4A574,
+concentrated gaze with thin rays,
+mental focus precision aura,
+dark fantasy skill icon`,
+      negative: UI_NEGATIVE
+    },
+    {
+      id: 'icon-skill-regenerative-defense',
+      name: '재생 방어',
+      nameEn: 'Regenerative Defense',
+      group: '스킬 아이콘',
+      prompt: `${UI_ICON_STYLE},
+
+shield with small leaf sprouting from center,
+teal green color #2E6B5A,
+protective shield with organic growth,
+healing defensive nature power,
+dark fantasy skill icon`,
+      negative: UI_NEGATIVE
+    },
+    {
+      id: 'icon-skill-weakening-defense',
+      name: '약화 방어',
+      nameEn: 'Weakening Defense',
+      group: '스킬 아이콘',
+      prompt: `${UI_ICON_STYLE},
+
+shield with downward arrow overlay,
+muted blue-purple color #5A5B8C,
+defensive shield with weakening mark,
+protection with counter-debuff,
+dark fantasy skill icon`,
+      negative: UI_NEGATIVE
+    },
+    {
+      id: 'icon-skill-desperate-shield',
+      name: '절망의 방패',
+      nameEn: 'Desperate Shield',
+      group: '스킬 아이콘',
+      prompt: `${UI_ICON_STYLE},
+
+cracked shield with dark energy swirling around,
+dark crimson color #6B2030,
+broken shield fragments held by dark force,
+last resort desperate defense,
+dark fantasy skill icon`,
       negative: UI_NEGATIVE
     },
 

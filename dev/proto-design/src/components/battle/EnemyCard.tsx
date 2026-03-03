@@ -1,41 +1,44 @@
-import { motion, useAnimationControls } from 'framer-motion';
+import { motion, useAnimationControls, AnimatePresence } from 'framer-motion';
 import { useEffect, useRef, useState } from 'react';
 import type { Enemy } from '../../types';
 import { HPBar } from '../common/HPBar';
 import {
-  enemyAttackAnimation,
-  hitReactAnimation,
-  shieldShakeAnimation,
-  blockNumberAnimation,
   COMBAT_TIMING,
+  getScaledEnemyAttack,
+  getScaledHitReact,
+  getScaledShieldShake,
+  getScaledBlockNumber,
+  getScaledCombatTiming,
 } from '../../animations';
 import { getBuffDefinition } from '../../utils/buffSystem';
 import monsterGoblin from '@assets/monsters/MON_F01_goblin.png';
-import monsterWolfPack from '@assets/monsters/MON_F06_wolf-pack.png';
+import monsterPoisonSpider from '@assets/monsters/MON_F02_poison-spider.png';
 import monsterSporeParasite from '@assets/monsters/MON_F03_spore-parasite.png';
+import monsterThornVine from '@assets/monsters/MON_F04_thorn-vine.png';
+import monsterGolem from '@assets/monsters/MON_F05_golem.png';
+import monsterWolfPack from '@assets/monsters/MON_F06_wolf-pack.png';
+import monsterRottenTree from '@assets/monsters/MON_F07_rotten-tree.png';
+import bossAncientGroveLord from '@assets/monsters/BOSS_F01_ancient-grove-lord.png';
 import monsterFrameT1 from '@assets/frames/frame-t1.png';
 import monsterFrameT2 from '@assets/frames/frame-t2.png';
+import monsterFrameT3 from '@assets/frames/frame-t3.png';
+import intentAttackIcon from '@assets/icons/intent-attack.png';
+import intentDefenseIcon from '@assets/icons/intent-defense.png';
+import intentBuffIcon from '@assets/icons/intent-buff.png';
+import statusVulnerableIcon from '@assets/icons/status-vulnerable.png';
+import statusStrengthIcon from '@assets/icons/status-strength.png';
 
+// gameplan 8체 매핑 (MON_F01~F07 + BOSS_F01)
+// 프레임 티어: R1~3 T1(기본), R4~5 T2(정예), R6~7 T3(후반), R8 T3(보스)
 const MONSTER_IMAGES: Record<string, { src: string; frame?: string }> = {
-  '고블린': { src: monsterGoblin },
-  '늑대': { src: monsterWolfPack, frame: monsterFrameT2 },
-  '오크 전사': { src: monsterGoblin },
-  '석상 골렘': { src: monsterGoblin },
-  '광전사 고블린': { src: monsterGoblin },
-  '가시 덩쿨': { src: monsterSporeParasite },
-  '이끼 늑대': { src: monsterWolfPack, frame: monsterFrameT2 },
-  '버섯 기생체': { src: monsterSporeParasite },
-  '안개 족제비': { src: monsterWolfPack, frame: monsterFrameT2 },
-  '썩은 나무령': { src: monsterSporeParasite },
-  '오크 주술사': { src: monsterGoblin, frame: monsterFrameT2 },
-  '독 거미': { src: monsterSporeParasite, frame: monsterFrameT2 },
-  '암살자': { src: monsterWolfPack, frame: monsterFrameT2 },
-  '수호병': { src: monsterGoblin, frame: monsterFrameT2 },
-  '광기의 마법사': { src: monsterSporeParasite, frame: monsterFrameT2 },
-  '흑요 정령': { src: monsterGoblin, frame: monsterFrameT2 },
-  '고목 수호자': { src: monsterSporeParasite, frame: monsterFrameT2 },
-  '밤그늘 사슴': { src: monsterWolfPack, frame: monsterFrameT2 },
-  '종자 수확자': { src: monsterSporeParasite, frame: monsterFrameT2 },
+  '고블린': { src: monsterGoblin },                                                  // MON_F01 R1 T1
+  '독거미': { src: monsterPoisonSpider },                                            // MON_F02 R2-3 T1
+  '버섯 기생체': { src: monsterSporeParasite },                                       // MON_F03 R2-3 T1
+  '가시 덩굴': { src: monsterThornVine, frame: monsterFrameT2 },                     // MON_F04 R4-5 T2
+  '골렘': { src: monsterGolem, frame: monsterFrameT2 },                              // MON_F05 R4-5 T2
+  '늑대': { src: monsterWolfPack, frame: monsterFrameT3 },                           // MON_F06 R6-7 T3
+  '썩은 나무': { src: monsterRottenTree, frame: monsterFrameT3 },                      // MON_F07 R6-7 T3
+  '고대 수목군주': { src: bossAncientGroveLord, frame: monsterFrameT3 },              // BOSS_F01 R8 T3
 };
 
 interface EnemyCardProps {
@@ -43,6 +46,8 @@ interface EnemyCardProps {
   isAttacking?: boolean;
   isHit?: boolean;
   previewDamage?: number;
+  isTargeted?: boolean;
+  isBoss?: boolean;
 }
 
 export function EnemyCard({
@@ -50,6 +55,8 @@ export function EnemyCard({
   isAttacking = false,
   isHit = false,
   previewDamage = 0,
+  isTargeted = false,
+  isBoss = false,
 }: EnemyCardProps) {
   const cardControls = useAnimationControls();
   const shieldControls = useAnimationControls();
@@ -58,15 +65,17 @@ export function EnemyCard({
   const [hoveredDebuff, setHoveredDebuff] = useState<string | null>(null);
   const [imageError, setImageError] = useState(false);
 
-  const monsterData = MONSTER_IMAGES[enemy.name];
+  const isElite = enemy.name.includes('(엘리트)');
+  const baseName = enemy.name.replace(/ \(엘리트\)$/, '');
+  const monsterData = MONSTER_IMAGES[baseName] ?? MONSTER_IMAGES[enemy.name];
   const monsterImage = monsterData?.src;
   const monsterFrame = monsterData?.frame ?? monsterFrameT1;
 
-  const intentConfig: Record<string, { icon: string; label: string; bg: string; border: string; text: string }> = {
-    attack: { icon: '⚔️', label: '공격', bg: 'bg-red-900/60', border: 'border-red-500/50', text: 'text-red-400' },
-    defend: { icon: '🛡️', label: '방어', bg: 'bg-blue-900/60', border: 'border-blue-500/50', text: 'text-blue-400' },
-    buff: { icon: '✨', label: '강화', bg: 'bg-amber-900/60', border: 'border-amber-500/50', text: 'text-amber-400' },
-    debuff: { icon: '💢', label: '디버프', bg: 'bg-purple-900/60', border: 'border-purple-500/50', text: 'text-purple-400' },
+  const intentConfig: Record<string, { icon: string; iconImg?: string; label: string; bg: string; border: string; text: string }> = {
+    attack: { icon: '⚔️', iconImg: intentAttackIcon, label: '공격', bg: 'bg-red-900/60', border: 'border-red-500/50', text: 'text-red-400' },
+    defend: { icon: '🛡️', iconImg: intentDefenseIcon, label: '방어', bg: 'bg-blue-900/60', border: 'border-blue-500/50', text: 'text-blue-400' },
+    buff: { icon: '✨', iconImg: intentBuffIcon, label: '강화', bg: 'bg-amber-900/60', border: 'border-amber-500/50', text: 'text-amber-400' },
+    debuff: { icon: '💢', iconImg: intentBuffIcon, label: '디버프', bg: 'bg-purple-900/60', border: 'border-purple-500/50', text: 'text-purple-400' },
   };
 
   const currentIntent = intentConfig[enemy.intent.type] ?? intentConfig.attack;
@@ -76,17 +85,23 @@ export function EnemyCard({
     vulnerable: '🎯',
   };
 
+  const debuffIconImages: Record<string, string> = {
+    vulnerable: statusVulnerableIcon,
+    strength: statusStrengthIcon,
+  };
+
   useEffect(() => {
     if (isAttacking) {
-      cardControls.start(enemyAttackAnimation);
+      cardControls.start(getScaledEnemyAttack());
     }
   }, [isAttacking, cardControls]);
 
   useEffect(() => {
     if (isHit) {
-      const hitDelay = (COMBAT_TIMING.PEEK_DURATION + COMBAT_TIMING.HIT_DURATION) * 1000;
+      const t = getScaledCombatTiming();
+      const hitDelay = (t.PEEK_DURATION + t.HIT_DURATION) * 1000;
       const timer = setTimeout(() => {
-        cardControls.start(hitReactAnimation);
+        cardControls.start(getScaledHitReact());
       }, hitDelay);
       return () => clearTimeout(timer);
     }
@@ -94,10 +109,11 @@ export function EnemyCard({
 
   useEffect(() => {
     if (prevBlock.current > 0 && enemy.block < prevBlock.current) {
-      const hitDelay = (COMBAT_TIMING.PEEK_DURATION + COMBAT_TIMING.HIT_DURATION) * 1000;
+      const t = getScaledCombatTiming();
+      const hitDelay = (t.PEEK_DURATION + t.HIT_DURATION) * 1000;
       const timer = setTimeout(() => {
-        shieldControls.start(shieldShakeAnimation);
-        blockNumberControls.start(blockNumberAnimation);
+        shieldControls.start(getScaledShieldShake());
+        blockNumberControls.start(getScaledBlockNumber());
       }, hitDelay);
       prevBlock.current = enemy.block;
       return () => clearTimeout(timer);
@@ -118,17 +134,46 @@ export function EnemyCard({
         } : {}}
         transition={enemy.intent.type === 'attack' ? { duration: 1.5, repeat: Infinity, ease: 'easeInOut' } : {}}
       >
-        <span className="mr-1">{currentIntent.icon}</span>
+        {currentIntent.iconImg ? (
+          <img src={currentIntent.iconImg} alt={currentIntent.label} className="inline-block w-4 h-4 mr-1 object-contain" />
+        ) : (
+          <span className="mr-1">{currentIntent.icon}</span>
+        )}
         <span className={currentIntent.text}>{currentIntent.label}</span>
         <span className={`ml-1 font-bold ${currentIntent.text}`}>{enemy.intent.value}</span>
       </motion.div>
 
-      <div className="enemy-card relative">
+      <motion.div
+        className="enemy-card relative transition-shadow duration-200"
+        animate={{
+          scale: isTargeted ? 1.05 : 1,
+          boxShadow: isTargeted
+            ? '0 0 20px rgba(239,68,68,0.6), 0 0 40px rgba(239,68,68,0.3)'
+            : '0 0 0px rgba(0,0,0,0)',
+        }}
+        transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+      >
+        {isTargeted && (
+          <div className="absolute inset-0 rounded-[inherit] border-2 border-red-400/70 z-10 pointer-events-none" />
+        )}
         <img
           src={monsterFrame}
           alt={monsterData?.frame ? '정예 프레임' : '몬스터 프레임'}
           className="absolute inset-0 w-full h-full object-cover rounded-[inherit]"
         />
+        {(isBoss || isElite) && (
+          <div className="absolute top-1.5 left-1/2 -translate-x-1/2 z-10">
+            <div
+              className={`px-2.5 py-0.5 rounded text-[10px] font-bold tracking-wider uppercase border shadow-lg ${
+                isBoss
+                  ? 'bg-gradient-to-r from-red-900/90 to-red-800/90 border-red-500/70 text-red-200'
+                  : 'bg-gradient-to-r from-amber-900/90 to-amber-800/90 border-amber-500/70 text-amber-200'
+              }`}
+            >
+              {isBoss ? '보스' : '엘리트'}
+            </div>
+          </div>
+        )}
         <div className="absolute inset-0 flex items-center justify-center">
           {monsterImage && !imageError ? (
             <img
@@ -141,7 +186,18 @@ export function EnemyCard({
             <span className="card-emoji">👾</span>
           )}
         </div>
-      </div>
+        <AnimatePresence>
+          {isHit && (
+            <motion.div
+              className="absolute inset-0 bg-red-500/30 rounded-[inherit] pointer-events-none z-20"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: [0, 0.6, 0] }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.4 }}
+            />
+          )}
+        </AnimatePresence>
+      </motion.div>
 
        <div className="w-full px-1">
          <div className="flex items-center gap-1.5">
@@ -189,7 +245,11 @@ export function EnemyCard({
                 onMouseLeave={() => setHoveredDebuff(null)}
               >
                 <div className="w-10 h-10 rounded-full bg-effect-debuff/80 border-2 border-effect-debuff flex items-center justify-center cursor-help">
-                  <span className="text-lg">{debuffIcons[debuff.debuffId] || '💀'}</span>
+                  {debuffIconImages[debuff.debuffId] ? (
+                    <img src={debuffIconImages[debuff.debuffId]} alt={debuffDef.name} className="w-6 h-6 object-contain" />
+                  ) : (
+                    <span className="text-lg">{debuffIcons[debuff.debuffId] || '💀'}</span>
+                  )}
                 </div>
 
                 {debuff.stacks > 1 && (

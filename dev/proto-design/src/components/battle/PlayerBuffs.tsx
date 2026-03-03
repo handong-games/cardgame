@@ -1,5 +1,11 @@
 import type { ActiveBuff } from '../../types';
 import { getBuffDefinition } from '../../utils/buffSystem';
+import statusStrengthIcon from '@assets/icons/status-strength.png';
+
+const BUFF_ICONS: Record<string, string> = {
+  strength: statusStrengthIcon,
+  strength_long: statusStrengthIcon,
+};
 
 interface PlayerBuffsProps {
   buffs: ActiveBuff[];
@@ -21,7 +27,11 @@ export function PlayerBuffs({ buffs }: PlayerBuffsProps) {
           >
             {/* 버프 아이콘 */}
             <div className="w-10 h-10 rounded-full bg-yellow-600 border-2 border-yellow-400 flex items-center justify-center text-white font-bold text-sm">
-              {buffDef.name.charAt(0)}
+              {BUFF_ICONS[activeBuff.buffId] ? (
+                <img src={BUFF_ICONS[activeBuff.buffId]} alt={buffDef.name} className="w-6 h-6 object-contain" />
+              ) : (
+                buffDef.name.charAt(0)
+              )}
             </div>
 
             {/* 스택 수 (스택 가능한 버프일 경우) */}

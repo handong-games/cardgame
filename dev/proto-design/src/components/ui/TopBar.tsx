@@ -1,5 +1,8 @@
 import { motion, AnimatePresence } from 'framer-motion';
+import type { RefObject } from 'react';
 import { AudioControl } from './AudioControl';
+import settingsIcon from '@assets/icons/settings.png';
+import soulIcon from '@assets/icons/icon-soul.png';
 import type { Accessory } from '../../types';
 
 interface TopBarProps {
@@ -9,6 +12,8 @@ interface TopBarProps {
   accessories?: Accessory[];
   isMuted?: boolean;
   onToggleMute?: () => void;
+  onOpenSettings?: () => void;
+  soulCounterRef?: RefObject<HTMLDivElement | null>;
 }
 
 export function TopBar({
@@ -18,6 +23,8 @@ export function TopBar({
   accessories = [],
   isMuted = false,
   onToggleMute,
+  onOpenSettings,
+  soulCounterRef,
 }: TopBarProps) {
   return (
     <div className="w-full bg-gradient-to-r from-dark-surface/90 via-dark-charcoal/90 to-dark-surface/90 backdrop-blur-sm border-b border-dark-graphite/50 px-4 py-1.5 shadow-card-dark">
@@ -63,6 +70,7 @@ export function TopBar({
         {/* 우측: 영혼 + 오디오 */}
         <div className="flex items-center gap-2 flex-shrink-0">
           <motion.div
+            ref={soulCounterRef}
             className="flex items-center gap-1.5 px-2.5 py-0.5 bg-dark-deep/60 rounded-full border border-dark-graphite/50"
             animate={soulPulse ? {
               scale: [1, 1.2, 1],
@@ -70,12 +78,21 @@ export function TopBar({
               transition: { duration: 0.3 }
             } : {}}
           >
-            <span className="text-sm">👻</span>
+            <img src={soulIcon} alt="소울" className="w-4 h-4 object-contain" />
             <span className="text-gray-200 font-bold text-sm">{souls}</span>
           </motion.div>
           {onToggleMute && (
             <AudioControl isMuted={isMuted} onToggleMute={onToggleMute} />
           )}
+          <motion.button
+            onClick={onOpenSettings}
+            whileHover={{ scale: 1.15, rotate: 90 }}
+            whileTap={{ scale: 0.9 }}
+            className="w-7 h-7 rounded-full bg-dark-deep/60 border border-dark-graphite/50 flex items-center justify-center cursor-pointer transition-colors hover:border-gray-400"
+            title="설정"
+          >
+            <img src={settingsIcon} alt="설정" className="w-4 h-4 object-contain opacity-80" />
+          </motion.button>
         </div>
       </div>
     </div>

@@ -36,12 +36,12 @@ const COMPONENTS: LayoutComponent[] = [
   { id: 's1-bubble', name: '대사 버블', zone: 'S-1', x: 608, y: 192, w: 780, h: 60, description: '상인 대사 텍스트 (타이핑 애니메이션)', color: '#1E1E24', details: { '배경': '#1E1E24', '테두리': '#4A4A55 1px', '폰트': '16px, #FFF5E6 90%', '타이핑': '2자/프레임' } },
 
   // S-2: 스킬 상품 (5장)
-  { id: 's2-area', name: 'S-2 전체 영역', zone: 'S-2', x: 512, y: 298, w: 896, h: 260, description: '스킬 상품 5장 수평 배치', color: '#4A90C0', details: { '섹션 라벨': '"스킬" 14px Bold #D4A574', '카드': '140×196px, 16px 간격' } },
-  { id: 's2-card1', name: '스킬 카드 1', zone: 'S-2', x: 578, y: 330, w: 140, h: 196, description: '스킬 상품 (◆12)', color: '#4A90C0', details: { '프레임': '#1E1E24→#2A2A32', '테두리': '#4A4A55 2px', '가격': '좌상단 뱃지 ◆12', '호버': 'y-8px, 그림자' } },
-  { id: 's2-card2', name: '스킬 카드 2', zone: 'S-2', x: 734, y: 330, w: 140, h: 196, description: '스킬 상품 (◆15)', color: '#4A90C0', details: { '프레임': '#1E1E24→#2A2A32', '가격': '◆15' } },
-  { id: 's2-card3', name: '스킬 카드 3', zone: 'S-2', x: 890, y: 330, w: 140, h: 196, description: '스킬 상품 (◆10)', color: '#4A90C0', details: { '프레임': '#1E1E24→#2A2A32', '가격': '◆10' } },
-  { id: 's2-card4', name: '스킬 카드 4', zone: 'S-2', x: 1046, y: 330, w: 140, h: 196, description: '스킬 상품 (◆18)', color: '#4A90C0', details: { '프레임': '#1E1E24→#2A2A32', '가격': '◆18' } },
-  { id: 's2-card5', name: '스킬 카드 5', zone: 'S-2', x: 1202, y: 330, w: 140, h: 196, description: '스킬 상품 (◆8)', color: '#4A90C0', details: { '프레임': '#1E1E24→#2A2A32', '가격': '◆8' } },
+  { id: 's2-area', name: 'S-2 전체 영역', zone: 'S-2', x: 512, y: 298, w: 896, h: 260, description: '스킬 상품 5장 수평 배치', color: '#4A90C0', details: { '섹션 라벨': '"스킬" 14px Bold #D4A574', '카드': '140×140px, 16px 간격' } },
+  { id: 's2-card1', name: '스킬 카드 1', zone: 'S-2', x: 578, y: 330, w: 140, h: 140, description: '스킬 상품 (◆12)', color: '#4A90C0', details: { '프레임': '#1E1E24→#2A2A32', '테두리': '#4A4A55 2px', '가격': '좌상단 뱃지 ◆12', '호버': 'y-8px, 그림자' } },
+  { id: 's2-card2', name: '스킬 카드 2', zone: 'S-2', x: 734, y: 330, w: 140, h: 140, description: '스킬 상품 (◆15)', color: '#4A90C0', details: { '프레임': '#1E1E24→#2A2A32', '가격': '◆15' } },
+  { id: 's2-card3', name: '스킬 카드 3', zone: 'S-2', x: 890, y: 330, w: 140, h: 140, description: '스킬 상품 (◆10)', color: '#4A90C0', details: { '프레임': '#1E1E24→#2A2A32', '가격': '◆10' } },
+  { id: 's2-card4', name: '스킬 카드 4', zone: 'S-2', x: 1046, y: 330, w: 140, h: 140, description: '스킬 상품 (◆18)', color: '#4A90C0', details: { '프레임': '#1E1E24→#2A2A32', '가격': '◆18' } },
+  { id: 's2-card5', name: '스킬 카드 5', zone: 'S-2', x: 1202, y: 330, w: 140, h: 140, description: '스킬 상품 (◆8)', color: '#4A90C0', details: { '프레임': '#1E1E24→#2A2A32', '가격': '◆8' } },
 
   // S-3: 전리품 상품 (3장)
   { id: 's3-area', name: 'S-3 전체 영역', zone: 'S-3', x: 512, y: 574, w: 520, h: 200, description: '전리품 카드 3장 수평 배치', color: '#6B4B8C', details: { '섹션 라벨': '"전리품" 14px Bold #D4A574', '카드': '140×160px, 16px 간격' } },
@@ -502,7 +502,7 @@ function ProductTable() {
       type: '스킬 상품',
       icon: '⚔',
       count: '5장',
-      cardSize: '140×196px',
+      cardSize: '140×140px',
       priceRange: '◆8~20',
       composition: '클래스 전용 3 + 범용 2',
       special: '배틀씬 스킬 카드 프레임 재사용, 좌상단 가격 뱃지 추가',

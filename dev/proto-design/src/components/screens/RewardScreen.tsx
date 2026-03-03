@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useGameStore } from '../../stores/gameStore';
+import { GameButton } from '../ui/GameButton';
 import { CLASS_NAMES, CLASS_ICONS, CLASS_COLORS } from '../../utils/advancementSystem';
 import { ADVANCEMENT_DEFINITIONS } from '../../data/advancement';
 import type { CharacterClass, Skill } from '../../types';
@@ -214,15 +215,16 @@ export function RewardScreen() {
 
       {/* 스킵 버튼 (전직 보상이 아닐 때만) */}
       {!isClassAdvancement && (
-        <motion.button
+        <GameButton
+          variant="secondary"
+          size="sm"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.5 }}
           onClick={skipReward}
-          className="px-6 py-2 text-gray-400 hover:text-white transition-colors"
         >
           건너뛰기
-        </motion.button>
+        </GameButton>
       )}
 
       {/* 전직 안내 (전직 화면일 때) */}

@@ -1,10 +1,12 @@
 import { useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useGameStore } from '../../stores/gameStore';
+import { GameButton } from '../ui/GameButton';
 import { ShopConfirmModal } from './ShopConfirmModal';
 import { ShopReplaceModal } from './ShopReplaceModal';
 import { getRandomDialogue } from '../../data/shop';
 import type { ShopItem } from '../../types';
+import soulIcon from '@assets/icons/icon-soul.png';
 
 function ShopItemCard({
   item,
@@ -79,7 +81,7 @@ function ShopItemCard({
         <span className={`text-sm font-bold ${
           isSold ? 'text-gray-500' : canAfford ? 'text-purple-400' : 'text-red-400'
         }`}>
-          {item.price} 👻
+          {item.price} <img src={soulIcon} alt="소울" className="inline w-4 h-4 object-contain" />
         </span>
       </div>
     </motion.div>
@@ -145,18 +147,13 @@ export function ShopScreen() {
       {/* 상단 바 */}
       <div className="flex items-center justify-between px-6 py-4">
         <div className="flex items-center gap-3">
-          <span className="text-2xl">👻</span>
+          <img src={soulIcon} alt="소울" className="w-6 h-6 object-contain" />
           <span className="text-xl font-bold text-purple-400">{player.souls}</span>
           <span className="text-gray-500 text-sm">소울</span>
         </div>
-        <motion.button
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          onClick={handleClose}
-          className="px-4 py-2 rounded-lg bg-gray-700 text-gray-300 hover:bg-gray-600 transition-colors font-medium"
-        >
+        <GameButton variant="secondary" size="sm" onClick={handleClose}>
           나가기 →
-        </motion.button>
+        </GameButton>
       </div>
 
       {/* 상인 영역 */}

@@ -10,10 +10,12 @@ import { RewardScreen } from './RewardScreen';
 import { ShopScreen } from '../shop/ShopScreen';
 import { EventScreen } from '../event/EventScreen';
 import { TopBar } from '../ui/TopBar';
+import { GameButton } from '../ui/GameButton';
+import { useSettingsStore } from '../../stores/settingsStore';
 import { CoinPouch } from '../ui/CoinPouch';
 import { SoulDrop } from '../effects/SoulDrop';
 import { CoinTossAnimation } from '../effects/CoinTossAnimation';
-import { DEATH_ANIMATION_DURATION } from '../../animations';
+import { DEATH_ANIMATION_DURATION, getCurrentSpeedMultiplier } from '../../animations';
 import { getRegion } from '../../data/regions';
 import { getRegionAccessories, getAccessoryById } from '../../data/accessories';
 import { getRegionFacilities, getBloodAltarRewards, BLOOD_ALTAR_HIDDEN_REWARD } from '../../data/facilities';
@@ -26,6 +28,9 @@ import { calculateCoinValues } from '../../utils/coinToss';
 import { useSkillDrag } from '../../hooks/useSkillDrag';
 import { useAudio } from '../../hooks/useAudio';
 import forestBg from '@assets/backgrounds/sunny-forest-day.png';
+import nodeShopIcon from '@assets/icons/node-shop.png';
+import nodeEliteIcon from '@assets/icons/node-elite.png';
+import nodeEventIcon from '@assets/icons/node-event.png';
 import type { BgTheme } from '../../types';
 
 // 현재 숲 배경만 존재 — 성/던전 배경은 gamedesign에서 생성 후 추가 예정
@@ -45,12 +50,12 @@ const COMPANION_IMAGES: Record<string, string> = {
 const COMPANION_FRAME: string | null = null;
 
 // 행선지 타입별 정보
-const DESTINATION_INFO: Record<DestinationType, { emoji: string; label: string; color: string; border: string }> = {
+const DESTINATION_INFO: Record<DestinationType, { emoji: string; iconImg?: string; label: string; color: string; border: string }> = {
   normal: { emoji: '👹', label: '몬스터', color: 'text-gray-300', border: 'border-gray-500' },
-  elite: { emoji: '💀', label: '엘리트', color: 'text-yellow-400', border: 'border-yellow-500' },
+  elite: { emoji: '💀', iconImg: nodeEliteIcon, label: '엘리트', color: 'text-yellow-400', border: 'border-yellow-500' },
   rest: { emoji: '🏕️', label: '휴식', color: 'text-green-400', border: 'border-green-500' },
-  shop: { emoji: '🛒', label: '상점', color: 'text-blue-400', border: 'border-blue-500' },
-  event: { emoji: '❓', label: '이벤트', color: 'text-purple-400', border: 'border-purple-500' },
+  shop: { emoji: '🛒', iconImg: nodeShopIcon, label: '상점', color: 'text-blue-400', border: 'border-blue-500' },
+  event: { emoji: '❓', iconImg: nodeEventIcon, label: '이벤트', color: 'text-purple-400', border: 'border-purple-500' },
   village: { emoji: '🏘️', label: '마을', color: 'text-amber-400', border: 'border-amber-500' },
 };
 
@@ -74,9 +79,13 @@ function DestinationCard({ destination, index, onSelect }: { destination: Destin
       <div className={`py-2 text-center font-bold border-b border-gray-700 bg-gray-750 ${info.color}`}>
         {info.label}
       </div>
-      {/* 이모지 영역 (캐릭터 카드 이미지 영역과 동일) */}
-      <div className="flex items-center justify-center py-10 text-6xl bg-gray-850">
-        {info.emoji}
+      {/* 이미지/이모지 영역 (캐릭터 카드 이미지 영역과 동일) */}
+      <div className="flex items-center justify-center py-10 bg-gray-850">
+        {info.iconImg ? (
+          <img src={info.iconImg} alt={info.label} className="w-16 h-16 object-contain" />
+        ) : (
+          <span className="text-6xl">{info.emoji}</span>
+        )}
       </div>
     </motion.div>
   );
@@ -85,8 +94,7 @@ function DestinationCard({ destination, index, onSelect }: { destination: Destin
 // 마을 진입 연출 컴포넌트
 function VillageEntrance({ regionName, onComplete }: { regionName: string; onComplete: () => void }) {
   useEffect(() => {
-    // 2.5초 후 자동으로 다음 단계로 이동
-    const timer = setTimeout(onComplete, 2500);
+    const timer = setTimeout(onComplete, 2500 * getCurrentSpeedMultiplier());
     return () => clearTimeout(timer);
   }, [onComplete]);
 
@@ -588,6 +596,8 @@ export function BattleScreen() {
   const coinPouchRef = useRef<HTMLDivElement>(null);
   const sunCountRef = useRef<HTMLDivElement>(null);
   const moonCountRef = useRef<HTMLDivElement>(null);
+  const soulCounterRef = useRef<HTMLDivElement>(null);
+  const [soulDropPositions, setSoulDropPositions] = useState<{ start: { x: number; y: number }; target: { x: number; y: number } } | null>(null);
   const [coinTossState, setCoinTossState] = useState<{
     isActive: boolean;
     results: CoinTossResult[];
@@ -616,6 +626,11 @@ export function BattleScreen() {
   }, [useSkill]);
 
   const { dragState: skillDragState, startDrag: startSkillDrag, registerEnemyZone } = useSkillDrag(handleSkillDropOnEnemy);
+
+  const { resolution, uiScale: settingsUiScale, autoEndTurn } = useSettingsStore();
+
+  const isPlayerTurn = battle.phase === 'player_turn';
+  const canAct = isPlayerTurn && !battle.combatAnimation?.playerAttacking && !battle.combatAnimation?.enemyAttacking;
 
   // 코인 가치 계산
   const coinValues = calculateCoinValues(battle.lastTossResults);
@@ -713,6 +728,17 @@ export function BattleScreen() {
     endTurn();
   }, [endTurn]);
 
+  // 자동 턴 종료: 코인 토스 후 사용 가능한 스킬이 없으면 자동 endTurn
+  useEffect(() => {
+    if (!autoEndTurn || !canAct || !battle.hasTossedThisTurn || coinTossState.isActive) return;
+    const { canUseSkill: checkSkill } = useGameStore.getState();
+    const hasUsableSkill = player.skills.some(skill => checkSkill(skill.id).canUse);
+    if (!hasUsableSkill) {
+      const timer = setTimeout(handleEndTurn, 600);
+      return () => clearTimeout(timer);
+    }
+  }, [autoEndTurn, canAct, battle.hasTossedThisTurn, coinTossState.isActive, player.skills, player.skillStates, battle.lastTossResults, handleEndTurn]);
+
   // 스킬 호버 핸들러
   const handleSkillHover = useCallback((skill: Skill | null) => {
     setHoveredSkill(skill);
@@ -745,13 +771,14 @@ export function BattleScreen() {
 
   // 턴 배너 표시
   useEffect(() => {
+    const m = getCurrentSpeedMultiplier();
     if (battle.phase === 'player_turn') {
       setShowTurnBanner('player');
-      const timer = setTimeout(() => setShowTurnBanner(null), 1200);
+      const timer = setTimeout(() => setShowTurnBanner(null), 1800 * m);
       return () => clearTimeout(timer);
     } else if (battle.phase === 'enemy_turn') {
       setShowTurnBanner('enemy');
-      const timer = setTimeout(() => setShowTurnBanner(null), 1000);
+      const timer = setTimeout(() => setShowTurnBanner(null), 1500 * m);
       return () => clearTimeout(timer);
     }
   }, [battle.phase]);
@@ -772,23 +799,29 @@ export function BattleScreen() {
     }
   }, [battle.phase]);
 
-  // 적 처치 감지 및 애니메이션 트리거
+  // 소울 드롭 타이머: dyingEnemy 세팅 후 사망 애니메이션 70% 지점에서 좌표 계산 + 시작
   useEffect(() => {
-    // 적이 있었는데 없어졌고 (처치됨), 보상 화면으로 전환될 때
-    if (prevEnemyRef.current && !enemy && battle.phase === 'reward' && !dyingEnemy) {
-      setDyingEnemy(prevEnemyRef.current);
+    if (dyingEnemy && !showSoulDrop) {
+      const invScale = 1 / scale;
+      let start = { x: 1300, y: 350 };
+      let target = { x: 1750, y: 25 };
 
-      // 사망 애니메이션 70% 시점에 영혼 드롭 시작
-      setTimeout(() => {
+      if (enemyZoneRef.current) {
+        const rect = enemyZoneRef.current.getBoundingClientRect();
+        start = { x: (rect.left + rect.width / 2) * invScale, y: (rect.top + rect.height / 2) * invScale };
+      }
+      if (soulCounterRef.current) {
+        const rect = soulCounterRef.current.getBoundingClientRect();
+        target = { x: (rect.left + rect.width / 2) * invScale, y: (rect.top + rect.height / 2) * invScale };
+      }
+      setSoulDropPositions({ start, target });
+
+      const timer = setTimeout(() => {
         setShowSoulDrop(true);
-      }, DEATH_ANIMATION_DURATION * 0.7 * 1000);
+      }, DEATH_ANIMATION_DURATION * 0.7 * 1000 * getCurrentSpeedMultiplier());
+      return () => clearTimeout(timer);
     }
-
-    // 현재 enemy 저장
-    if (enemy) {
-      prevEnemyRef.current = enemy;
-    }
-  }, [enemy, battle.phase, dyingEnemy]);
+  }, [dyingEnemy, showSoulDrop, scale]);
 
   // 영혼 드롭 완료 핸들러
   const handleSoulDropComplete = useCallback(() => {
@@ -798,18 +831,35 @@ export function BattleScreen() {
     setSoulPulse(true);
 
     // 펄스 효과 종료
-    setTimeout(() => setSoulPulse(false), 300);
+    setTimeout(() => setSoulPulse(false), 300 * getCurrentSpeedMultiplier());
   }, []);
+
+  const baseWidth = (() => {
+    switch (resolution) {
+      case '1280x720': return 1280;
+      case '1600x900': return 1600;
+      default: return 1920;
+    }
+  })();
 
   useEffect(() => {
     const updateScale = () => {
-      setScale(window.innerWidth / 1920);
+      setScale((window.innerWidth / baseWidth) * settingsUiScale);
       setViewportHeight(window.innerHeight);
     };
     updateScale();
     window.addEventListener('resize', updateScale);
     return () => window.removeEventListener('resize', updateScale);
-  }, []);
+  }, [baseWidth, settingsUiScale]);
+
+  // 적 처치 동기 감지 (React render-time setState 패턴)
+  // enemy가 null이 되고 phase가 victory면 사망 연출 시작
+  if (prevEnemyRef.current && !enemy && battle.phase === 'victory' && dyingEnemy === null) {
+    setDyingEnemy({ ...prevEnemyRef.current, hp: 0 });
+  }
+  if (enemy) {
+    prevEnemyRef.current = enemy;
+  }
 
   if (battle.phase === 'shop') {
     return <ShopScreen />;
@@ -819,13 +869,11 @@ export function BattleScreen() {
     return <EventScreen />;
   }
 
-  // 보상/전직 화면 (사망 애니메이션 중에는 전투 화면 유지)
   if ((battle.phase === 'reward' || battle.phase === 'class_advancement') && !dyingEnemy) {
     return <RewardScreen />;
   }
 
-  // 런 클리어 화면
-  if (battle.phase === 'victory' && run.isComplete) {
+  if (battle.phase === 'victory' && run.isComplete && !dyingEnemy) {
     return (
       <div className="min-h-screen bg-gray-900 flex flex-col items-center justify-center">
         <h1 className="text-5xl font-bold text-yellow-400 mb-4">🏆 런 클리어!</h1>
@@ -833,28 +881,21 @@ export function BattleScreen() {
         <p className="text-green-400 mb-8">
           최종 HP: {player.hp}/{player.maxHp} | 클래스: {player.characterClass === 'paladin' ? '팔라딘' : '전사'}
         </p>
-        <button
-          onClick={() => startRun()}
-          className="px-6 py-3 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 text-lg font-bold"
-        >
+        <GameButton variant="primary" size="lg" onClick={() => startRun()}>
           새 런 시작
-        </button>
+        </GameButton>
       </div>
     );
   }
 
-  // 일반 승리 화면 (라운드 진행 중 - 보통 보상 선택으로 감)
-  if (battle.phase === 'victory') {
+  if (battle.phase === 'victory' && !dyingEnemy) {
     return (
       <div className="min-h-screen bg-gray-900 flex flex-col items-center justify-center">
         <h1 className="text-4xl font-bold text-green-500 mb-4">승리!</h1>
         <p className="text-gray-400 mb-8">적을 처치했습니다.</p>
-        <button
-          onClick={() => startRun()}
-          className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
-        >
+        <GameButton variant="primary" onClick={() => startRun()}>
           다시 시작
-        </button>
+        </GameButton>
       </div>
     );
   }
@@ -867,12 +908,9 @@ export function BattleScreen() {
         <p className="text-gray-500 mb-8">
           라운드 {run.round}/{run.totalRounds}에서 쓰러졌습니다.
         </p>
-        <button
-          onClick={() => startRun()}
-          className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
-        >
+        <GameButton variant="danger" onClick={() => startRun()}>
           다시 시작
-        </button>
+        </GameButton>
       </div>
     );
   }
@@ -896,9 +934,6 @@ export function BattleScreen() {
       />
     );
   }
-
-  const isPlayerTurn = battle.phase === 'player_turn';
-  const canAct = isPlayerTurn;
 
   // 현재 표시할 적 (실제 적 또는 사망 중인 적)
   const displayEnemy = enemy || dyingEnemy;
@@ -924,9 +959,11 @@ export function BattleScreen() {
             enemyName={displayEnemy?.name}
             souls={player.souls}
             soulPulse={soulPulse}
+            soulCounterRef={soulCounterRef}
             accessories={run.accessories}
             isMuted={isMuted}
             onToggleMute={toggleMute}
+            onOpenSettings={useSettingsStore.getState().open}
           />
         </div>
 
@@ -995,48 +1032,54 @@ export function BattleScreen() {
             </div>
             </div>
             <div className="w-[400px] shrink-0 self-stretch flex flex-col items-center">
-              <div className="flex-[3]" />
-              <div className="flex flex-col items-center gap-3">
-                <div className="scale-[2] mb-2">
-                  <AnimatePresence>
-                    {!coinTossState.pouchHidden && (
-                      <motion.div ref={coinPouchRef} initial={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.5 }} transition={{ duration: 0.3 }}>
-                        <CoinPouch onToss={handleCoinToss} disabled={!canAct || battle.hasTossedThisTurn} isOpen={coinTossState.isActive} showHint={!battle.hasTossedThisTurn} />
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </div>
-                <div className={`flex flex-col items-center gap-1.5 px-4 py-2 rounded-xl border transition-opacity ${
-                  battle.lastTossResults.length > 0
-                    ? 'bg-[#1E1E24] border-[#4A4A55] opacity-100'
-                    : 'opacity-0 pointer-events-none'
-                }`}>
-                  <div className="flex items-center gap-3">
-                    <div ref={sunCountRef} className="flex items-center gap-1.5">
-                      <span className="text-lg">☀️</span>
-                      <span className="text-lg font-bold text-[#FFD700]">{headsValue}</span>
+              <div className="flex-[5]" />
+              <AnimatePresence>
+                {isPlayerTurn && (
+                  <motion.div
+                    key="coin-actions"
+                    className="flex flex-col items-center gap-3"
+                    initial={{ opacity: 0, y: 15 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 15 }}
+                    transition={{ duration: 0.25, ease: 'easeOut' }}
+                  >
+                    <div className="scale-[2] mb-2">
+                      <AnimatePresence>
+                        {!coinTossState.pouchHidden && (
+                          <motion.div ref={coinPouchRef} initial={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.5 }} transition={{ duration: 0.3 }}>
+                            <CoinPouch onToss={handleCoinToss} disabled={!canAct || battle.hasTossedThisTurn} isOpen={coinTossState.isActive} showHint={!battle.hasTossedThisTurn} />
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
                     </div>
-                    <div className="w-px h-5 bg-[#4A4A55]" />
-                    <div ref={moonCountRef} className="flex items-center gap-1.5">
-                      <span className="text-lg">🌙</span>
-                      <span className="text-lg font-bold text-[#C0C0C0]">{tailsValue}</span>
+                    <div className={`flex flex-col items-center gap-1.5 px-4 py-2 rounded-xl border transition-opacity ${
+                      battle.lastTossResults.length > 0
+                        ? 'bg-[#1E1E24] border-[#4A4A55] opacity-100'
+                        : 'opacity-0 pointer-events-none'
+                    }`}>
+                      <div className="flex items-center gap-3">
+                        <div ref={sunCountRef} className="flex items-center gap-1.5">
+                          <span className="text-lg">☀️</span>
+                          <span className="text-lg font-bold text-[#FFD700]">{headsValue}</span>
+                        </div>
+                        <div className="w-px h-5 bg-[#4A4A55]" />
+                        <div ref={moonCountRef} className="flex items-center gap-1.5">
+                          <span className="text-lg">🌙</span>
+                          <span className="text-lg font-bold text-[#C0C0C0]">{tailsValue}</span>
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                </div>
-                <motion.button
-                  onClick={handleEndTurn}
-                  disabled={!canAct || !battle.hasTossedThisTurn}
-                  whileHover={canAct && battle.hasTossedThisTurn ? { scale: 1.05 } : {}}
-                  whileTap={canAct && battle.hasTossedThisTurn ? { scale: 0.95 } : {}}
-                  className={`px-4 py-1.5 rounded-xl font-bold text-xs transition-all ${
-                    !canAct || !battle.hasTossedThisTurn
-                      ? 'bg-gray-700/50 text-gray-500 cursor-not-allowed'
-                      : 'bg-gradient-to-b from-blue-500 to-blue-700 text-white hover:from-blue-400 hover:to-blue-600 shadow-lg shadow-blue-500/20'
-                  }`}
-                >
-                  ▶ 턴 종료
-                </motion.button>
-              </div>
+                    <GameButton
+                      variant="primary"
+                      size="sm"
+                      onClick={handleEndTurn}
+                      disabled={!canAct || !battle.hasTossedThisTurn}
+                    >
+                      ▶ 턴 종료
+                    </GameButton>
+                  </motion.div>
+                )}
+              </AnimatePresence>
               <div className="flex-1" />
             </div>
             <div className="flex-1 flex items-center justify-center">
@@ -1150,7 +1193,8 @@ export function BattleScreen() {
                 {/* 동료 선택하기 버튼 - 선택됨 상태에서만 표시 */}
                 <AnimatePresence>
                   {selectedCompanion && !companionMoving && (
-                    <motion.button
+                    <GameButton
+                      variant="primary"
                       initial={{ opacity: 0, y: 10, scale: 0.9 }}
                       animate={{ opacity: 1, y: 0, scale: 1 }}
                       exit={{ opacity: 0, y: -10, scale: 0.9 }}
@@ -1162,16 +1206,17 @@ export function BattleScreen() {
                           setSelectedCompanion(null);
                           setCompanionMoving(false);
                           goBackToFacilitySelection();
-                        }, 900);
+                        }, 900 * getCurrentSpeedMultiplier());
                       }}
-                      className="px-6 py-2 bg-cyan-600 hover:bg-cyan-500 text-white font-bold rounded-lg transition-colors"
                     >
                       동료 선택하기
-                    </motion.button>
+                    </GameButton>
                   )}
                 </AnimatePresence>
                 {/* 돌아가기 버튼 */}
-                <motion.button
+                <GameButton
+                  variant="secondary"
+                  size="sm"
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.3 }}
@@ -1180,14 +1225,9 @@ export function BattleScreen() {
                     goBackToFacilitySelection();
                   }}
                   disabled={companionMoving}
-                  className={`px-4 py-2 border rounded-lg transition-colors text-sm ${
-                    companionMoving
-                      ? 'text-gray-600 border-gray-700 cursor-not-allowed'
-                      : 'text-gray-400 hover:text-white border-gray-600 hover:border-gray-400'
-                  }`}
                 >
                   ← 돌아가기
-                </motion.button>
+                </GameButton>
               </div>
             </div>
           ) : battle.phase === 'blood_altar_reward' ? (
@@ -1310,21 +1350,21 @@ export function BattleScreen() {
                 {/* 제단에 바친다 버튼 - 1개 이상 선택 시에만 표시 */}
                 <AnimatePresence>
                   {selectedBloodAltarRewards.length > 0 && (
-                    <motion.button
+                    <GameButton
+                      variant="danger"
                       initial={{ opacity: 0, y: 10, scale: 0.9 }}
                       animate={{ opacity: 1, y: 0, scale: 1 }}
                       exit={{ opacity: 0, y: -10, scale: 0.9 }}
                       transition={{ duration: 0.2 }}
                       onClick={() => {
                         if (selectedBloodAltarRewards.length > 0) {
-                          // 3개 모두 선택 시 히든 보상 연출
                           if (selectedBloodAltarRewards.length === 3) {
                             setShowHiddenReward(true);
                             setTimeout(() => {
                               setShowHiddenReward(false);
                               selectBloodAltarRewards(selectedBloodAltarRewards);
                               setSelectedBloodAltarRewards([]);
-                            }, 2500);
+                            }, 2500 * getCurrentSpeedMultiplier());
                           } else {
                             selectBloodAltarRewards(selectedBloodAltarRewards);
                             setSelectedBloodAltarRewards([]);
@@ -1332,12 +1372,6 @@ export function BattleScreen() {
                         }
                       }}
                       disabled={showHiddenReward}
-                      className={`
-                        px-6 py-2 rounded-lg font-bold transition-all
-                        ${!showHiddenReward
-                          ? 'bg-red-600 hover:bg-red-500 text-white cursor-pointer'
-                          : 'bg-gray-700 text-gray-500 cursor-not-allowed'}
-                      `}
                     >
                       <motion.span
                         key={selectedBloodAltarRewards.length}
@@ -1356,12 +1390,14 @@ export function BattleScreen() {
                       >
                         제단에 바친다
                       </motion.span>
-                    </motion.button>
+                    </GameButton>
                   )}
                 </AnimatePresence>
 
                 {/* 돌아가기 버튼 */}
-                <motion.button
+                <GameButton
+                  variant="secondary"
+                  size="sm"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ delay: 1.5, duration: 0.3 }}
@@ -1370,14 +1406,9 @@ export function BattleScreen() {
                     setSelectedBloodAltarRewards([]);
                   }}
                   disabled={showHiddenReward}
-                  className={`px-4 py-2 text-sm rounded-lg transition-colors ${
-                    showHiddenReward
-                      ? 'text-gray-600 border-gray-700 cursor-not-allowed'
-                      : 'text-gray-400 hover:text-white border border-gray-600 hover:border-gray-400'
-                  }`}
                 >
                   ← 돌아가기
-                </motion.button>
+                </GameButton>
               </div>
             </div>
           ) : (
@@ -1396,26 +1427,20 @@ export function BattleScreen() {
                       scale: 1,
                       y: 0,
                     }}
-                    transition={{ duration: DEATH_ANIMATION_DURATION, ease: 'easeOut' }}
+                    transition={{ duration: DEATH_ANIMATION_DURATION * getCurrentSpeedMultiplier(), ease: 'easeOut' }}
                   >
                     <EnemyCard
                       enemy={displayEnemy}
                       isAttacking={battle.combatAnimation.enemyAttacking}
                       isHit={battle.combatAnimation.enemyHit}
                       previewDamage={previewEffects?.damage ?? 0}
+                      isTargeted={skillDragState.isDragging && skillDragState.isOverEnemy}
+                      isBoss={run.round === run.totalRounds}
                     />
                   </motion.div>
                 )}
               </AnimatePresence>
 
-              {/* 영혼 드롭 애니메이션 (몬스터 위치) */}
-              {dyingEnemy && (
-                <SoulDrop
-                  amount={dyingEnemy.soulReward}
-                  show={showSoulDrop}
-                  onComplete={handleSoulDropComplete}
-                />
-              )}
             </>
            )}
             </div>
@@ -1440,19 +1465,21 @@ export function BattleScreen() {
             {showTurnBanner && (
                <motion.div
                 className="absolute inset-0 z-50 flex items-center justify-center pointer-events-none"
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 1.1, transition: { duration: 0.2 } }}
-                transition={{ duration: 0.3 }}
+                initial={{ opacity: 0, scale: 0.8, y: -30 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 1.1, y: 10, transition: { duration: 0.25 } }}
+                transition={{ duration: 0.35, type: 'spring', stiffness: 200, damping: 20 }}
               >
-                <div className={`px-10 py-3 rounded-2xl backdrop-blur-md border ${showTurnBanner === 'player' ? 'bg-amber-900/50 border-amber-500/40' : 'bg-red-900/50 border-red-500/40'}`}>
-                  <span className={`text-2xl font-black tracking-wider ${showTurnBanner === 'player' ? 'text-amber-400' : 'text-red-400'}`}>
+                <div className={`px-16 py-5 rounded-2xl backdrop-blur-md border ${showTurnBanner === 'player' ? 'bg-amber-900/60 border-amber-500/50 shadow-[0_0_30px_rgba(245,158,11,0.3)]' : 'bg-red-900/60 border-red-500/50 shadow-[0_0_30px_rgba(239,68,68,0.3)]'}`}>
+                  <span className={`text-4xl font-black tracking-wider ${showTurnBanner === 'player' ? 'text-amber-400' : 'text-red-400'}`}>
                     {showTurnBanner === 'player' ? '⚔️ 당신의 턴' : '💀 적의 턴'}
                   </span>
                 </div>
               </motion.div>
             )}
           </AnimatePresence>
+
+
         </div>
 
         <div
@@ -1475,6 +1502,18 @@ export function BattleScreen() {
             />
           </div>
         </div>
+
+        {dyingEnemy && soulDropPositions && (
+          <div className="absolute inset-0 pointer-events-none" style={{ zIndex: 60 }}>
+            <SoulDrop
+              amount={dyingEnemy.soulReward}
+              show={showSoulDrop}
+              startPosition={soulDropPositions.start}
+              targetPosition={soulDropPositions.target}
+              onComplete={handleSoulDropComplete}
+            />
+          </div>
+        )}
 
         <DragOverlay
           isDragging={skillDragState.isDragging}

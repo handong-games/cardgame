@@ -1,5 +1,7 @@
 import { motion } from 'framer-motion';
+import { GameButton } from '../ui/GameButton';
 import type { ShopItem } from '../../types';
+import soulIcon from '@assets/icons/icon-soul.png';
 
 interface ShopConfirmModalProps {
   item: ShopItem;
@@ -63,7 +65,7 @@ export function ShopConfirmModal({ item, playerSouls, onConfirm, onCancel }: Sho
           <span className={`text-lg font-bold ${canAfford ? 'text-purple-400' : 'text-red-400'}`}>
             {item.price}
           </span>
-          <span className="text-purple-300">👻</span>
+          <img src={soulIcon} alt="소울" className="inline w-5 h-5 object-contain" />
           <span className="text-gray-500 text-sm">
             (보유: {playerSouls})
           </span>
@@ -71,23 +73,17 @@ export function ShopConfirmModal({ item, playerSouls, onConfirm, onCancel }: Sho
 
         {/* 버튼 */}
         <div className="flex gap-3">
-          <button
-            onClick={onCancel}
-            className="flex-1 py-2.5 rounded-lg bg-gray-700 text-gray-300 hover:bg-gray-600 transition-colors font-medium"
-          >
+          <GameButton variant="secondary" className="flex-1" onClick={onCancel}>
             취소
-          </button>
-          <button
+          </GameButton>
+          <GameButton
+            variant="primary"
+            className="flex-1"
             onClick={canAfford ? onConfirm : undefined}
             disabled={!canAfford}
-            className={`flex-1 py-2.5 rounded-lg font-bold transition-colors ${
-              canAfford
-                ? 'bg-amber-600 text-white hover:bg-amber-500'
-                : 'bg-gray-700 text-gray-500 cursor-not-allowed'
-            }`}
           >
             {canAfford ? '구매' : '소울 부족'}
-          </button>
+          </GameButton>
         </div>
       </motion.div>
     </motion.div>

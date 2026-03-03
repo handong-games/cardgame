@@ -8,17 +8,20 @@ import skillAttackImg from '@assets/skills/W_BAS_01_basic-attack.png';
 import skillAttack2Img from '@assets/skills/W_ATK_01_heavy-attack.png';
 import skillDefenseImg from '@assets/skills/W_BAS_02_basic-defense.png';
 import skillDefense2Img from '@assets/skills/W_DEF_01_defense-up.png';
+import skillFightingSpiritImg from '@assets/skills/W_BAS_03_fighting-spirit.png';
+import skillDesperateStrikeImg from '@assets/skills/W_ATK_02_desperate-strike.png';
 import frameSkillsImg from '@assets/frames/skill-frame.png';
 
 const SKILL_IMAGES: Record<string, string> = {
   basic_strike: skillAttackImg,
+  fighting_spirit: skillFightingSpiritImg,
   combo_strike: skillAttack2Img,
   cleave: skillAttack2Img,
   weakening_strike: skillAttack2Img,
   weakening_blow: skillAttack2Img,
   charge_attack: skillAttack2Img,
   vulnerable_strike: skillAttack2Img,
-  desperate_strike: skillAttack2Img,
+  desperate_strike: skillDesperateStrikeImg,
   focus: skillAttack2Img,
   defense: skillDefenseImg,
   regenerative_defense: skillDefense2Img,
@@ -55,9 +58,10 @@ export function SkillSlot({
   const costs = getSkillCosts(skill);
   const available = calculateCoinValues(lastTossResults);
 
+  const hasTossed = lastTossResults.length > 0;
   const canAffordHeads = available.heads >= costs.heads;
   const canAffordTails = available.tails >= costs.tails;
-  const canAfford = canAffordHeads && canAffordTails;
+  const canAfford = hasTossed && canAffordHeads && canAffordTails;
   const isOnCooldown = skillState && skillState.cooldownRemaining > 0;
   const isMaxUsed = skill.maxUsePerTurn > 0 && skillState && skillState.usedThisTurn >= skill.maxUsePerTurn;
   const canUse = isPlayerTurn && canAfford && !isOnCooldown && !isMaxUsed;
@@ -119,7 +123,7 @@ export function SkillSlot({
                 : 'bg-dark-deep/50 border-dark-graphite/50 cursor-not-allowed opacity-60'
               }`
           }
-          ${isDragging ? 'opacity-50' : ''}
+          ${isDragging ? 'opacity-50 ring-2 ring-amber-400/60 shadow-[0_0_12px_rgba(251,191,36,0.4)]' : ''}
         `}
         animate={{
           scale: isHovered && canUse && !isDragging ? 1.1 : 1,
@@ -143,6 +147,12 @@ export function SkillSlot({
               alt={skill.name}
               className="absolute inset-0 w-3/4 h-3/4 m-auto object-contain"
             />
+            {/* 이미지 스킬 이름 라벨 */}
+            <div className="absolute bottom-1 left-0 right-0 text-center">
+              <span className="text-[10px] text-gray-200 bg-dark-surface/80 px-1.5 py-0.5 rounded font-medium truncate inline-block max-w-full">
+                {skill.name}
+              </span>
+            </div>
           </div>
         ) : (
           <>
@@ -155,10 +165,10 @@ export function SkillSlot({
 
         {costs.heads > 0 && costs.tails === 0 && (
           <div className={`
-            absolute -top-2 -right-2
-            w-8 h-8 rounded-full
+            absolute -top-2.5 -right-2.5
+            w-9 h-9 rounded-full
             flex items-center justify-center
-            text-sm font-bold border-2
+            text-sm font-extrabold border-2
             shadow-coin
             ${canAffordHeads 
               ? 'bg-gradient-to-br from-sun-gold to-sun-orange text-ink-brown border-sun-bright' 
@@ -170,10 +180,10 @@ export function SkillSlot({
 
         {costs.tails > 0 && costs.heads === 0 && (
           <div className={`
-            absolute -top-2 -left-2
-            w-8 h-8 rounded-full
+            absolute -top-2.5 -left-2.5
+            w-9 h-9 rounded-full
             flex items-center justify-center
-            text-sm font-bold border-2
+            text-sm font-extrabold border-2
             shadow-coin
             ${canAffordTails 
               ? 'bg-gradient-to-br from-moon-silver to-moon-twilight text-white border-moon-light' 
@@ -199,19 +209,22 @@ export function SkillSlot({
         )}
 
         {isOnCooldown && (
-          <div className="absolute inset-0 bg-dark-surface/80 rounded-lg flex items-center justify-center">
-            <span className="text-gray-300 text-lg font-bold">
-              {skillState!.cooldownRemaining}
+          <div className="absolute inset-0 bg-dark-surface/85 rounded-lg flex flex-col items-center justify-center gap-0.5">
+            <span className="text-lg">🕐</span>
+            <span className="text-gray-300 text-sm font-bold">
+              {skillState!.cooldownRemaining}턴
             </span>
           </div>
         )}
 
-        {usageText && !isOnCooldown && (
-          <div className={`
-            absolute -bottom-1 left-1/2 -translate-x-1/2
-            px-1.5 rounded text-xs font-medium
-            ${isMaxUsed ? 'bg-effect-attack text-white' : 'bg-dark-graphite text-gray-300'}
-          `}>
+        {isMaxUsed && !isOnCooldown && (
+          <div className="absolute inset-0 bg-dark-surface/80 rounded-lg flex items-center justify-center">
+            <span className="text-gray-400 text-xs font-bold">사용 완료</span>
+          </div>
+        )}
+
+        {usageText && !isOnCooldown && !isMaxUsed && (
+          <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 px-2 py-0.5 rounded text-xs font-bold bg-dark-graphite/90 text-gray-200 border border-dark-graphite">
             {usageText}
           </div>
         )}

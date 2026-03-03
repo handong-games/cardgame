@@ -8,6 +8,7 @@ import { getCompanionById } from '../data/companions';
 import { getBloodAltarRewards } from '../data/facilities';
 import { INITIAL_COIN_INVENTORY } from '../data/coins';
 import { createStartingSkills, generateRewardSkills, resetSkillIdCounter } from '../data/skills';
+import { getCurrentSpeedMultiplier } from './settingsStore';
 import { generateShopItems, getRandomDialogue } from '../data/shop';
 import { getEventById, getRandomEvent } from '../data/events';
 import { spendCoins as spendCoinResults, calculateCoinValues } from '../utils/coinToss';
@@ -38,8 +39,8 @@ function createInitialPlayer(characterClass: CharacterClass = 'warrior'): Player
   const startingSkills = createStartingSkills(characterClass);
 
   return {
-    hp: 50,
-    maxHp: 50,
+    hp: 70,
+    maxHp: 70,
     block: 0,
     // coins 제거됨 - battle.lastTossResults에서 계산
     coinInventory: [...INITIAL_COIN_INVENTORY],
@@ -65,7 +66,7 @@ const defaultCombatAnimation = {
 const createInitialRun = (): RunState => ({
   regionId: 'forgotten_dungeon',  // 기본 지역: 잊혀진 숲
   round: 1,
-  totalRounds: 7,  // 지역당 7라운드
+  totalRounds: 8,  // 지역당 8라운드
   isComplete: false,
   // 마을 시스템
   accessories: [],
@@ -483,7 +484,7 @@ export const useGameStore = create<GameState & GameActions>((set, get) => ({
 
       set({
         player: newPlayer,
-        enemy: newEnemy,
+        enemy: null,
         battle: {
           ...battle,
           phase: 'victory',
@@ -817,7 +818,7 @@ export const useGameStore = create<GameState & GameActions>((set, get) => ({
     }
 
     // 마을 라운드 (중간 지점)인 경우 바로 마을로 진입
-    const villageRound = Math.ceil(run.totalRounds / 2);  // 7라운드 기준 4
+    const villageRound = Math.ceil(run.totalRounds / 2);  // 8라운드 기준 4
     if (nextRound === villageRound) {
       set({
         run: { ...run, round: nextRound },
@@ -1290,7 +1291,7 @@ export const useGameStore = create<GameState & GameActions>((set, get) => ({
             event: { ...currentEvent, phase: 'result' },
           });
         }
-      }, 1500);
+      }, 1500 * getCurrentSpeedMultiplier());
     }
   },
 

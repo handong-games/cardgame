@@ -16,13 +16,10 @@ const DESTINATION_CONFIG = {
   restHealPercent: 30,   // 휴식 시 회복량 (최대 HP의 %)
 };
 
-// 선택지 개수 결정 (라운드별, 7라운드 기준)
-export function getDestinationCount(round: number, totalRounds: number = 7): number {
-  // 마지막 라운드 (보스): 1개 고정
+// 선택지 개수 결정 (라운드별, 8라운드 기준)
+export function getDestinationCount(round: number, totalRounds: number = 8): number {
   if (round >= totalRounds) return 1;
-  // 라운드 3, 5: 3개 선택지
-  if (round === 3 || round === 5) return 3;
-  // 나머지: 2개 선택지
+  if (round === 3 || round === 5 || round === 7) return 3;
   return 2;
 }
 
@@ -72,7 +69,7 @@ function createEventDestination(): DestinationOption {
 }
 
 // 보스 행선지 생성 (마지막 라운드)
-function createBossDestination(bossKey: string = 'dark_knight'): DestinationOption {
+function createBossDestination(bossKey: string = 'ancient_grove_lord'): DestinationOption {
   return {
     id: `dest_${destinationIdCounter++}`,
     type: 'elite',  // 보스는 엘리트로 표시
@@ -124,8 +121,8 @@ function decideDestinationType(round: number, totalRounds: number, existingTypes
 // 라운드에 맞는 행선지 선택지 생성
 export function generateDestinationOptions(
   round: number,
-  totalRounds: number = 7,
-  bossKey: string = 'dark_knight'
+  totalRounds: number = 8,
+  bossKey: string = 'ancient_grove_lord'
 ): DestinationOption[] {
   const count = getDestinationCount(round, totalRounds);
   const destinations: DestinationOption[] = [];

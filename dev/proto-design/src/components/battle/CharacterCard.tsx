@@ -2,11 +2,12 @@ import { motion, useAnimationControls, AnimatePresence } from 'framer-motion';
 import { useEffect, useRef, useState } from 'react';
 import { HPBar } from '../common/HPBar';
 import {
-  playerAttackAnimation,
-  hitReactAnimation,
-  shieldShakeAnimation,
-  blockNumberAnimation,
   COMBAT_TIMING,
+  getScaledPlayerAttack,
+  getScaledHitReact,
+  getScaledShieldShake,
+  getScaledBlockNumber,
+  getScaledCombatTiming,
 } from '../../animations';
 import characterFrame from '@assets/frames/frame-player.png';
 import warriorCharacter from '@assets/characters/CLS_W_warrior.png';
@@ -57,15 +58,16 @@ export function CharacterCard({
 
   useEffect(() => {
     if (isAttacking) {
-      cardControls.start(playerAttackAnimation);
+      cardControls.start(getScaledPlayerAttack());
     }
   }, [isAttacking, cardControls]);
 
   useEffect(() => {
     if (isHit) {
-      const hitDelay = (COMBAT_TIMING.PEEK_DURATION + COMBAT_TIMING.HIT_DURATION) * 1000;
+      const t = getScaledCombatTiming();
+      const hitDelay = (t.PEEK_DURATION + t.HIT_DURATION) * 1000;
       const timer = setTimeout(() => {
-        cardControls.start(hitReactAnimation);
+        cardControls.start(getScaledHitReact());
       }, hitDelay);
       return () => clearTimeout(timer);
     }
@@ -73,10 +75,11 @@ export function CharacterCard({
 
   useEffect(() => {
     if (isShieldHit && prevBlock.current > 0) {
-      const hitDelay = (COMBAT_TIMING.PEEK_DURATION + COMBAT_TIMING.HIT_DURATION) * 1000;
+      const t = getScaledCombatTiming();
+      const hitDelay = (t.PEEK_DURATION + t.HIT_DURATION) * 1000;
       const timer = setTimeout(() => {
-        shieldControls.start(shieldShakeAnimation);
-        blockNumberControls.start(blockNumberAnimation);
+        shieldControls.start(getScaledShieldShake());
+        blockNumberControls.start(getScaledBlockNumber());
       }, hitDelay);
       prevBlock.current = block;
       return () => clearTimeout(timer);
@@ -107,6 +110,35 @@ export function CharacterCard({
             <span className="card-emoji">{emoji}</span>
           )}
         </div>
+        <AnimatePresence>
+          {isHit && (
+            <motion.div
+              className="absolute inset-0 bg-red-500/30 rounded-[inherit] pointer-events-none z-20"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: [0, 0.6, 0] }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.4 }}
+            />
+          )}
+          {previewBlock > 0 && (
+            <motion.div
+              className="absolute inset-0 bg-blue-400/15 rounded-[inherit] pointer-events-none z-20"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+            />
+          )}
+          {previewHeal > 0 && (
+            <motion.div
+              className="absolute inset-0 bg-emerald-400/15 rounded-[inherit] pointer-events-none z-20"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+            />
+          )}
+        </AnimatePresence>
       </div>
 
       <div className="w-full px-1">

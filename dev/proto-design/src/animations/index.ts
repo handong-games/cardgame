@@ -1,6 +1,3 @@
-// 애니메이션 설정
-
-// 전투 애니메이션
 export {
   COMBAT_TIMING,
   TOTAL_ATTACK_DURATION,
@@ -11,12 +8,26 @@ export {
   shieldShakeAnimation,
   blockNumberAnimation,
   enemyDeathAnimation,
+  getScaledCombatTiming,
+  getScaledAttackDuration,
+  getScaledDeathDuration,
+  getScaledPlayerAttack,
+  getScaledEnemyAttack,
+  getScaledHitReact,
+  getScaledShieldShake,
+  getScaledBlockNumber,
 } from './combatAnimations';
 
-// 코인 토스 애니메이션
 export {
   COIN_ANIMATION_TIMING,
+  COIN_TOSS_PHYSICS,
   coinTossAnimation,
   headsEffect,
   tailsEffect,
+  getScaledCoinPhysics,
+  getScaledCoinTossAnimation,
+  getScaledHeadsEffect,
+  getScaledTailsEffect,
 } from './coinAnimations';
+
+export { getSpeedMultiplier, getCurrentSpeedMultiplier } from '../stores/settingsStore';

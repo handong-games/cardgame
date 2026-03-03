@@ -1,21 +1,28 @@
-// 코인 토스 애니메이션 설정
+import { getCurrentSpeedMultiplier } from '../stores/settingsStore';
 
-// 코인 토스 타이밍 상수
 export const COIN_ANIMATION_TIMING = {
-  TOSS_DURATION: 0.8,      // 토스 애니메이션 시간
-  COIN_STAGGER: 0.1,       // 코인 간 딜레이 (초)
-  RESULT_DISPLAY: 1.5,     // 결과 표시 시간
+  TOSS_DURATION: 0.8,
+  COIN_STAGGER: 0.1,
+  RESULT_DISPLAY: 1.5,
 } as const;
 
-// 물리 기반 코인 토스 타이밍
 export const COIN_TOSS_PHYSICS = {
-  FLIGHT_DURATION: 0.6,    // 각 동전 비행 시간
-  COIN_STAGGER: 0.1,       // 동전 간 발사 간격
-  LANDING_DISPLAY: 0.9,    // 착지 후 표시 시간
-  TOTAL_DURATION: 1.5,     // 전체 애니메이션
+  FLIGHT_DURATION: 0.6,
+  COIN_STAGGER: 0.1,
+  LANDING_DISPLAY: 0.5,
+  TOTAL_DURATION: 1.1,
 } as const;
 
-// 코인 토스 애니메이션 (Framer Motion용)
+export function getScaledCoinPhysics() {
+  const m = getCurrentSpeedMultiplier();
+  return {
+    FLIGHT_DURATION: COIN_TOSS_PHYSICS.FLIGHT_DURATION * m,
+    COIN_STAGGER: COIN_TOSS_PHYSICS.COIN_STAGGER * m,
+    LANDING_DISPLAY: COIN_TOSS_PHYSICS.LANDING_DISPLAY * m,
+    TOTAL_DURATION: COIN_TOSS_PHYSICS.TOTAL_DURATION * m,
+  };
+}
+
 export const coinTossAnimation = {
   initial: {
     y: 0,
@@ -24,8 +31,8 @@ export const coinTossAnimation = {
     opacity: 0,
   },
   animate: {
-    y: [-50, -100, -50, 0],  // 위로 튀어오르기
-    rotateY: [0, 180, 360, 540, 720],  // 회전
+    y: [-50, -100, -50, 0],
+    rotateY: [0, 180, 360, 540, 720],
     scale: 1,
     opacity: 1,
   },
@@ -35,7 +42,6 @@ export const coinTossAnimation = {
   },
 };
 
-// 앞면 (성공) 효과
 export const headsEffect = {
   boxShadow: [
     '0 0 0px rgba(234, 179, 8, 0)',
@@ -49,7 +55,6 @@ export const headsEffect = {
   },
 };
 
-// 뒷면 (실패) 효과
 export const tailsEffect = {
   opacity: [1, 0.5],
   scale: [1, 0.9],
@@ -58,3 +63,27 @@ export const tailsEffect = {
     delay: COIN_ANIMATION_TIMING.TOSS_DURATION,
   },
 };
+
+export function getScaledCoinTossAnimation() {
+  const m = getCurrentSpeedMultiplier();
+  return {
+    ...coinTossAnimation,
+    transition: { ...coinTossAnimation.transition, duration: coinTossAnimation.transition.duration * m },
+  };
+}
+
+export function getScaledHeadsEffect() {
+  const m = getCurrentSpeedMultiplier();
+  return {
+    ...headsEffect,
+    transition: { duration: headsEffect.transition.duration * m, delay: headsEffect.transition.delay * m },
+  };
+}
+
+export function getScaledTailsEffect() {
+  const m = getCurrentSpeedMultiplier();
+  return {
+    ...tailsEffect,
+    transition: { duration: tailsEffect.transition.duration * m, delay: tailsEffect.transition.delay * m },
+  };
+}
