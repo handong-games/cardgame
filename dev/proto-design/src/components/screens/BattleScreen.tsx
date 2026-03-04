@@ -31,6 +31,8 @@ import forestBg from '@assets/backgrounds/sunny-forest-day.png';
 import nodeShopIcon from '@assets/icons/node-shop.png';
 import nodeEliteIcon from '@assets/icons/node-elite.png';
 import nodeEventIcon from '@assets/icons/node-event.png';
+import nodeRestIcon from '@assets/icons/node-rest.png';
+import companionFrameImg from '@assets/frames/frame-companion.png';
 import type { BgTheme } from '../../types';
 
 // 현재 숲 배경만 존재 — 성/던전 배경은 gamedesign에서 생성 후 추가 예정
@@ -47,13 +49,13 @@ const COMPANION_IMAGES: Record<string, string> = {
   forest_owl: companionOwlImg,
 };
 
-const COMPANION_FRAME: string | null = null;
+const COMPANION_FRAME: string | null = companionFrameImg;
 
 // 행선지 타입별 정보
 const DESTINATION_INFO: Record<DestinationType, { emoji: string; iconImg?: string; label: string; color: string; border: string }> = {
   normal: { emoji: '👹', label: '몬스터', color: 'text-gray-300', border: 'border-gray-500' },
   elite: { emoji: '💀', iconImg: nodeEliteIcon, label: '엘리트', color: 'text-yellow-400', border: 'border-yellow-500' },
-  rest: { emoji: '🏕️', label: '휴식', color: 'text-green-400', border: 'border-green-500' },
+  rest: { emoji: '🏕️', iconImg: nodeRestIcon, label: '휴식', color: 'text-green-400', border: 'border-green-500' },
   shop: { emoji: '🛒', iconImg: nodeShopIcon, label: '상점', color: 'text-blue-400', border: 'border-blue-500' },
   event: { emoji: '❓', iconImg: nodeEventIcon, label: '이벤트', color: 'text-purple-400', border: 'border-purple-500' },
   village: { emoji: '🏘️', label: '마을', color: 'text-amber-400', border: 'border-amber-500' },
@@ -348,9 +350,6 @@ function CompanionCard({
         ) : (
           <span className="text-5xl relative z-0">{companion.emoji}</span>
         )}
-        {COMPANION_FRAME && (
-          <img src={COMPANION_FRAME} alt="" className="absolute inset-0 w-full h-full object-cover z-10 pointer-events-none" />
-        )}
       </div>
       <div className="px-3 py-3 text-center border-t border-gray-700 bg-gray-800">
         <p className="text-xs text-cyan-300 mb-1">{getTriggerText()}</p>
@@ -372,12 +371,15 @@ function CompanionDisplayCard({ companion }: { companion: Companion }) {
         initial={{ opacity: 0, scale: 0.5 }}
         animate={{ opacity: 1, scale: 1 }}
         whileHover={{ scale: 1.15 }}
-        className="w-24 h-24 rounded-full bg-cyan-900/60 border-2 border-cyan-500/50 flex items-center justify-center cursor-help shadow-lg overflow-hidden p-2"
+        className="relative w-24 h-24 rounded-full flex items-center justify-center cursor-help shadow-lg overflow-hidden"
       >
+        {COMPANION_FRAME && (
+          <img src={COMPANION_FRAME} alt="" className="absolute inset-0 w-full h-full object-cover z-0 pointer-events-none" />
+        )}
         {companionImage ? (
-          <img src={companionImage} alt={companion.name} className="w-full h-full object-contain" />
+          <img src={companionImage} alt={companion.name} className="relative z-10 w-16 h-16 object-contain" />
         ) : (
-          <span className="text-4xl">{companion.emoji}</span>
+          <span className="relative z-10 text-4xl">{companion.emoji}</span>
         )}
       </motion.div>
       <AnimatePresence>

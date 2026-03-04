@@ -10,13 +10,16 @@ import skillDefenseImg from '@assets/skills/W_BAS_02_basic-defense.png';
 import skillDefense2Img from '@assets/skills/W_DEF_01_defense-up.png';
 import skillFightingSpiritImg from '@assets/skills/W_BAS_03_fighting-spirit.png';
 import skillDesperateStrikeImg from '@assets/skills/W_ATK_02_desperate-strike.png';
+import skillComboStrikeImg from '@assets/skills/W_ATK_03_combo-strike.png';
+import skillCleaveImg from '@assets/skills/W_ATK_04_cleave.png';
+import skillDesperateShieldImg from '@assets/skills/W_DEF_02_desperate-shield.png';
 import frameSkillsImg from '@assets/frames/skill-frame.png';
 
 const SKILL_IMAGES: Record<string, string> = {
   basic_strike: skillAttackImg,
   fighting_spirit: skillFightingSpiritImg,
-  combo_strike: skillAttack2Img,
-  cleave: skillAttack2Img,
+  combo_strike: skillComboStrikeImg,
+  cleave: skillCleaveImg,
   weakening_strike: skillAttack2Img,
   weakening_blow: skillAttack2Img,
   charge_attack: skillAttack2Img,
@@ -26,7 +29,7 @@ const SKILL_IMAGES: Record<string, string> = {
   defense: skillDefenseImg,
   regenerative_defense: skillDefense2Img,
   weakening_defense: skillDefense2Img,
-  desperate_shield: skillDefense2Img,
+  desperate_shield: skillDesperateShieldImg,
 };
 
 interface SkillSlotProps {

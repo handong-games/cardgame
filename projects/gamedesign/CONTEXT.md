@@ -75,15 +75,16 @@
 
 ### 에셋 타입별 스타일 규칙
 
-| 규칙 | 캐릭터/동료 | 몬스터 | 배경 |
-|------|------------|--------|------|
-| **마스터 스타일** | flat color, cel shading | hand-drawn ink, pen&ink sketch | layered silhouette |
-| **채색** | hard edge cel shading | gouache + ink wash | dark muted palette |
-| **외곽선** | bold near-black (#1A1A1E) | variable line weight, organic | — |
-| **방향** | 우측 ↗ (전진, 희망) | 좌측 ↖ (대립, 위협) | — |
-| **볼 홍조** | O (rosy blush) | X (NO blush) | — |
-| **캔버스 비율** | 2:3 세로형 | 2:3 세로형 | 16:9 가로형 |
-| **배경** | solid white | solid white | — |
+| 규칙 | 캐릭터 | 동료 | 몬스터 | 배경 |
+|------|--------|------|--------|------|
+| **마스터 스타일** | flat color, cel shading | flat color, cel shading | hand-drawn ink, pen&ink sketch | layered silhouette |
+| **채색** | hard edge cel shading | hard edge cel shading | gouache + ink wash | dark muted palette |
+| **외곽선** | bold near-black (#1A1A1E) | bold near-black (#1A1A1E) | variable line weight, organic | — |
+| **방향** | 우측 ↗ (전진, 희망) | 우측 ↗ (전진, 희망) | 좌측 ↖ (대립, 위협) | — |
+| **볼 홍조** | O (rosy blush) | O (rosy blush) | X (NO blush) | — |
+| **캔버스 비율** | 2:3 세로형 | **1:1 정사각 (원형 프레임)** | 2:3 세로형 | 16:9 가로형 |
+| **구도** | 전신 (head to feet) | 상반신/얼굴 클로즈업 | 전신 (head to feet) | — |
+| **배경** | solid white | solid white | solid white | — |
 
 ### 금지 사항
 - ❌ 순수 검정/흰색 → 따뜻한 어스톤 사용
