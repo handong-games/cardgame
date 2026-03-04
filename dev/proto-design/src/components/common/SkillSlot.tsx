@@ -163,48 +163,36 @@ export function SkillSlot({
           </>
         )}
 
-        {costs.heads > 0 && costs.tails === 0 && (
-          <div className={`
-            absolute -top-2.5 -right-2.5
-            w-9 h-9 rounded-full
-            flex items-center justify-center
-            text-sm font-extrabold border-2
-            shadow-coin
-            ${canAffordHeads 
-              ? 'bg-gradient-to-br from-sun-gold to-sun-orange text-ink-brown border-sun-bright' 
-              : 'bg-effect-attack text-white border-red-300'}
-          `}>
-            ☀{costs.heads}
-          </div>
-        )}
-
-        {costs.tails > 0 && costs.heads === 0 && (
-          <div className={`
-            absolute -top-2.5 -left-2.5
-            w-9 h-9 rounded-full
-            flex items-center justify-center
-            text-sm font-extrabold border-2
-            shadow-coin
-            ${canAffordTails 
-              ? 'bg-gradient-to-br from-moon-silver to-moon-twilight text-white border-moon-light' 
-              : 'bg-effect-attack text-white border-red-300'}
-          `}>
-            🌙{costs.tails}
-          </div>
-        )}
-
-        {costs.heads > 0 && costs.tails > 0 && (
-          <div className={`
-            absolute -top-2.5 left-1/2 -translate-x-1/2
-            px-2.5 py-1 rounded-full
-            text-sm font-bold border
-            flex items-center gap-1.5
-            ${canAfford 
-              ? 'bg-gradient-to-r from-sun-gold via-coin-gold to-moon-silver text-ink-brown border-coin-gold' 
-              : 'bg-effect-attack text-white border-red-300'}
-          `}>
-            <span>☀{costs.heads}</span>
-            <span>🌙{costs.tails}</span>
+        {(costs.heads > 0 || costs.tails > 0) && (
+          <div className="absolute -top-2 -right-2 flex flex-col gap-0.5 items-end z-10">
+            {costs.heads > 0 && (
+              <div className={`
+                flex items-center gap-0.5
+                pl-1 pr-1.5 py-0.5 rounded-full
+                text-xs font-extrabold border-2
+                shadow-coin leading-none
+                ${canAffordHeads
+                  ? 'bg-gradient-to-br from-sun-gold to-sun-orange text-ink-brown border-sun-bright'
+                  : 'bg-effect-attack text-white border-red-300'}
+              `}>
+                <span className="text-sm">☀</span>
+                <span>{costs.heads}</span>
+              </div>
+            )}
+            {costs.tails > 0 && (
+              <div className={`
+                flex items-center gap-0.5
+                pl-1 pr-1.5 py-0.5 rounded-full
+                text-xs font-extrabold border-2
+                shadow-coin leading-none
+                ${canAffordTails
+                  ? 'bg-gradient-to-br from-moon-silver to-moon-twilight text-white border-moon-light'
+                  : 'bg-effect-attack text-white border-red-300'}
+              `}>
+                <span className="text-sm">🌙</span>
+                <span>{costs.tails}</span>
+              </div>
+            )}
           </div>
         )}
 

@@ -1025,6 +1025,7 @@ export function BattleScreen() {
                     previewBlock={previewEffects?.block ?? 0}
                     previewHeal={previewEffects?.heal ?? 0}
                     previewSelfDamage={previewEffects?.selfDamage ?? 0}
+                    activeBuffs={player.activeBuffs}
                   />
                   <PlayerBuffs buffs={player.activeBuffs} />
                 </div>

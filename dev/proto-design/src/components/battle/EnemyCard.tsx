@@ -64,6 +64,7 @@ export function EnemyCard({
   const prevBlock = useRef(enemy.block);
   const [hoveredDebuff, setHoveredDebuff] = useState<string | null>(null);
   const [imageError, setImageError] = useState(false);
+  const [isCardHovered, setIsCardHovered] = useState(false);
 
   const isElite = enemy.name.includes('(엘리트)');
   const baseName = enemy.name.replace(/ \(엘리트\)$/, '');
@@ -121,11 +122,77 @@ export function EnemyCard({
     prevBlock.current = enemy.block;
   }, [enemy.block, shieldControls, blockNumberControls]);
 
+  const intentLabels: Record<string, string> = {
+    attack: '공격',
+    defend: '방어',
+    buff: '강화',
+    debuff: '디버프',
+  };
+
   return (
     <motion.div
-      className="flex flex-col items-center"
+      className="flex flex-col items-center relative"
       animate={cardControls}
+      onMouseEnter={() => setIsCardHovered(true)}
+      onMouseLeave={() => setIsCardHovered(false)}
     >
+      <AnimatePresence>
+        {isCardHovered && (
+          <motion.div
+            initial={{ opacity: 0, x: 8 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: 8 }}
+            transition={{ duration: 0.15 }}
+            className="absolute left-full top-0 ml-3 z-30 pointer-events-none"
+          >
+            <div className="bg-dark-surface/95 border border-dark-graphite rounded-lg px-4 py-3 shadow-lg min-w-[170px]">
+              <div className="font-bold text-moon-light text-sm mb-2">
+                {baseName}
+                {isElite && <span className="text-amber-400 ml-1 text-xs">(엘리트)</span>}
+                {isBoss && <span className="text-red-400 ml-1 text-xs">(보스)</span>}
+              </div>
+              <div className="space-y-1 text-xs">
+                <div className="flex justify-between">
+                  <span className="text-moon-light/60">HP</span>
+                  <span className="text-effect-attack font-bold">{enemy.hp} / {enemy.maxHp}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-moon-light/60">방어도</span>
+                  <span className="text-effect-defense font-bold">{enemy.block}</span>
+                </div>
+                <div className="border-t border-dark-graphite/50 my-1.5" />
+                <div className="flex justify-between">
+                  <span className="text-moon-light/60">다음 행동</span>
+                  <span className={`font-bold ${currentIntent.text}`}>
+                    {intentLabels[enemy.intent.type] ?? enemy.intent.type} {enemy.intent.value}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-moon-light/60">소울 보상</span>
+                  <span className="text-sun-gold font-bold">◆ {enemy.soulReward}</span>
+                </div>
+                {enemy.activeDebuffs && enemy.activeDebuffs.length > 0 && (
+                  <>
+                    <div className="border-t border-dark-graphite/50 my-1.5" />
+                    {enemy.activeDebuffs.map((debuff) => {
+                      const def = getBuffDefinition(debuff.debuffId);
+                      return (
+                        <div key={debuff.debuffId} className="flex justify-between">
+                          <span className="text-effect-debuff">{def?.name ?? debuff.debuffId}</span>
+                          <span className="text-moon-light font-bold">
+                            {debuff.stacks > 1 ? `×${debuff.stacks}` : ''}
+                            {typeof debuff.remainingDuration === 'number' ? ` (${debuff.remainingDuration}턴)` : ''}
+                          </span>
+                        </div>
+                      );
+                    })}
+                  </>
+                )}
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
       <motion.div
         className={`mb-2 px-3 py-1.5 rounded-lg text-xs border ${currentIntent.bg} ${currentIntent.border}`}
         animate={enemy.intent.type === 'attack' ? {

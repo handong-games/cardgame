@@ -1,6 +1,8 @@
 import { motion, useAnimationControls, AnimatePresence } from 'framer-motion';
 import { useEffect, useRef, useState } from 'react';
+import type { ActiveBuff } from '../../types';
 import { HPBar } from '../common/HPBar';
+import { getBuffDefinition } from '../../utils/buffSystem';
 import {
   COMBAT_TIMING,
   getScaledPlayerAttack,
@@ -31,6 +33,7 @@ interface CharacterCardProps {
   previewBlock?: number;
   previewHeal?: number;
   previewSelfDamage?: number;
+  activeBuffs?: ActiveBuff[];
 }
 
 export function CharacterCard({
@@ -46,12 +49,14 @@ export function CharacterCard({
   previewBlock = 0,
   previewHeal = 0,
   previewSelfDamage = 0,
+  activeBuffs = [],
 }: CharacterCardProps) {
   const cardControls = useAnimationControls();
   const shieldControls = useAnimationControls();
   const blockNumberControls = useAnimationControls();
   const prevBlock = useRef(block);
   const [imageError, setImageError] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
 
   const characterData = CHARACTER_IMAGES[name];
   const characterImage = characterData?.src;
@@ -89,9 +94,53 @@ export function CharacterCard({
 
   return (
     <motion.div
-      className="flex flex-col items-center"
+      className="flex flex-col items-center relative"
       animate={cardControls}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
     >
+      <AnimatePresence>
+        {isHovered && (
+          <motion.div
+            initial={{ opacity: 0, x: -8 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -8 }}
+            transition={{ duration: 0.15 }}
+            className="absolute right-full top-0 mr-3 z-30 pointer-events-none"
+          >
+            <div className="bg-dark-surface/95 border border-dark-graphite rounded-lg px-4 py-3 shadow-lg min-w-[160px]">
+              <div className="font-bold text-moon-light text-sm mb-2">{name}</div>
+              <div className="space-y-1 text-xs">
+                <div className="flex justify-between">
+                  <span className="text-moon-light/60">HP</span>
+                  <span className="text-effect-attack font-bold">{hp} / {maxHp}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-moon-light/60">방어도</span>
+                  <span className="text-effect-defense font-bold">{block}</span>
+                </div>
+                {activeBuffs.length > 0 && (
+                  <>
+                    <div className="border-t border-dark-graphite/50 my-1.5" />
+                    {activeBuffs.map((buff) => {
+                      const def = getBuffDefinition(buff.buffId);
+                      return (
+                        <div key={buff.buffId} className="flex justify-between">
+                          <span className="text-sun-gold">{def?.name ?? buff.buffId}</span>
+                          <span className="text-moon-light font-bold">
+                            {buff.stacks > 1 ? `×${buff.stacks}` : ''}
+                            {typeof buff.remainingDuration === 'number' ? ` (${buff.remainingDuration}턴)` : ''}
+                          </span>
+                        </div>
+                      );
+                    })}
+                  </>
+                )}
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
       <div className="character-card relative">
         <img
           src={characterFrame}
