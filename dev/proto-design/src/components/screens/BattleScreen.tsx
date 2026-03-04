@@ -1,4 +1,4 @@
-import { useEffect, useRef, useCallback, useState } from 'react';
+import { useEffect, useRef, useCallback, useState, type ReactNode } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useGameStore } from '../../stores/gameStore';
 import { CharacterCard } from '../battle/CharacterCard';
@@ -642,7 +642,7 @@ export function BattleScreen() {
   const battlefieldRef = useRef<HTMLDivElement>(null);
   const playerZoneRef = useRef<HTMLDivElement>(null);
   const [scale, setScale] = useState(1);
-  const [viewportHeight, setViewportHeight] = useState(1080);
+  const [offset, setOffset] = useState({ x: 0, y: 0 });
 
   const handleCoinToss = useCallback(() => {
     if (battle.hasTossedThisTurn || coinTossState.isActive) return;
@@ -656,16 +656,16 @@ export function BattleScreen() {
     if (coinPouchRef.current) {
       const rect = coinPouchRef.current.getBoundingClientRect();
       pouchPos = {
-        x: (rect.left + rect.width / 2) * invScale,
-        y: (rect.top + rect.height / 2) * invScale,
+        x: (rect.left - offset.x + rect.width / 2) * invScale,
+        y: (rect.top - offset.y + rect.height / 2) * invScale,
       };
     }
 
     if (battlefieldRef.current) {
       const rect = battlefieldRef.current.getBoundingClientRect();
       areaPos = {
-        left: rect.left * invScale,
-        top: rect.top * invScale,
+        left: (rect.left - offset.x) * invScale,
+        top: (rect.top - offset.y) * invScale,
         width: rect.width * invScale,
         height: rect.height * invScale,
       };
@@ -674,16 +674,16 @@ export function BattleScreen() {
     if (sunCountRef.current) {
       const rect = sunCountRef.current.getBoundingClientRect();
       sunPos = {
-        x: (rect.left + rect.width / 2) * invScale,
-        y: (rect.top + rect.height / 2) * invScale,
+        x: (rect.left - offset.x + rect.width / 2) * invScale,
+        y: (rect.top - offset.y + rect.height / 2) * invScale,
       };
     }
 
     if (moonCountRef.current) {
       const rect = moonCountRef.current.getBoundingClientRect();
       moonPos = {
-        x: (rect.left + rect.width / 2) * invScale,
-        y: (rect.top + rect.height / 2) * invScale,
+        x: (rect.left - offset.x + rect.width / 2) * invScale,
+        y: (rect.top - offset.y + rect.height / 2) * invScale,
       };
     }
 
@@ -698,7 +698,7 @@ export function BattleScreen() {
       moonCountPosition: moonPos,
       pouchHidden: true,
     });
-  }, [battle.hasTossedThisTurn, coinTossState.isActive, tossCoins, scale]);
+  }, [battle.hasTossedThisTurn, coinTossState.isActive, tossCoins, scale, offset]);
 
   // 각 동전 착지 시 콜백
   // TODO: 코인 애니메이션과 통합 필요
@@ -808,11 +808,11 @@ export function BattleScreen() {
 
       if (enemyZoneRef.current) {
         const rect = enemyZoneRef.current.getBoundingClientRect();
-        start = { x: (rect.left + rect.width / 2) * invScale, y: (rect.top + rect.height / 2) * invScale };
+        start = { x: (rect.left - offset.x + rect.width / 2) * invScale, y: (rect.top - offset.y + rect.height / 2) * invScale };
       }
       if (soulCounterRef.current) {
         const rect = soulCounterRef.current.getBoundingClientRect();
-        target = { x: (rect.left + rect.width / 2) * invScale, y: (rect.top + rect.height / 2) * invScale };
+        target = { x: (rect.left - offset.x + rect.width / 2) * invScale, y: (rect.top - offset.y + rect.height / 2) * invScale };
       }
       setSoulDropPositions({ start, target });
 
@@ -834,23 +834,46 @@ export function BattleScreen() {
     setTimeout(() => setSoulPulse(false), 300 * getCurrentSpeedMultiplier());
   }, []);
 
-  const baseWidth = (() => {
+  const [baseW, baseH] = (() => {
     switch (resolution) {
-      case '1280x720': return 1280;
-      case '1600x900': return 1600;
-      default: return 1920;
+      case '1280x720': return [1280, 720] as const;
+      case '1600x900': return [1600, 900] as const;
+      default: return [1920, 1080] as const;
     }
   })();
 
   useEffect(() => {
     const updateScale = () => {
-      setScale((window.innerWidth / baseWidth) * settingsUiScale);
-      setViewportHeight(window.innerHeight);
+      const s = Math.min(window.innerWidth / baseW, window.innerHeight / baseH) * settingsUiScale;
+      setScale(s);
+      setOffset({
+        x: Math.max(0, (window.innerWidth - baseW * s) / 2),
+        y: Math.max(0, (window.innerHeight - baseH * s) / 2),
+      });
     };
     updateScale();
     window.addEventListener('resize', updateScale);
     return () => window.removeEventListener('resize', updateScale);
-  }, [baseWidth, settingsUiScale]);
+  }, [baseW, baseH, settingsUiScale]);
+
+  // 스케일링 컨테이너 래퍼 (모든 phase에 동일한 1920×1080 + 레터박스 적용)
+  const wrapInScale = (content: ReactNode) => (
+    <div className="w-screen h-screen overflow-hidden bg-[#16161C] relative">
+      <div
+        className="absolute"
+        style={{
+          width: `${baseW}px`,
+          height: `${baseH}px`,
+          transform: `scale(${scale})`,
+          transformOrigin: 'top left',
+          left: `${offset.x}px`,
+          top: `${offset.y}px`,
+        }}
+      >
+        {content}
+      </div>
+    </div>
+  );
 
   // 적 처치 동기 감지 (React render-time setState 패턴)
   // enemy가 null이 되고 phase가 victory면 사망 연출 시작
@@ -862,20 +885,20 @@ export function BattleScreen() {
   }
 
   if (battle.phase === 'shop') {
-    return <ShopScreen />;
+    return wrapInScale(<ShopScreen />);
   }
 
   if (battle.phase === 'event') {
-    return <EventScreen />;
+    return wrapInScale(<EventScreen />);
   }
 
   if ((battle.phase === 'reward' || battle.phase === 'class_advancement') && !dyingEnemy) {
-    return <RewardScreen />;
+    return wrapInScale(<RewardScreen />);
   }
 
   if (battle.phase === 'victory' && run.isComplete && !dyingEnemy) {
-    return (
-      <div className="min-h-screen bg-gray-900 flex flex-col items-center justify-center">
+    return wrapInScale(
+      <div className="w-full h-full bg-gray-900 flex flex-col items-center justify-center">
         <h1 className="text-5xl font-bold text-yellow-400 mb-4">🏆 런 클리어!</h1>
         <p className="text-gray-400 mb-2">모든 라운드를 클리어했습니다!</p>
         <p className="text-green-400 mb-8">
@@ -889,8 +912,8 @@ export function BattleScreen() {
   }
 
   if (battle.phase === 'victory' && !dyingEnemy) {
-    return (
-      <div className="min-h-screen bg-gray-900 flex flex-col items-center justify-center">
+    return wrapInScale(
+      <div className="w-full h-full bg-gray-900 flex flex-col items-center justify-center">
         <h1 className="text-4xl font-bold text-green-500 mb-4">승리!</h1>
         <p className="text-gray-400 mb-8">적을 처치했습니다.</p>
         <GameButton variant="primary" onClick={() => startRun()}>
@@ -901,8 +924,8 @@ export function BattleScreen() {
   }
 
   if (battle.phase === 'defeat') {
-    return (
-      <div className="min-h-screen bg-gray-900 flex flex-col items-center justify-center">
+    return wrapInScale(
+      <div className="w-full h-full bg-gray-900 flex flex-col items-center justify-center">
         <h1 className="text-4xl font-bold text-red-500 mb-4">패배...</h1>
         <p className="text-gray-400 mb-2">다음에는 더 잘 할 수 있을 거예요.</p>
         <p className="text-gray-500 mb-8">
@@ -917,7 +940,7 @@ export function BattleScreen() {
 
   // 마을 진입 연출
   if (battle.phase === 'village_entrance') {
-    return (
+    return wrapInScale(
       <VillageEntrance
         regionName={getRegion(run.regionId).name}
         onComplete={proceedToVillageAccessory}
@@ -927,7 +950,7 @@ export function BattleScreen() {
 
   // 장신구 선택 (팝업)
   if (battle.phase === 'village_accessory') {
-    return (
+    return wrapInScale(
       <AccessorySelection
         regionId={run.regionId}
         onSelect={selectAccessory}
@@ -940,14 +963,16 @@ export function BattleScreen() {
   const regionBg = BG_IMAGES[getRegion(run.regionId).bgTheme];
 
   return (
-    <div className="w-screen h-screen overflow-hidden bg-[#16161C]">
+    <div className="w-screen h-screen overflow-hidden bg-[#16161C] relative">
       <div
-        className="relative"
+        className="absolute"
         style={{
-          width: '1920px',
-          height: `${Math.round(viewportHeight / scale)}px`,
+          width: `${baseW}px`,
+          height: `${baseH}px`,
           transform: `scale(${scale})`,
           transformOrigin: 'top left',
+          left: `${offset.x}px`,
+          top: `${offset.y}px`,
         }}
       >
         <div className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: `url(${regionBg})` }}>
