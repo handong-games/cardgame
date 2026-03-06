@@ -2,11 +2,24 @@ import { useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useGameStore } from '../../stores/gameStore';
 import { GameButton } from '../ui/GameButton';
+import { TopBar } from '../ui/TopBar';
 import { ShopConfirmModal } from './ShopConfirmModal';
 import { ShopReplaceModal } from './ShopReplaceModal';
 import { getRandomDialogue } from '../../data/shop';
+import { useSettingsStore } from '../../stores/settingsStore';
+import { useAudio } from '../../hooks/useAudio';
 import type { ShopItem } from '../../types';
 import soulIcon from '@assets/icons/icon-soul.png';
+import forestBg from '@assets/backgrounds/sunny-forest-day.png';
+import companionFrame from '@assets/frames/frame-companion.png';
+import skillFrameImg from '@assets/frames/skill-frame.png';
+
+/** 타입 뱃지 색상 매핑 */
+const TYPE_BADGE: Record<string, { label: string; color: string }> = {
+  skill: { label: '스킬', color: 'bg-[#D4A574]/20 text-[#D4A574]' },
+  loot: { label: '전리품', color: 'bg-[#6B4B8C]/20 text-purple-400' },
+  slot_expansion: { label: '확장', color: 'bg-blue-500/20 text-blue-400' },
+};
 
 function ShopItemCard({
   item,
@@ -37,51 +50,68 @@ function ShopItemCard({
     item.type === 'loot' && item.loot ? item.loot.description :
     '스킬 슬롯 +1';
 
-  const rarityBorder =
-    item.type === 'loot' && item.loot?.rarity === 'rare'
-      ? 'border-purple-500 hover:border-purple-400'
-      : 'border-amber-500/60 hover:border-amber-400';
+  const isRare = item.type === 'loot' && item.loot?.rarity === 'rare';
+  const badge = TYPE_BADGE[item.type] ?? TYPE_BADGE.skill;
+
+  const borderColor = isSold
+    ? 'border-gray-600'
+    : isRare
+      ? 'border-[#6B4B8C] hover:border-purple-400'
+      : 'border-[#4A4A55] hover:border-[#D4A574]';
 
   return (
     <motion.div
       initial={{ opacity: 0, y: 30 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.1 + index * 0.05 }}
-      whileHover={!isSold ? { scale: 1.05, y: -4 } : undefined}
+      whileHover={!isSold ? { scale: 1.07, y: -6, boxShadow: '0 12px 28px rgba(0,0,0,0.5)' } : undefined}
       whileTap={!isSold ? { scale: 0.97 } : undefined}
       onClick={!isSold ? () => onSelect(item) : undefined}
-      className={`relative w-36 rounded-xl border-2 bg-gray-800 overflow-hidden transition-shadow ${
+      className={`relative w-44 rounded-xl border-2 overflow-hidden transition-shadow ${borderColor} ${
         isSold
-          ? 'opacity-40 cursor-not-allowed border-gray-600'
-          : `cursor-pointer shadow-lg hover:shadow-xl ${rarityBorder}`
+          ? 'opacity-40 cursor-not-allowed'
+          : 'cursor-pointer shadow-card-dark'
       }`}
+      style={{ background: 'linear-gradient(to bottom, #1E1E24, #2A2A32)' }}
     >
-      {/* SOLD 오버레이 */}
+      <div className="absolute top-2 left-2 z-10">
+        <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${badge.color}`}>
+          {badge.label}
+        </span>
+      </div>
+
+      {isRare && !isSold && (
+        <motion.div
+          className="absolute inset-0 z-0 rounded-xl pointer-events-none"
+          animate={{ opacity: [0.3, 0.6, 0.3] }}
+          transition={{ duration: 2, repeat: Infinity }}
+          style={{ boxShadow: 'inset 0 0 20px rgba(107,75,140,0.3)' }}
+        />
+      )}
+
       {isSold && (
-        <div className="absolute inset-0 z-10 flex items-center justify-center bg-black/50">
-          <span className="text-2xl font-black text-red-500 -rotate-12">SOLD</span>
+        <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-black/60">
+          <div className="w-full h-0.5 bg-red-500/60 absolute top-1/2 -rotate-12" />
+          <span className="text-2xl font-black text-red-500/80 -rotate-12">SOLD</span>
         </div>
       )}
 
-      {/* 아이콘 */}
-      <div className="flex items-center justify-center py-5 text-4xl bg-gray-850">
+      <div className="flex items-center justify-center py-6 text-4xl bg-[#121218] relative z-[1]">
         {icon}
       </div>
 
-      {/* 이름 + 설명 */}
-      <div className="px-2 py-2 border-t border-gray-700">
-        <div className="text-sm font-bold text-white text-center truncate">{name}</div>
+      <div className="px-3 py-2 border-t border-[#4A4A55]/60 relative z-[1]">
+        <div className="text-sm font-bold text-[#FFF5E6] text-center truncate">{name}</div>
         <div className="text-xs text-gray-400 text-center mt-1 line-clamp-2 leading-tight">{description}</div>
       </div>
 
-      {/* 가격 */}
-      <div className={`px-2 py-1.5 text-center border-t border-gray-700 ${
-        !isSold && !canAfford ? 'bg-red-900/20' : 'bg-gray-800'
+      <div className={`px-3 py-2 text-center border-t border-[#4A4A55]/60 relative z-[1] ${
+        !isSold && !canAfford ? 'bg-red-900/30' : ''
       }`}>
         <span className={`text-sm font-bold ${
-          isSold ? 'text-gray-500' : canAfford ? 'text-purple-400' : 'text-red-400'
+          isSold ? 'text-gray-500' : canAfford ? 'gold-text' : 'text-red-400'
         }`}>
-          {item.price} <img src={soulIcon} alt="소울" className="inline w-4 h-4 object-contain" />
+          {item.price} <img src={soulIcon} alt="소울" className="inline w-5 h-5 object-contain -mt-0.5" />
         </span>
       </div>
     </motion.div>
@@ -93,6 +123,7 @@ export function ShopScreen() {
   const [confirmItem, setConfirmItem] = useState<ShopItem | null>(null);
   const [showReplace, setShowReplace] = useState(false);
   const [merchantText, setMerchantText] = useState(shop?.merchantDialogue ?? '');
+  const { isMuted, toggleMute } = useAudio();
 
   if (!shop) return null;
 
@@ -143,108 +174,148 @@ export function ShopScreen() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-900 flex flex-col">
-      {/* 상단 바 */}
-      <div className="flex items-center justify-between px-6 py-4">
-        <div className="flex items-center gap-3">
-          <img src={soulIcon} alt="소울" className="w-6 h-6 object-contain" />
-          <span className="text-xl font-bold text-purple-400">{player.souls}</span>
-          <span className="text-gray-500 text-sm">소울</span>
-        </div>
-        <GameButton variant="secondary" size="sm" onClick={handleClose}>
-          나가기 →
-        </GameButton>
+    <div className="w-full h-full relative overflow-hidden">
+      {/* 배경 레이어 */}
+      <div className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: `url(${forestBg})` }} />
+      <div className="absolute inset-0 bg-black/60" />
+      <div className="absolute inset-0" style={{ background: 'radial-gradient(ellipse at center, transparent 30%, rgba(0,0,0,0.6) 100%)' }} />
+
+      {/* Zone A: 상단 HUD */}
+      <div className="absolute top-0 left-0 w-full h-[60px] z-20 bg-[#16161C]/80 backdrop-blur-sm border-b border-[#4A4A55]">
+        <TopBar
+          mode="shop"
+          title="떠돌이 상점"
+          titleIcon="🛒"
+          souls={player.souls}
+          isMuted={isMuted}
+          onToggleMute={toggleMute}
+          onOpenSettings={useSettingsStore.getState().open}
+        />
       </div>
 
-      {/* 상인 영역 */}
-      <motion.div
-        initial={{ opacity: 0, y: -10 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="text-center py-4"
+      {/* Zone B: 상품 진열 */}
+      <div
+        className="absolute top-[60px] left-0 w-full z-10"
+        style={{ bottom: '160px' }}
       >
-        <span className="text-5xl">🧙‍♂️</span>
-        <motion.div
-          key={merchantText}
-          initial={{ opacity: 0, y: 5 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="mt-2 text-gray-300 text-lg italic"
-        >
-          &ldquo;{merchantText}&rdquo;
-        </motion.div>
-      </motion.div>
+        <div className="w-full h-full overflow-y-auto px-6 py-4">
+          {/* 상인 영역 */}
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="flex items-center justify-center gap-4 py-4"
+          >
+            <motion.div
+              className="relative w-20 h-20 shrink-0"
+              whileHover={{ rotate: [-2, 2, -2, 0] }}
+              transition={{ duration: 0.5 }}
+            >
+              <img src={companionFrame} alt="" className="absolute inset-0 w-full h-full object-contain" />
+              <div className="absolute inset-0 flex items-center justify-center">
+                <span className="text-3xl mt-1">🧙‍♂️</span>
+              </div>
+              <div className="absolute inset-0 rounded-full pointer-events-none" style={{ boxShadow: '0 0 20px rgba(212,165,116,0.3)' }} />
+            </motion.div>
 
-      {/* 상품 목록 */}
-      <div className="flex-1 overflow-y-auto px-6 pb-6">
-        {/* 스킬 섹션 */}
-        {skillItems.length > 0 && (
+            <div className="relative max-w-md">
+              <div
+                className="absolute left-[-8px] top-1/2 -translate-y-1/2 w-0 h-0"
+                style={{ borderTop: '8px solid transparent', borderBottom: '8px solid transparent', borderRight: '8px solid rgba(212,165,116,0.4)' }}
+              />
+              <motion.div
+                key={merchantText}
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                className="bg-gradient-to-b from-[#2A2218] to-[#1E1E24] border border-[#D4A574]/40 rounded-xl px-5 py-3"
+              >
+                <span className="text-[#FFF5E6]/80 text-base italic">&ldquo;{merchantText}&rdquo;</span>
+              </motion.div>
+            </div>
+          </motion.div>
+
+          {/* 스킬 섹션 */}
+          {skillItems.length > 0 && (
+            <div className="mb-6">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="flex-1 h-px bg-gradient-to-r from-transparent to-[#D4A574]/40" />
+                <h2 className="text-sm font-bold text-[#D4A574]/80 uppercase tracking-wider">⚔️ 스킬</h2>
+                <div className="flex-1 h-px bg-gradient-to-l from-transparent to-[#D4A574]/40" />
+              </div>
+              <div className="flex flex-wrap gap-4 justify-center">
+                {skillItems.map((item, idx) => (
+                  <ShopItemCard
+                    key={item.id}
+                    item={item}
+                    playerSouls={player.souls}
+                    index={idx}
+                    onSelect={handleSelectItem}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* 전리품 + 슬롯 확장 섹션 */}
           <div className="mb-6">
-            <h2 className="text-sm font-bold text-amber-400/80 uppercase tracking-wider mb-3">⚔️ 스킬</h2>
-            <div className="flex flex-wrap gap-3 justify-center">
-              {skillItems.map((item, idx) => (
+            <div className="flex items-center gap-3 mb-4">
+              <div className="flex-1 h-px bg-gradient-to-r from-transparent to-purple-400/40" />
+              <h2 className="text-sm font-bold text-purple-400/80 uppercase tracking-wider">🎒 전리품 &amp; 기타</h2>
+              <div className="flex-1 h-px bg-gradient-to-l from-transparent to-purple-400/40" />
+            </div>
+            <div className="flex flex-wrap gap-4 justify-center">
+              {lootItems.map((item, idx) => (
                 <ShopItemCard
                   key={item.id}
                   item={item}
                   playerSouls={player.souls}
-                  index={idx}
+                  index={skillItems.length + idx}
                   onSelect={handleSelectItem}
                 />
               ))}
+              {slotItem && (
+                <ShopItemCard
+                  item={slotItem}
+                  playerSouls={player.souls}
+                  index={skillItems.length + lootItems.length}
+                  onSelect={handleSelectItem}
+                />
+              )}
             </div>
-          </div>
-        )}
-
-        {/* 전리품 + 슬롯 확장 섹션 */}
-        <div className="mb-6">
-          <h2 className="text-sm font-bold text-purple-400/80 uppercase tracking-wider mb-3">🎒 전리품 & 기타</h2>
-          <div className="flex flex-wrap gap-3 justify-center">
-            {lootItems.map((item, idx) => (
-              <ShopItemCard
-                key={item.id}
-                item={item}
-                playerSouls={player.souls}
-                index={skillItems.length + idx}
-                onSelect={handleSelectItem}
-              />
-            ))}
-            {slotItem && (
-              <ShopItemCard
-                item={slotItem}
-                playerSouls={player.souls}
-                index={skillItems.length + lootItems.length}
-                onSelect={handleSelectItem}
-              />
-            )}
-          </div>
-        </div>
-
-        {/* 현재 장착 스킬 표시 */}
-        <div className="border-t border-gray-700 pt-4">
-          <h2 className="text-sm font-bold text-gray-500 uppercase tracking-wider mb-2">
-            장착 스킬 ({player.skills.length}/{player.maxSkillSlots})
-          </h2>
-          <div className="flex gap-2 justify-center flex-wrap">
-            {player.skills.map((skill) => (
-              <div
-                key={skill.id}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700"
-              >
-                <span className="text-lg">{skill.icon}</span>
-                <span className="text-xs text-gray-300">{skill.name}</span>
-              </div>
-            ))}
-            {Array.from({ length: player.maxSkillSlots - player.skills.length }).map((_, i) => (
-              <div
-                key={`empty-${i}`}
-                className="flex items-center justify-center w-20 py-1.5 rounded-lg bg-gray-800/50 border border-gray-700/50 border-dashed"
-              >
-                <span className="text-xs text-gray-600">빈 슬롯</span>
-              </div>
-            ))}
           </div>
         </div>
       </div>
 
-      {/* 구매 확인 모달 */}
+      {/* Zone C: 장착 스킬 + 나가기 */}
+      <div className="absolute bottom-0 left-0 w-full h-[160px] z-20 bg-[#16161C]/90 backdrop-blur-sm">
+        <div className="gold-divider" />
+        <div className="h-full flex items-center justify-between px-8">
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-1.5 mr-2 px-3 py-1.5 rounded-lg bg-[#16161C]/60 border border-[#4A4A55]/40">
+              <img src={soulIcon} alt="소울" className="w-5 h-5 object-contain" />
+              <span className="text-sm font-bold gold-text">{player.souls}</span>
+            </div>
+            <span className="text-xs text-gray-500 mr-1">장착 ({player.skills.length}/{player.maxSkillSlots})</span>
+            {player.skills.map((skill) => (
+              <div key={skill.id} className="relative w-16 h-16" title={skill.name}>
+                <img src={skillFrameImg} alt="" className="absolute inset-0 w-full h-full object-contain opacity-60" />
+                <div className="absolute inset-0 flex flex-col items-center justify-center gap-0.5">
+                  <span className="text-xl">{skill.icon}</span>
+                  <span className="text-[9px] text-gray-400 truncate max-w-[52px]">{skill.name}</span>
+                </div>
+              </div>
+            ))}
+            {Array.from({ length: player.maxSkillSlots - player.skills.length }).map((_, i) => (
+              <div key={`empty-${i}`} className="w-16 h-16 rounded-xl border border-dashed border-[#4A4A55]/60 flex items-center justify-center">
+                <span className="text-lg text-gray-600">+</span>
+              </div>
+            ))}
+          </div>
+          <GameButton variant="secondary" size="lg" onClick={handleClose}>
+            나가기 →
+          </GameButton>
+        </div>
+      </div>
+
       <AnimatePresence>
         {confirmItem && (
           <ShopConfirmModal
@@ -256,7 +327,6 @@ export function ShopScreen() {
         )}
       </AnimatePresence>
 
-      {/* 스킬 교체 모달 */}
       <AnimatePresence>
         {showReplace && pendingItem && (
           <ShopReplaceModal

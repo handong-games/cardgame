@@ -2,6 +2,7 @@ import { motion } from 'framer-motion';
 import { GameButton } from '../ui/GameButton';
 import type { ShopItem } from '../../types';
 import soulIcon from '@assets/icons/icon-soul.png';
+import cardFrame from '@assets/frames/character-card-frame.png';
 
 interface ShopConfirmModalProps {
   item: ShopItem;
@@ -33,7 +34,7 @@ export function ShopConfirmModal({ item, playerSouls, onConfirm, onCancel }: Sho
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm"
       onClick={onCancel}
     >
       <motion.div
@@ -41,37 +42,52 @@ export function ShopConfirmModal({ item, playerSouls, onConfirm, onCancel }: Sho
         animate={{ scale: 1, opacity: 1 }}
         exit={{ scale: 0.8, opacity: 0 }}
         transition={{ type: 'spring', damping: 20, stiffness: 300 }}
-        className="bg-gray-800 rounded-2xl border-2 border-amber-500/50 p-6 w-80 shadow-2xl"
+        className="bg-[#1E1E24] rounded-2xl border-2 border-[#D4A574]/50 p-6 w-80"
+        style={{ boxShadow: '0 0 30px rgba(212,165,116,0.15), 0 8px 32px rgba(0,0,0,0.5)' }}
         onClick={(e) => e.stopPropagation()}
       >
-        {/* 아이템 아이콘 */}
-        <div className="text-center mb-4">
-          <span className="text-5xl">{itemIcon}</span>
-        </div>
+        <motion.div
+          initial={{ scale: 0.5, rotate: -10 }}
+          animate={{ scale: 1, rotate: 0 }}
+          transition={{ type: 'spring', damping: 12, stiffness: 200 }}
+          className="relative w-24 h-24 mx-auto mb-4"
+        >
+          <img src={cardFrame} alt="" className="absolute inset-0 w-full h-full object-contain" />
+          <div className="absolute inset-0 flex items-center justify-center">
+            <span className="text-4xl">{itemIcon}</span>
+          </div>
+        </motion.div>
 
-        {/* 아이템 이름 */}
-        <h3 className="text-xl font-bold text-amber-400 text-center mb-2">
+        <h3 className="text-xl font-bold text-[#D4A574] text-center mb-2 text-shadow-gold">
           {itemName}
         </h3>
 
-        {/* 설명 */}
-        <p className="text-sm text-gray-300 text-center mb-4 leading-relaxed">
+        <p className="text-sm text-[#FFF5E6]/70 text-center mb-4 leading-relaxed">
           {itemDesc}
         </p>
 
-        {/* 가격 표시 */}
-        <div className="flex items-center justify-center gap-2 mb-6">
-          <span className="text-gray-400">가격:</span>
-          <span className={`text-lg font-bold ${canAfford ? 'text-purple-400' : 'text-red-400'}`}>
+        <div className="gold-divider mb-4" />
+
+        <div className="flex items-center justify-center gap-2 mb-2">
+          <span className="text-[#FFF5E6]/50">가격:</span>
+          <span className={`text-lg font-bold ${canAfford ? 'gold-text' : 'text-red-400'}`}>
             {item.price}
           </span>
-          <img src={soulIcon} alt="소울" className="inline w-5 h-5 object-contain" />
-          <span className="text-gray-500 text-sm">
+          <img src={soulIcon} alt="소울" className="inline w-6 h-6 object-contain" />
+          <span className="text-[#FFF5E6]/40 text-sm">
             (보유: {playerSouls})
           </span>
         </div>
 
-        {/* 버튼 */}
+        <div className="w-full mb-6">
+          <div className="h-1.5 rounded-full bg-[#16161C] overflow-hidden">
+            <div
+              className={`h-full rounded-full transition-all ${canAfford ? 'bg-[#D4A574]' : 'bg-red-500'}`}
+              style={{ width: `${Math.min((playerSouls / Math.max(item.price, 1)) * 100, 100)}%` }}
+            />
+          </div>
+        </div>
+
         <div className="flex gap-3">
           <GameButton variant="secondary" className="flex-1" onClick={onCancel}>
             취소
