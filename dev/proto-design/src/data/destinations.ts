@@ -72,7 +72,7 @@ function createEventDestination(): DestinationOption {
 function createBossDestination(bossKey: string = 'ancient_grove_lord'): DestinationOption {
   return {
     id: `dest_${destinationIdCounter++}`,
-    type: 'elite',  // 보스는 엘리트로 표시
+    type: 'boss',
     enemyKey: bossKey,
   };
 }
@@ -80,7 +80,7 @@ function createBossDestination(bossKey: string = 'ancient_grove_lord'): Destinat
 // 행선지 타입 결정 (확률 기반)
 function decideDestinationType(round: number, totalRounds: number, existingTypes: DestinationType[]): DestinationType {
   // 보스 라운드
-  if (round >= totalRounds) return 'elite';
+  if (round >= totalRounds) return 'boss';
 
   // 이미 있는 타입 체크 (각 타입은 한 번만)
   const hasElite = existingTypes.includes('elite');

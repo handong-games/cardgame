@@ -32,6 +32,8 @@ import nodeShopIcon from '@assets/icons/node-shop.png';
 import nodeEliteIcon from '@assets/icons/node-elite.png';
 import nodeEventIcon from '@assets/icons/node-event.png';
 import nodeRestIcon from '@assets/icons/node-rest.png';
+import nodeMonsterIcon from '@assets/icons/node-monster.png';
+import nodeBossIcon from '@assets/icons/node-boss.png';
 import companionFrameImg from '@assets/frames/frame-companion.png';
 import type { BgTheme } from '../../types';
 
@@ -53,8 +55,9 @@ const COMPANION_FRAME: string | null = companionFrameImg;
 
 // 행선지 타입별 정보
 const DESTINATION_INFO: Record<DestinationType, { emoji: string; iconImg?: string; label: string; color: string; border: string }> = {
-  normal: { emoji: '👹', label: '몬스터', color: 'text-gray-300', border: 'border-gray-500' },
+  normal: { emoji: '👹', iconImg: nodeMonsterIcon, label: '몬스터', color: 'text-gray-300', border: 'border-gray-500' },
   elite: { emoji: '💀', iconImg: nodeEliteIcon, label: '엘리트', color: 'text-yellow-400', border: 'border-yellow-500' },
+  boss: { emoji: '👑', iconImg: nodeBossIcon, label: '보스', color: 'text-red-400', border: 'border-red-500' },
   rest: { emoji: '🏕️', iconImg: nodeRestIcon, label: '휴식', color: 'text-green-400', border: 'border-green-500' },
   shop: { emoji: '🛒', iconImg: nodeShopIcon, label: '상점', color: 'text-blue-400', border: 'border-blue-500' },
   event: { emoji: '❓', iconImg: nodeEventIcon, label: '이벤트', color: 'text-purple-400', border: 'border-purple-500' },
@@ -981,13 +984,12 @@ export function BattleScreen() {
           <div className="absolute inset-0 bg-black/20" />
         </div>
 
-        <div className="absolute top-0 left-0 w-full h-[60px] z-20 bg-[#16161C]/90 border-b border-[#4A4A55]">
+        <div className="absolute top-0 left-0 w-full h-[72px] z-20 bg-[#16161C]/90 border-b border-[#4A4A55]">
           <TopBar
-            enemyName={displayEnemy?.name}
+            regionName={getRegion(run.regionId).name}
             souls={player.souls}
             soulPulse={soulPulse}
             soulCounterRef={soulCounterRef}
-            accessories={run.accessories}
             isMuted={isMuted}
             onToggleMute={toggleMute}
             onOpenSettings={useSettingsStore.getState().open}
@@ -996,7 +998,7 @@ export function BattleScreen() {
 
         <div
           ref={battlefieldRef}
-          className="absolute top-[60px] left-0 w-full z-10"
+          className="absolute top-[72px] left-0 w-full z-10"
           style={{ bottom: '160px' }}
         >
           <div className="absolute top-3 left-0 w-full flex justify-center z-20 pointer-events-none">
@@ -1023,7 +1025,7 @@ export function BattleScreen() {
                   </div>
                 );
               })}
-              <span className="text-xs text-[#FFF5E6]/50 ml-2">{getRegion(run.regionId).name}</span>
+
             </div>
           </div>
           <div className="w-full h-full flex items-center">
@@ -1055,6 +1057,33 @@ export function BattleScreen() {
                     activeBuffs={player.activeBuffs}
                   />
                   <PlayerBuffs buffs={player.activeBuffs} />
+                  {run.accessories.length > 0 && (
+                    <AnimatePresence>
+                      <div className="flex items-center gap-2 mt-3">
+                        {run.accessories.map((accessory, index) => (
+                          <motion.div
+                            key={accessory.id}
+                            initial={{ opacity: 0, scale: 0, x: -20 }}
+                            animate={{ opacity: 1, scale: 1, x: 0 }}
+                            exit={{ opacity: 0, scale: 0 }}
+                            transition={{ delay: index * 0.1, duration: 0.3 }}
+                            className="relative group"
+                            title={`${accessory.name}: ${accessory.description}`}
+                          >
+                            <div className="w-10 h-10 rounded-full bg-dark-deep border border-dark-graphite flex items-center justify-center shadow-card-dark">
+                              <span className="text-lg cursor-help">{accessory.emoji}</span>
+                            </div>
+                            <div className="absolute left-1/2 -translate-x-1/2 top-full mt-1 hidden group-hover:block z-50">
+                              <div className="bg-dark-charcoal border border-dark-graphite rounded-lg px-3 py-2 whitespace-nowrap shadow-card-dark">
+                                <p className="text-coin-gold text-xs font-bold">{accessory.name}</p>
+                                <p className="text-gray-300 text-xs">{accessory.description}</p>
+                              </div>
+                            </div>
+                          </motion.div>
+                        ))}
+                      </div>
+                    </AnimatePresence>
+                  )}
                 </div>
               </div>
             </div>
@@ -1459,6 +1488,7 @@ export function BattleScreen() {
                   >
                     <EnemyCard
                       enemy={displayEnemy}
+                      enemyName={displayEnemy.name}
                       isAttacking={battle.combatAnimation.enemyAttacking}
                       isHit={battle.combatAnimation.enemyHit}
                       previewDamage={previewEffects?.damage ?? 0}

@@ -43,6 +43,7 @@ const MONSTER_IMAGES: Record<string, { src: string; frame?: string }> = {
 
 interface EnemyCardProps {
   enemy: Enemy;
+  enemyName?: string;
   isAttacking?: boolean;
   isHit?: boolean;
   previewDamage?: number;
@@ -52,6 +53,7 @@ interface EnemyCardProps {
 
 export function EnemyCard({
   enemy,
+  enemyName,
   isAttacking = false,
   isHit = false,
   previewDamage = 0,
@@ -193,6 +195,13 @@ export function EnemyCard({
           </motion.div>
         )}
       </AnimatePresence>
+      {enemyName && (
+        <div className="mb-1 px-3 py-0.5 text-sm font-bold text-[#FFF5E6]/90 tracking-wide">
+          {enemyName}
+          {isElite && <span className="text-amber-400 ml-1 text-xs">(엘리트)</span>}
+          {isBoss && <span className="text-red-400 ml-1 text-xs">(보스)</span>}
+        </div>
+      )}
       <motion.div
         className={`mb-2 px-3 py-1.5 rounded-lg text-xs border ${currentIntent.bg} ${currentIntent.border}`}
         animate={enemy.intent.type === 'attack' ? {

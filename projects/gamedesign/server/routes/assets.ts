@@ -16,6 +16,7 @@ const ALLOWED_CATEGORIES = [
   'characters',
   'companions',
   'monsters',
+  'npcs',
   'frames',
   'coins',
   'icons',

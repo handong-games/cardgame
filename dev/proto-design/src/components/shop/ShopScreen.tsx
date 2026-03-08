@@ -13,6 +13,8 @@ import soulIcon from '@assets/icons/icon-soul.png';
 import forestBg from '@assets/backgrounds/sunny-forest-day.png';
 import companionFrame from '@assets/frames/frame-companion.png';
 import skillFrameImg from '@assets/frames/skill-frame.png';
+import merchantImg from '@assets/npcs/npc_wandering-merchant.png';
+import { SKILL_IMAGES } from '../../data/skillImages';
 
 /** 타입 뱃지 색상 매핑 */
 const TYPE_BADGE: Record<string, { label: string; color: string }> = {
@@ -34,6 +36,10 @@ function ShopItemCard({
 }) {
   const canAfford = playerSouls >= item.price;
   const isSold = item.sold;
+
+  const skillImg = item.type === 'skill' && item.skill
+    ? SKILL_IMAGES[item.skill.skillKey]
+    : undefined;
 
   const icon =
     item.type === 'skill' && item.skill ? item.skill.icon :
@@ -96,8 +102,12 @@ function ShopItemCard({
         </div>
       )}
 
-      <div className="flex items-center justify-center py-6 text-4xl bg-[#121218] relative z-[1]">
-        {icon}
+      <div className="flex items-center justify-center py-6 bg-[#121218] relative z-[1]">
+        {skillImg ? (
+          <img src={skillImg} alt={name} className="w-16 h-16 object-contain drop-shadow-lg" />
+        ) : (
+          <span className="text-4xl">{icon}</span>
+        )}
       </div>
 
       <div className="px-3 py-2 border-t border-[#4A4A55]/60 relative z-[1]">
@@ -181,7 +191,7 @@ export function ShopScreen() {
       <div className="absolute inset-0" style={{ background: 'radial-gradient(ellipse at center, transparent 30%, rgba(0,0,0,0.6) 100%)' }} />
 
       {/* Zone A: 상단 HUD */}
-      <div className="absolute top-0 left-0 w-full h-[60px] z-20 bg-[#16161C]/80 backdrop-blur-sm border-b border-[#4A4A55]">
+      <div className="absolute top-0 left-0 w-full h-[72px] z-20 bg-[#16161C]/80 backdrop-blur-sm border-b border-[#4A4A55]">
         <TopBar
           mode="shop"
           title="떠돌이 상점"
@@ -193,93 +203,91 @@ export function ShopScreen() {
         />
       </div>
 
-      {/* Zone B: 상품 진열 */}
+      {/* Zone B: 상인 + 상품 진열 */}
       <div
-        className="absolute top-[60px] left-0 w-full z-10"
-        style={{ bottom: '160px' }}
+          className="absolute top-[72px] left-0 w-full z-10 flex"
+          style={{ bottom: '160px' }}
       >
-        <div className="w-full h-full overflow-y-auto px-6 py-4">
-          {/* 상인 영역 */}
+        {/* 좌측: 상인 영역 (1/6) — 말풍선+상인 세로 중앙 배치 */}
+        <motion.div
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          className="w-1/6 min-w-[160px] h-full flex flex-col items-center justify-center gap-4 bg-[#16161C]/40 border-r border-[#4A4A55]/30 px-3"
+        >
+          {/* 말풍선 */}
           <motion.div
-            initial={{ opacity: 0, y: -10 }}
+            key={merchantText}
+            initial={{ opacity: 0, y: -8 }}
             animate={{ opacity: 1, y: 0 }}
-            className="flex items-center justify-center gap-4 py-4"
+            className="relative w-full bg-gradient-to-b from-[#2A2218] to-[#1E1E24] border border-[#D4A574]/40 rounded-xl px-3 py-2.5"
           >
-            <motion.div
-              className="relative w-20 h-20 shrink-0"
-              whileHover={{ rotate: [-2, 2, -2, 0] }}
-              transition={{ duration: 0.5 }}
-            >
-              <img src={companionFrame} alt="" className="absolute inset-0 w-full h-full object-contain" />
-              <div className="absolute inset-0 flex items-center justify-center">
-                <span className="text-3xl mt-1">🧙‍♂️</span>
-              </div>
-              <div className="absolute inset-0 rounded-full pointer-events-none" style={{ boxShadow: '0 0 20px rgba(212,165,116,0.3)' }} />
-            </motion.div>
-
-            <div className="relative max-w-md">
-              <div
-                className="absolute left-[-8px] top-1/2 -translate-y-1/2 w-0 h-0"
-                style={{ borderTop: '8px solid transparent', borderBottom: '8px solid transparent', borderRight: '8px solid rgba(212,165,116,0.4)' }}
-              />
-              <motion.div
-                key={merchantText}
-                initial={{ opacity: 0, x: -10 }}
-                animate={{ opacity: 1, x: 0 }}
-                className="bg-gradient-to-b from-[#2A2218] to-[#1E1E24] border border-[#D4A574]/40 rounded-xl px-5 py-3"
-              >
-                <span className="text-[#FFF5E6]/80 text-base italic">&ldquo;{merchantText}&rdquo;</span>
-              </motion.div>
-            </div>
+            <span className="text-[#FFF5E6]/80 text-sm italic leading-snug">&ldquo;{merchantText}&rdquo;</span>
+            <div
+              className="absolute left-1/2 -translate-x-1/2 -bottom-2 w-0 h-0"
+              style={{ borderLeft: '8px solid transparent', borderRight: '8px solid transparent', borderTop: '8px solid rgba(212,165,116,0.4)' }}
+            />
           </motion.div>
 
-          {/* 스킬 섹션 */}
-          {skillItems.length > 0 && (
-            <div className="mb-6">
+          {/* 상인 이미지 */}
+          <motion.div
+            className="relative w-28 h-36 shrink-0"
+            whileHover={{ rotate: [-2, 2, -2, 0] }}
+            transition={{ duration: 0.5 }}
+          >
+            <img src={merchantImg} alt="떠돌이 상인" className="w-full h-full object-contain drop-shadow-lg" />
+            <div className="absolute inset-0 rounded-full pointer-events-none" style={{ boxShadow: '0 0 24px rgba(212,165,116,0.3)' }} />
+          </motion.div>
+        </motion.div>
+
+        {/* 우측: 상품 영역 (5/6) */}
+        <div className="flex-1 h-full overflow-y-auto">
+          <div className="min-h-full flex flex-col items-center justify-center px-6 py-4">
+            {skillItems.length > 0 && (
+              <div className="mb-6 w-full">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="flex-1 h-px bg-gradient-to-r from-transparent to-[#D4A574]/40" />
+                  <h2 className="text-sm font-bold text-[#D4A574]/80 uppercase tracking-wider">⚔️ 스킬</h2>
+                  <div className="flex-1 h-px bg-gradient-to-l from-transparent to-[#D4A574]/40" />
+                </div>
+                <div className="flex flex-wrap gap-4 justify-center">
+                  {skillItems.map((item, idx) => (
+                    <ShopItemCard
+                      key={item.id}
+                      item={item}
+                      playerSouls={player.souls}
+                      index={idx}
+                      onSelect={handleSelectItem}
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <div className="mb-6 w-full">
               <div className="flex items-center gap-3 mb-4">
-                <div className="flex-1 h-px bg-gradient-to-r from-transparent to-[#D4A574]/40" />
-                <h2 className="text-sm font-bold text-[#D4A574]/80 uppercase tracking-wider">⚔️ 스킬</h2>
-                <div className="flex-1 h-px bg-gradient-to-l from-transparent to-[#D4A574]/40" />
+                <div className="flex-1 h-px bg-gradient-to-r from-transparent to-purple-400/40" />
+                <h2 className="text-sm font-bold text-purple-400/80 uppercase tracking-wider">🎒 전리품 &amp; 기타</h2>
+                <div className="flex-1 h-px bg-gradient-to-l from-transparent to-purple-400/40" />
               </div>
               <div className="flex flex-wrap gap-4 justify-center">
-                {skillItems.map((item, idx) => (
+                {lootItems.map((item, idx) => (
                   <ShopItemCard
                     key={item.id}
                     item={item}
                     playerSouls={player.souls}
-                    index={idx}
+                    index={skillItems.length + idx}
                     onSelect={handleSelectItem}
                   />
                 ))}
+                {slotItem && (
+                  <ShopItemCard
+                    item={slotItem}
+                    playerSouls={player.souls}
+                    index={skillItems.length + lootItems.length}
+                    onSelect={handleSelectItem}
+                  />
+                )}
               </div>
-            </div>
-          )}
-
-          {/* 전리품 + 슬롯 확장 섹션 */}
-          <div className="mb-6">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="flex-1 h-px bg-gradient-to-r from-transparent to-purple-400/40" />
-              <h2 className="text-sm font-bold text-purple-400/80 uppercase tracking-wider">🎒 전리품 &amp; 기타</h2>
-              <div className="flex-1 h-px bg-gradient-to-l from-transparent to-purple-400/40" />
-            </div>
-            <div className="flex flex-wrap gap-4 justify-center">
-              {lootItems.map((item, idx) => (
-                <ShopItemCard
-                  key={item.id}
-                  item={item}
-                  playerSouls={player.souls}
-                  index={skillItems.length + idx}
-                  onSelect={handleSelectItem}
-                />
-              ))}
-              {slotItem && (
-                <ShopItemCard
-                  item={slotItem}
-                  playerSouls={player.souls}
-                  index={skillItems.length + lootItems.length}
-                  onSelect={handleSelectItem}
-                />
-              )}
             </div>
           </div>
         </div>
@@ -288,31 +296,40 @@ export function ShopScreen() {
       {/* Zone C: 장착 스킬 + 나가기 */}
       <div className="absolute bottom-0 left-0 w-full h-[160px] z-20 bg-[#16161C]/90 backdrop-blur-sm">
         <div className="gold-divider" />
-        <div className="h-full flex items-center justify-between px-8">
+        <div className="h-full flex items-center justify-center gap-6 px-8">
+          <span className="text-xs text-gray-500">장착 ({player.skills.length}/{player.maxSkillSlots})</span>
           <div className="flex items-center gap-3">
-            <div className="flex items-center gap-1.5 mr-2 px-3 py-1.5 rounded-lg bg-[#16161C]/60 border border-[#4A4A55]/40">
-              <img src={soulIcon} alt="소울" className="w-5 h-5 object-contain" />
-              <span className="text-sm font-bold gold-text">{player.souls}</span>
-            </div>
-            <span className="text-xs text-gray-500 mr-1">장착 ({player.skills.length}/{player.maxSkillSlots})</span>
-            {player.skills.map((skill) => (
-              <div key={skill.id} className="relative w-16 h-16" title={skill.name}>
-                <img src={skillFrameImg} alt="" className="absolute inset-0 w-full h-full object-contain opacity-60" />
-                <div className="absolute inset-0 flex flex-col items-center justify-center gap-0.5">
-                  <span className="text-xl">{skill.icon}</span>
-                  <span className="text-[9px] text-gray-400 truncate max-w-[52px]">{skill.name}</span>
+            {player.skills.map((skill) => {
+              const skillImg = SKILL_IMAGES[skill.skillKey];
+              return (
+                <div key={skill.id} className="relative w-20 h-24" title={skill.name}>
+                  <img src={skillFrameImg} alt="" className="absolute inset-0 w-full h-full object-contain opacity-70" />
+                  {skillImg ? (
+                    <img src={skillImg} alt={skill.name} className="absolute inset-0 w-3/4 h-3/4 m-auto object-contain" />
+                  ) : (
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <span className="text-2xl">{skill.icon}</span>
+                    </div>
+                  )}
+                  <div className="absolute bottom-0.5 left-0 right-0 text-center">
+                    <span className="text-[9px] text-gray-300 bg-dark-surface/80 px-1 py-0.5 rounded truncate inline-block max-w-full">
+                      {skill.name}
+                    </span>
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
             {Array.from({ length: player.maxSkillSlots - player.skills.length }).map((_, i) => (
-              <div key={`empty-${i}`} className="w-16 h-16 rounded-xl border border-dashed border-[#4A4A55]/60 flex items-center justify-center">
+              <div key={`empty-${i}`} className="w-20 h-24 rounded-xl border border-dashed border-[#4A4A55]/60 flex items-center justify-center">
                 <span className="text-lg text-gray-600">+</span>
               </div>
             ))}
           </div>
-          <GameButton variant="secondary" size="lg" onClick={handleClose}>
-            나가기 →
-          </GameButton>
+          <div className="absolute right-8">
+            <GameButton variant="secondary" size="lg" onClick={handleClose}>
+              나가기 →
+            </GameButton>
+          </div>
         </div>
       </div>
 

@@ -1,4 +1,4 @@
-export type ExampleCategory = 'frame' | 'character' | 'companion' | 'forest' | 'dungeon' | 'castle' | 'background' | 'ui'
+export type ExampleCategory = 'frame' | 'character' | 'companion' | 'forest' | 'dungeon' | 'castle' | 'background' | 'ui' | 'npc'
 
 export interface PromptExample {
   id: string
@@ -66,6 +66,20 @@ dark horror scary gothic,
 blurry low quality, noisy, grainy,
 multiple objects, cluttered composition,
 neon glow, overly bright, saturated neon colors`
+
+export const NPC_NEGATIVE = `dark gothic horror scary,
+photorealistic 3D render CGI,
+cold colors blue purple dominant,
+harsh shadows high contrast,
+anime manga style sharp lines,
+scary fierce expression,
+facing left, looking left, back view,
+realistic human proportions,
+cream background, parchment texture, complex detailed background,
+hand-drawn border frame, card frame, decorative border,
+cropped body, cut off limbs,
+blurry low quality,
+weapon sword shield armor`
 
 // UI 에셋 공통 스타일 베이스 (내부 사용)
 const UI_ICON_STYLE = `game UI icon for dark fantasy card game,
@@ -2072,6 +2086,57 @@ round badge shape with layered rings,
 sturdy protective atmosphere,
 dark fantasy defense badge icon`,
       negative: UI_NEGATIVE
+    }
+  ],
+
+  // ========================================
+  // 10. NPC — 비전투 캐릭터 (상점 주인 등)
+  // ========================================
+  'npc': [
+    {
+      id: 'merchant',
+      name: '떠돌이 상인',
+      nameEn: 'Wandering Merchant',
+      designStatus: 'undesigned',
+      group: '상점',
+      prompt: `flat color illustration style,
+hard edge cel shading with clean defined color blocks,
+bold clean outlines in near-black (#1A1A1E),
+muted desaturated dark fantasy color palette,
+earthy tones with warm brown gold accents,
+stylized character illustration,
+solid white background for clean extraction,
+no border no frame,
+strong rim light along character edges from behind,
+soft key light from upper-left illuminating face,
+
+vertical portrait 2:3 aspect ratio,
+stylized semi-chibi proportions,
+2.5 to 3 head body ratio,
+full body composition showing head to feet,
+character fits entirely within frame with small margin at bottom,
+large expressive eyes with highlights,
+
+subtle rosy blush on cheeks,
+small circular pink blush marks,
+friendly warm welcoming expression,
+cheerful knowing smile,
+body facing right at three-quarter angle,
+looking toward viewer with slight right tilt,
+
+wandering merchant NPC character,
+hooded cloak in warm brown (#6B4423),
+large backpack overflowing with goods and trinkets,
+small pouches hanging from belt,
+mysterious but friendly appearance,
+holding a glowing lantern in one hand,
+worn leather boots and traveling gear,
+gold coin pouch at waist (#D4A574),
+warm inviting merchant aura,
+
+white background,
+single character illustration only`,
+      negative: NPC_NEGATIVE
     }
   ]
 }

@@ -17,6 +17,18 @@ Slay the Spire 스타일 덱빌더 + Dice & Fold 아트 스타일의 카드 게�
 - **독립 실행**: `cd projects/gameplan && claude` 로 별도 Claude 세션 가능
 - **업데이트**: `git submodule update --remote projects/gameplan`
 
+#### projects/gamedesign
+- **용도**: 게임 에셋(캐릭터, 몬스터, 배경) 이미지 생성 및 디자인 문서 관리 웹앱
+- **기술 스택**: React 19 + Express 5 + TypeScript + Tailwind CSS + Zustand
+- **gameplan 연동**: `projects/gameplan`의 기획서를 Source of Truth로 참조하여 프롬프트 데이터 및 디자인 가이드를 생성
+- **주요 기능**:
+  - 프롬프트 라이브러리 (`/prompts`) — 캐릭터/몬스터/배경 AI 이미지 생성 프롬프트 관리
+  - 에셋 갤러리 — 생성된 에셋 이미지 조회 및 관리
+  - 디자인 가이드 — v4.0 Dark Frame Edition 비주얼 스타일 가이드
+  - 문서 편집기 — 마크다운 기반 디자인 문서 편집
+- **실행**: `.\projects\start-gamedesign.ps1` 또는 `cd projects/gamedesign && npm run dev`
+- **독립 실행**: `cd projects/gamedesign && claude` 로 별도 Claude 세션 가능
+
 ---
 
 ## User Preferences & Context

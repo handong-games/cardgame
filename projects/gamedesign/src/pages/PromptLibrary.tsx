@@ -15,6 +15,7 @@ const CATEGORY_LABELS: Record<ExampleCategory, string> = {
   castle: '성 몬스터',
   background: '배경',
   ui: 'UI 에셋',
+  npc: 'NPC',
 }
 
 export default function PromptLibrary() {
@@ -74,6 +75,7 @@ function PromptExamples() {
     { id: 'castle' as ExampleCategory, label: '성', icon: '🏰', color: 'red' },
     { id: 'background' as ExampleCategory, label: '배경', icon: '🖼️', color: 'purple' },
     { id: 'ui' as ExampleCategory, label: 'UI', icon: '⚙️', color: 'blue' },
+    { id: 'npc' as ExampleCategory, label: 'NPC', icon: '🧑‍🍳', color: 'orange' },
   ]
 
   // 그룹별로 예시를 분류
@@ -116,6 +118,7 @@ function PromptExamples() {
       castle: PROMPT_EXAMPLES.castle.length,
       background: PROMPT_EXAMPLES.background.length,
       ui: PROMPT_EXAMPLES.ui.length,
+      npc: PROMPT_EXAMPLES.npc.length,
       total: Object.values(PROMPT_EXAMPLES).reduce((sum, arr) => sum + arr.length, 0)
     }
   }, [])
@@ -127,7 +130,7 @@ function PromptExamples() {
         게임의 모든 에셋에 대한 복사-붙여넣기 가능한 프롬프트입니다.
       </p>
       <p className="text-amber-400 text-xs mb-6">
-        프레임 {stats.frame}종 | 캐릭터 {stats.character}종 | 동료 {stats.companion}종 | 숲 {stats.forest}종 | 던전 {stats.dungeon}종 | 성 {stats.castle}종 | 배경 {stats.background}종 | UI {stats.ui}종 = <strong>총 {stats.total}종</strong>
+        프레임 {stats.frame}종 | 캐릭터 {stats.character}종 | 동료 {stats.companion}종 | 숲 {stats.forest}종 | 던전 {stats.dungeon}종 | 성 {stats.castle}종 | 배경 {stats.background}종 | UI {stats.ui}종 | NPC {stats.npc}종 = <strong>총 {stats.total}종</strong>
       </p>
 
       {/* 카테고리 선택 */}
@@ -142,6 +145,7 @@ function PromptExamples() {
             gray: 'bg-gray-600 shadow-gray-900/50',
             red: 'bg-red-600 shadow-red-900/50',
             purple: 'bg-purple-600 shadow-purple-900/50',
+            orange: 'bg-orange-600 shadow-orange-900/50',
           }
           const activeClass = colorMap[cat.color] || 'bg-blue-600 shadow-blue-900/50'
           const count = PROMPT_EXAMPLES[cat.id].length
@@ -202,6 +206,7 @@ function PromptExamples() {
                 gray: 'text-gray-400',
                 red: 'text-red-400',
                 purple: 'text-purple-400',
+                orange: 'text-orange-400',
               }[getCategoryColor(selectedCategory)] || 'text-blue-400'
             }`}>
               프롬프트 (Prompt)

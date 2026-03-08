@@ -1,15 +1,20 @@
-import { motion, AnimatePresence } from 'framer-motion';
-import type { RefObject } from 'react';
+import { motion } from 'framer-motion';
+import type { ReactNode, RefObject } from 'react';
 import { AudioControl } from './AudioControl';
 import settingsIcon from '@assets/icons/settings.png';
 import soulIcon from '@assets/icons/icon-soul.png';
-import type { Accessory } from '../../types';
+
+type TopBarMode = 'battle' | 'shop' | 'event';
 
 interface TopBarProps {
-  enemyName?: string;
+  mode?: TopBarMode;
+  regionName?: string;
+  title?: string;
+  subtitle?: string;
+  titleIcon?: string;
+  leftContent?: ReactNode;
   souls: number;
   soulPulse?: boolean;
-  accessories?: Accessory[];
   isMuted?: boolean;
   onToggleMute?: () => void;
   onOpenSettings?: () => void;
@@ -17,69 +22,74 @@ interface TopBarProps {
 }
 
 export function TopBar({
-  enemyName,
+  mode = 'battle',
+  regionName,
+  title,
+  subtitle,
+  titleIcon,
+  leftContent,
   souls,
   soulPulse = false,
-  accessories = [],
   isMuted = false,
   onToggleMute,
   onOpenSettings,
   soulCounterRef,
 }: TopBarProps) {
-  return (
-    <div className="w-full bg-gradient-to-r from-dark-surface/90 via-dark-charcoal/90 to-dark-surface/90 backdrop-blur-sm border-b border-dark-graphite/50 px-4 py-1.5 shadow-card-dark">
-      <div className="max-w-5xl mx-auto flex items-center justify-between gap-3">
-        {/* 좌측: 장신구 */}
-        <div className="flex items-center gap-1.5 flex-shrink-0">
-          <AnimatePresence>
-            {accessories.map((accessory, index) => (
-              <motion.div
-                key={accessory.id}
-                initial={{ opacity: 0, scale: 0, x: -20 }}
-                animate={{ opacity: 1, scale: 1, x: 0 }}
-                exit={{ opacity: 0, scale: 0 }}
-                transition={{ delay: index * 0.1, duration: 0.3 }}
-                className="relative group"
-                title={`${accessory.name}: ${accessory.description}`}
-              >
-                <div className="w-7 h-7 rounded-full bg-dark-deep border border-dark-graphite flex items-center justify-center shadow-card-dark">
-                  <span className="text-sm cursor-help">{accessory.emoji}</span>
-                </div>
-                <div className="absolute left-0 top-full mt-1 hidden group-hover:block z-50">
-                   <div className="bg-dark-charcoal border border-dark-graphite rounded-lg px-3 py-2 whitespace-nowrap shadow-card-dark">
-                    <p className="text-coin-gold text-xs font-bold">{accessory.name}</p>
-                    <p className="text-gray-300 text-xs">{accessory.description}</p>
-                  </div>
-                </div>
-              </motion.div>
-            ))}
-          </AnimatePresence>
-          {accessories.length === 0 && (
-            <span className="text-gray-600 text-xs">🎒</span>
+  const renderCenter = () => {
+    if (title) {
+      return (
+        <div className="flex items-center gap-2.5 px-3.5 py-1 bg-dark-deep/60 rounded-full border border-dark-graphite/50">
+          {titleIcon && <span className="text-base">{titleIcon}</span>}
+          <span className="text-gray-200 font-medium text-base">{title}</span>
+          {subtitle && (
+            <span className="text-sm text-gray-400 border-l border-dark-graphite/50 pl-2">{subtitle}</span>
           )}
         </div>
+      );
+    }
 
-        {/* 중앙 좌: 적 이름 */}
-        {enemyName && (
-          <div className="flex items-center gap-1.5 px-3 py-0.5 bg-dark-deep/60 rounded-full border border-dark-graphite/50">
-            <span className="text-sm">⚔️</span>
-            <span className="text-gray-200 font-medium text-sm">{enemyName}</span>
-          </div>
-        )}
+    if (mode === 'battle' && regionName) {
+      return (
+        <div className="flex items-center gap-2 px-3.5 py-1 bg-dark-deep/60 rounded-full border border-dark-graphite/50">
+          <span className="text-base">🌲</span>
+          <span className="text-[#FFF5E6]/80 font-medium text-base">{regionName}</span>
+        </div>
+      );
+    }
 
-        {/* 우측: 영혼 + 오디오 */}
-        <div className="flex items-center gap-2 flex-shrink-0">
+    return null;
+  };
+
+  const renderLeft = () => {
+    if (leftContent) {
+      return <div className="flex items-center gap-1.5 flex-shrink-0">{leftContent}</div>;
+    }
+
+    return <div className="flex items-center gap-1.5 flex-shrink-0" />;
+  };
+
+  return (
+    <div className="w-full h-full bg-gradient-to-r from-dark-surface/90 via-dark-charcoal/90 to-dark-surface/90 backdrop-blur-sm border-b border-dark-graphite/50 px-5 py-2 shadow-card-dark">
+      <div className="max-w-5xl mx-auto h-full flex items-center justify-between gap-4">
+        {/* 좌측 */}
+        {renderLeft()}
+
+        {/* 중앙 */}
+        {renderCenter()}
+
+        {/* 우측: 영혼 + 오디오 + 설정 */}
+        <div className="flex items-center gap-2.5 flex-shrink-0">
           <motion.div
             ref={soulCounterRef}
-            className="flex items-center gap-1.5 px-2.5 py-0.5 bg-dark-deep/60 rounded-full border border-dark-graphite/50"
+            className="flex items-center gap-2 px-3 py-1 bg-dark-deep/60 rounded-full border border-dark-graphite/50"
             animate={soulPulse ? {
               scale: [1, 1.2, 1],
               boxShadow: ['0 0 0 rgba(192,192,192,0)', '0 0 20px rgba(192,192,192,0.5)', '0 0 0 rgba(192,192,192,0)'],
               transition: { duration: 0.3 }
             } : {}}
           >
-            <img src={soulIcon} alt="소울" className="w-4 h-4 object-contain" />
-            <span className="text-gray-200 font-bold text-sm">{souls}</span>
+            <img src={soulIcon} alt="소울" className="w-5 h-5 object-contain" />
+            <span className="text-gray-200 font-bold text-base">{souls}</span>
           </motion.div>
           {onToggleMute && (
             <AudioControl isMuted={isMuted} onToggleMute={onToggleMute} />
@@ -88,10 +98,10 @@ export function TopBar({
             onClick={onOpenSettings}
             whileHover={{ scale: 1.15, rotate: 90 }}
             whileTap={{ scale: 0.9 }}
-            className="w-7 h-7 rounded-full bg-dark-deep/60 border border-dark-graphite/50 flex items-center justify-center cursor-pointer transition-colors hover:border-gray-400"
+            className="w-8 h-8 rounded-full bg-dark-deep/60 border border-dark-graphite/50 flex items-center justify-center cursor-pointer transition-colors hover:border-gray-400"
             title="설정"
           >
-            <img src={settingsIcon} alt="설정" className="w-4 h-4 object-contain opacity-80" />
+            <img src={settingsIcon} alt="설정" className="w-5 h-5 object-contain opacity-80" />
           </motion.button>
         </div>
       </div>

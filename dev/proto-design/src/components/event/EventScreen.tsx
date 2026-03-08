@@ -12,6 +12,7 @@ import forestBg from '@assets/backgrounds/sunny-forest-day.png';
 import cardFrame from '@assets/frames/character-card-frame.png';
 import sunCoinImg from '@assets/coins/coin-heads.png';
 import skillFrameImg from '@assets/frames/skill-frame.png';
+import { SKILL_IMAGES } from '../../data/skillImages';
 
 const CATEGORY_COLORS: Record<EventCategory, { accent: string; border: string; bg: string; label: string }> = {
   A: { accent: 'text-[#6B9E78]', border: 'border-[#6B9E78]', bg: 'bg-[#6B9E78]/10', label: '관대한 이벤트' },
@@ -288,7 +289,7 @@ export function EventScreen() {
       <div className="absolute inset-0" style={{ background: 'radial-gradient(ellipse at center, transparent 30%, rgba(0,0,0,0.5) 100%)' }} />
 
       {/* Zone A: 상단 HUD */}
-      <div className="absolute top-0 left-0 w-full h-[60px] z-20 bg-[#16161C]/80 backdrop-blur-sm border-b border-[#4A4A55]">
+      <div className="absolute top-0 left-0 w-full h-[72px] z-20 bg-[#16161C]/80 backdrop-blur-sm border-b border-[#4A4A55]">
         <TopBar
           mode="event"
           title={eventDef.name}
@@ -308,8 +309,8 @@ export function EventScreen() {
 
       {/* Zone B: 이벤트 무대 */}
       <div
-        className="absolute top-[60px] left-0 w-full z-10"
-        style={{ bottom: '160px' }}
+          className="absolute top-[72px] left-0 w-full z-10"
+          style={{ bottom: '160px' }}
       >
         <div className="w-full h-full flex flex-col items-center justify-center px-8 overflow-y-auto">
           <div className="w-full max-w-2xl">
@@ -442,41 +443,48 @@ export function EventScreen() {
       {/* Zone C: 상태 정보 + 액션 바 */}
       <div className="absolute bottom-0 left-0 w-full h-[160px] z-20 bg-[#16161C]/90 backdrop-blur-sm">
         <div className="gold-divider" />
-        <div className="h-full flex items-center justify-between px-8">
-          <div className="flex items-center gap-6">
-            <div className="flex items-center gap-2">
-              <span className="text-sm">💚</span>
-              <div className="w-40 h-4 hp-bar-container">
-                <div
-                  className={`h-full rounded transition-all ${
-                    (player.hp / player.maxHp) > 0.5
-                      ? 'bg-green-500'
-                      : (player.hp / player.maxHp) > 0.25
-                        ? 'bg-yellow-500'
-                        : 'bg-red-500'
-                  }`}
-                  style={{ width: `${(player.hp / player.maxHp) * 100}%` }}
-                />
-              </div>
-              <span className="text-sm font-bold text-[#FFF5E6]/80">{player.hp}/{player.maxHp}</span>
+        <div className="h-full flex items-center justify-center gap-8 px-8">
+          <div className="flex items-center gap-2">
+            <span className="text-base">💚</span>
+            <div className="w-44 h-5 hp-bar-container">
+              <div
+                className={`h-full rounded transition-all ${
+                  (player.hp / player.maxHp) > 0.5
+                    ? 'bg-green-500'
+                    : (player.hp / player.maxHp) > 0.25
+                      ? 'bg-yellow-500'
+                      : 'bg-red-500'
+                }`}
+                style={{ width: `${(player.hp / player.maxHp) * 100}%` }}
+              />
             </div>
-            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#16161C]/60 border border-[#4A4A55]/40">
-              <img src={soulIcon} alt="소울" className="w-5 h-5 object-contain" />
-              <span className="text-base font-bold gold-text">{player.souls}</span>
-            </div>
-            <div className="flex items-center gap-1.5">
-              {player.skills.map(skill => (
-                <div key={skill.id} className="relative w-12 h-12" title={skill.name}>
-                  <img src={skillFrameImg} alt="" className="absolute inset-0 w-full h-full object-contain opacity-50" />
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <span className="text-lg">{skill.icon}</span>
-                  </div>
-                </div>
-              ))}
-            </div>
+            <span className="text-sm font-bold text-[#FFF5E6]/80">{player.hp}/{player.maxHp}</span>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
+            {player.skills.map(skill => {
+              const skillImg = SKILL_IMAGES[skill.skillKey];
+              return (
+                <div key={skill.id} className="relative w-16 h-20" title={skill.name}>
+                  <img src={skillFrameImg} alt="" className="absolute inset-0 w-full h-full object-contain opacity-60" />
+                  {skillImg ? (
+                    <img src={skillImg} alt={skill.name} className="absolute inset-0 w-3/4 h-3/4 m-auto object-contain" />
+                  ) : (
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <span className="text-xl">{skill.icon}</span>
+                    </div>
+                  )}
+                  <div className="absolute bottom-0 left-0 right-0 text-center">
+                    <span className="text-[8px] text-gray-300 bg-dark-surface/80 px-1 rounded truncate inline-block max-w-full">
+                      {skill.name}
+                    </span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          <div className="absolute right-8 flex items-center gap-3">
             {eventDef.canAbandon && phase === 'choosing' && (
               <GameButton variant="secondary" size="sm" onClick={abandonEvent}>
                 포기하기

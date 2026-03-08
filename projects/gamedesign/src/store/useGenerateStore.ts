@@ -47,6 +47,8 @@ const CATEGORY_TO_ENTITY: Record<string, string> = {
   dungeon: 'monster',
   castle: 'monster',
   background: 'background',
+  ui: 'ui',
+  npc: 'npc',
 }
 
 // entity_type별 기본 배경 제거 설정
@@ -57,6 +59,7 @@ const DEFAULT_REMOVE_BG: Record<string, boolean> = {
   frame: false,
   background: false,
   ui: false,
+  npc: true,
 }
 
 export const useGenerateStore = create<GenerateStore>((set, get) => ({

@@ -14,11 +14,14 @@ const ENTITY_OUTPUT_MAP: Record<string, { dir: string; prefix: string }> = {
   companion: { dir: 'companions', prefix: 'companion_' },
   frame: { dir: 'frames', prefix: 'frame_' },
   background: { dir: 'backgrounds', prefix: 'bg_' },
+  ui: { dir: 'icons', prefix: 'icon_' },
+  npc: { dir: 'npcs', prefix: 'npc_' },
 }
 
 function getAspectRatio(entityType: string, _entityId: string): string {
   if (entityType === 'background') return '16:9'
-  return '3:4' // character, monster, companion, frame (card)
+  if (entityType === 'ui') return '1:1'
+  return '3:4' // character, monster, companion, frame, npc
 }
 
 interface GeminiRequest {

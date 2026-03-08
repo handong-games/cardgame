@@ -18,37 +18,38 @@ interface LayoutComponent {
 // --- 레이아웃 데이터 (1920x1080 절대좌표) ---
 
 const ZONES = [
-  { id: 'A', name: '상단 HUD', y: 0, h: 60, color: '#D4A574', description: '진행 상황, 자원 표시 (5.6%)' },
-  { id: 'B', name: '전투 무대', y: 60, h: 860, color: '#4A90C0', description: '전투 캐릭터, 코인 조작, 이펙트 (79.6%)' },
+  { id: 'A', name: '상단 HUD', y: 0, h: 72, color: '#D4A574', description: '진행 상황, 자원 표시 (6.7%)' },
+  { id: 'B', name: '전투 무대', y: 72, h: 848, color: '#4A90C0', description: '전투 캐릭터, 코인 조작, 이펙트 (78.5%)' },
   { id: 'C', name: '액션 바', y: 920, h: 160, color: '#C05050', description: '스킬 슬롯 (14.8%)' },
 ] as const
 
 const COMPONENTS: LayoutComponent[] = [
   // Zone A
-  { id: 'a1', name: 'A-1 장신구', zone: 'A', x: 32, y: 16, w: 140, h: 28, description: '장신구 슬롯 표시 (최대 3개)', color: '#D4A574', details: { '크기': '28×28px 아이콘', '최대': '3개', '인터랙션': '호버 시 툴팁' } },
-  { id: 'a2', name: 'A-2 적 이름', zone: 'A', x: 600, y: 16, w: 200, h: 28, description: '현재 전투 중인 적 이름', color: '#FFF5E6', details: { '폰트': '18px Medium', '색상': '#FFF5E6', '예시': '"고블린"' } },
+  { id: 'a2', name: 'A-2 지역명', zone: 'A', x: 830, y: 19, w: 260, h: 34, description: '현재 지역 이름 (중앙 정렬)', color: '#FFF5E6', details: { '폰트': '18px Medium', '색상': '#FFF5E6/80', '예시': '"🌲 잊혀진 숲"' } },
 
-  { id: 'a3', name: 'A-3 소울 카운터', zone: 'A', x: 1740, y: 20, w: 100, h: 20, description: '소울 재화 표시', color: '#D4A574', details: { '폰트': '20px Bold', '포맷': '"◆ 42"' } },
-  { id: 'a4', name: 'A-4 메뉴 버튼', zone: 'A', x: 1868, y: 12, w: 36, h: 36, description: '설정 메뉴 열기', color: '#FFF5E6', details: { '크기': '36x36px (터치 48x48)', '아이콘': '톱니바퀴' } },
+  { id: 'a3', name: 'A-3 소울 카운터', zone: 'A', x: 1740, y: 24, w: 100, h: 24, description: '소울 재화 표시', color: '#D4A574', details: { '폰트': '20px Bold', '포맷': '"◆ 42"' } },
+  { id: 'a4', name: 'A-4 메뉴 버튼', zone: 'A', x: 1868, y: 15, w: 42, h: 42, description: '설정 메뉴 열기', color: '#FFF5E6', details: { '크기': '36x36px (터치 48x48)', '아이콘': '톱니바퀴' } },
 
   // Zone B — 화면 중앙(x:960) 기준 대칭 배치: B-1(좌, flex-1=760px) | B-3(중앙, 400px) | B-2(우, flex-1=760px)
-  { id: 'b3', name: 'B-3 전투 중앙', zone: 'B', x: 760, y: 60, w: 400, h: 860, description: '코인 조작 패널 + 이펙트 (화면 중앙 정렬)', color: '#4A4A55', details: { '범위': 'x:760~1160', '중심': 'x:960 (화면 중앙)', '용도': '코인 조작 패널, 스킬 이펙트, 턴 배너' } },
+  { id: 'b3', name: 'B-3 전투 중앙', zone: 'B', x: 760, y: 72, w: 400, h: 848, description: '코인 조작 패널 + 이펙트 (화면 중앙 정렬)', color: '#4A4A55', details: { '범위': 'x:760~1160', '중심': 'x:960 (화면 중앙)', '용도': '코인 조작 패널, 스킬 이펙트, 턴 배너' } },
 
-  { id: 'b1-sprite', name: 'B-1 플레이어', zone: 'B', x: 270, y: 260, w: 220, h: 330, description: '플레이어 캐릭터 (B-3 좌측, flex-1 영역)', color: '#4A90C0', details: { '영역': 'x:0~760 (flex-1)', '비율': '2:3 세로형', '방향': '우측 ↗' } },
-  { id: 'b1-hp', name: 'B-1 HP 바', zone: 'B', x: 270, y: 608, w: 220, h: 18, description: '플레이어 HP 표시', color: '#C05050', details: { 'HP>50%': '#C05050', 'HP<=50%': '#CC3333', 'HP<=25%': '#FF2222 + 펄스' } },
-  { id: 'b1-def', name: 'B-1 방어도', zone: 'B', x: 246, y: 596, w: 40, h: 40, description: '방어도 뱃지 (0이면 숨김)', color: '#4A90C0', details: { '배경': '#2A4A6B', '테두리': '#4A90C0 2px' } },
-  { id: 'b1-status', name: 'B-1 상태이상', zone: 'B', x: 270, y: 634, w: 264, h: 32, description: '상태 아이콘 행 (최대 8개)', color: '#6B4B8C', details: { '아이콘': '32x32px, 간격 4px', '종류': '독/포자/가시/경화/회피/취약/힘' } },
+  { id: 'b1-sprite', name: 'B-1 플레이어', zone: 'B', x: 270, y: 272, w: 220, h: 330, description: '플레이어 캐릭터 (B-3 좌측, flex-1 영역)', color: '#4A90C0', details: { '영역': 'x:0~760 (flex-1)', '비율': '2:3 세로형', '방향': '우측 ↗' } },
+  { id: 'b1-hp', name: 'B-1 HP 바', zone: 'B', x: 270, y: 620, w: 220, h: 18, description: '플레이어 HP 표시', color: '#C05050', details: { 'HP>50%': '#C05050', 'HP<=50%': '#CC3333', 'HP<=25%': '#FF2222 + 펄스' } },
+  { id: 'b1-def', name: 'B-1 방어도', zone: 'B', x: 246, y: 608, w: 40, h: 40, description: '방어도 뱃지 (0이면 숨김)', color: '#4A90C0', details: { '배경': '#2A4A6B', '테두리': '#4A90C0 2px' } },
+  { id: 'b1-status', name: 'B-1 상태이상', zone: 'B', x: 270, y: 646, w: 264, h: 32, description: '상태 아이콘 행 (최대 8개)', color: '#6B4B8C', details: { '아이콘': '32x32px, 간격 4px', '종류': '독/포자/가시/경화/회피/취약/힘' } },
+  { id: 'b1-acc', name: 'B-1 장신구', zone: 'B', x: 270, y: 690, w: 200, h: 40, description: '장신구 슬롯 (플레이어 하단, 우측으로 성장)', color: '#D4A574', details: { '크기': '40×40px 아이콘', '최대': '3개', '인터랙션': '호버 시 툴팁', '방향': '좌→우 성장' } },
 
-  { id: 'b2-monster', name: 'B-2 몬스터 (1체)', zone: 'B', x: 1360, y: 250, w: 240, h: 360, description: '몬스터 스프라이트 (B-3 우측, flex-1 영역)', color: '#C05050', details: { '영역': 'x:1160~1920 (flex-1)', '1체': '240x360', '2체': '200x300 x2', '3체': '170x255 x3' } },
-  { id: 'b2-intent', name: 'B-2 행동 예고', zone: 'B', x: 1400, y: 208, w: 160, h: 40, description: '몬스터 의도 아이콘 + 수치', color: '#C05050', details: { '1차': '아이콘24x24 + 수치', '미공개': '❓ 회색 물음표', '호버': '확장 툴팁 250x160' } },
-  { id: 'b2-hp', name: 'B-2 몬스터 HP', zone: 'B', x: 1370, y: 622, w: 220, h: 14, description: '몬스터 HP 바', color: '#C05050', details: { '채움': '#C05050', '킬 가능': 'KILL 텍스트 + 펄스' } },
+  { id: 'b2-name', name: 'B-2 몬스터명', zone: 'B', x: 1380, y: 190, w: 200, h: 24, description: '몬스터 이름 (카드 위, 의도 위)', color: '#FFF5E6', details: { '폰트': '14px Bold', '색상': '#FFF5E6/90', '예시': '"고블린"' } },
+  { id: 'b2-intent', name: 'B-2 행동 예고', zone: 'B', x: 1400, y: 218, w: 160, h: 40, description: '몬스터 의도 아이콘 + 수치 (몬스터명 아래)', color: '#C05050', details: { '1차': '아이콘24x24 + 수치', '미공개': '❓ 회색 물음표', '호버': '확장 툴팁 250x160' } },
+  { id: 'b2-monster', name: 'B-2 몬스터 (1체)', zone: 'B', x: 1360, y: 262, w: 240, h: 360, description: '몬스터 스프라이트 (B-3 우측, flex-1 영역)', color: '#C05050', details: { '영역': 'x:1160~1920 (flex-1)', '1체': '240x360', '2체': '200x300 x2', '3체': '170x255 x3' } },
+  { id: 'b2-hp', name: 'B-2 몬스터 HP', zone: 'B', x: 1370, y: 634, w: 220, h: 14, description: '몬스터 HP 바', color: '#C05050', details: { '채움': '#C05050', '킬 가능': 'KILL 텍스트 + 펄스' } },
 
-  { id: 'b4', name: 'B-4 코인 플립', zone: 'B', x: 760, y: 300, w: 400, h: 300, description: '코인 플립 애니메이션 (B-3 내 상단)', color: '#FFD700', details: { '코인 크기': '80x80px', '최대': '10개 (2줄)', '중심': 'x:960' } },
+  { id: 'b4', name: 'B-4 코인 플립', zone: 'B', x: 760, y: 312, w: 400, h: 300, description: '코인 플립 애니메이션 (B-3 내 상단)', color: '#FFD700', details: { '코인 크기': '80x80px', '최대': '10개 (2줄)', '중심': 'x:960' } },
 
-  { id: 'b3-1a', name: 'B-3-1a 코인 주머니', zone: 'B', x: 904, y: 700, w: 112, h: 112, description: '코인 주머니 (탭하면 코인 플립)', color: '#FFD700', details: { '크기': '112×112px (56px × scale-2)', '상태': '흔들림 애니메이션 (플립 가능 시)' } },
-  { id: 'b3-1b', name: 'B-3-1b 코인 현황', zone: 'B', x: 860, y: 820, w: 200, h: 30, description: '앞면/뒷면 코인 + 남은/전체', color: '#FFD700', details: { '앞면': '☀ #FFD700', '뒷면': '🌙 #C0C0C0', '포맷': '남은: N/전체: M' } },
-  { id: 'b3-1c', name: 'B-3-1c 턴 종료', zone: 'B', x: 880, y: 860, w: 160, h: 44, description: '턴 종료 버튼 (코인 조작 패널 내 수직 배치)', color: '#4A90C0', details: { '활성': 'gradient blue', '비활성': '"대기 중" 회색', '모양': 'rounded-xl', '배치': '코인 패널 하단 중앙' } },
-  { id: 'b6', name: 'B-6 라운드 진행바', zone: 'B', x: 760, y: 65, w: 400, h: 8, description: '라운드 진행바 (Zone B 상단, pill shape)', color: '#D4A574', details: { '노드': '8개 (일반/보스)', '모양': 'pill, pointer-events-none', '상태': '완료/현재/미래' } },
+  { id: 'b3-1a', name: 'B-3-1a 코인 주머니', zone: 'B', x: 904, y: 712, w: 112, h: 112, description: '코인 주머니 (탭하면 코인 플립)', color: '#FFD700', details: { '크기': '112×112px (56px × scale-2)', '상태': '흔들림 애니메이션 (플립 가능 시)' } },
+  { id: 'b3-1b', name: 'B-3-1b 코인 현황', zone: 'B', x: 860, y: 832, w: 200, h: 30, description: '앞면/뒷면 코인 + 남은/전체', color: '#FFD700', details: { '앞면': '☀ #FFD700', '뒷면': '🌙 #C0C0C0', '포맷': '남은: N/전체: M' } },
+  { id: 'b3-1c', name: 'B-3-1c 턴 종료', zone: 'B', x: 880, y: 872, w: 160, h: 44, description: '턴 종료 버튼 (코인 조작 패널 내 수직 배치)', color: '#4A90C0', details: { '활성': 'gradient blue', '비활성': '"대기 중" 회색', '모양': 'rounded-xl', '배치': '코인 패널 하단 중앙' } },
+  { id: 'b6', name: 'B-6 라운드 진행바', zone: 'B', x: 760, y: 77, w: 400, h: 8, description: '라운드 진행바 (Zone B 상단, pill shape)', color: '#D4A574', details: { '노드': '8개 (일반/보스)', '모양': 'pill, pointer-events-none', '상태': '완료/현재/미래' } },
 
   { id: 'c1-1', name: 'C-1 스킬 1', zone: 'C', x: 650, y: 930, w: 140, h: 140, description: '기본 공격 (☀×1, 데미지 3)', color: '#D4A574', details: { '크기': '140x140 (정사각형)', '코스트': '앞면 1', '횟수': '무제한' } },
   { id: 'c1-2', name: 'C-1 스킬 2', zone: 'C', x: 810, y: 930, w: 140, h: 140, description: '기본 방어 (☀×1, 방어 3)', color: '#D4A574', details: { '크기': '140x140 (정사각형)', '코스트': '앞면 1', '횟수': '3회/턴' } },
@@ -142,7 +143,7 @@ function WireframePreview({
         ))}
 
         {/* 존 구분선 */}
-        <div className="absolute w-full h-px" style={{ top: toPercent(60, 1080), backgroundColor: '#4A4A55' }} />
+        <div className="absolute w-full h-px" style={{ top: toPercent(72, 1080), backgroundColor: '#4A4A55' }} />
         <div className="absolute w-full h-px" style={{ top: toPercent(920, 1080), backgroundColor: '#4A4A55' }} />
 
         {/* 컴포넌트 요소들 */}
@@ -193,18 +194,18 @@ function WireframePreview({
           )
         })}
 
-        {/* 장식 — Zone A: 적 이름 */}
+        {/* 장식 — Zone A: 지역명 */}
         <div
           className="absolute text-[8px] font-medium pointer-events-none select-none"
-          style={{ left: toPercent(640, 1920), top: toPercent(22, 1080), color: '#FFF5E6' }}
+          style={{ left: toPercent(890, 1920), top: toPercent(22, 1080), color: '#FFF5E6' }}
         >
-          고블린
+          🌲 잊혀진 숲
         </div>
 
         {/* 장식 — 라운드 진행바 노드 (Zone B 상단) */}
         <div
           className="absolute flex items-center gap-[0.4%] pointer-events-none"
-          style={{ left: toPercent(720, 1920), top: toPercent(67, 1080) }}
+          style={{ left: toPercent(720, 1920), top: toPercent(79, 1080) }}
         >
           {['#4A4A55', '#4A4A55', '#D4A574', '#2A2A32', '#2A2A32', '#2A2A32', '#2A2A32', '#8B0000'].map(
             (fill, i) => (
@@ -226,7 +227,7 @@ function WireframePreview({
         {/* 장식 요소 — 코인 플립 */}
         <div
           className="absolute flex items-center gap-[0.5%] pointer-events-none"
-          style={{ left: toPercent(820, 1920), top: toPercent(670, 1080) }}
+          style={{ left: toPercent(820, 1920), top: toPercent(682, 1080) }}
         >
           {['#FFD700', '#FFD700', '#FFD700', '#C0C0C0', '#C0C0C0'].map((fill, i) => (
             <div
@@ -242,7 +243,7 @@ function WireframePreview({
           className="absolute rounded-sm pointer-events-none"
           style={{
             left: toPercent(341, 1920),
-            top: toPercent(609, 1080),
+            top: toPercent(621, 1080),
             width: toPercent(140, 1920),
             height: toPercent(16, 1080),
             backgroundColor: '#C05050',
@@ -250,7 +251,7 @@ function WireframePreview({
         />
         <div
           className="absolute text-[7px] font-bold pointer-events-none select-none"
-          style={{ left: toPercent(420, 1920), top: toPercent(608, 1080), color: '#FFF5E6' }}
+          style={{ left: toPercent(420, 1920), top: toPercent(620, 1080), color: '#FFF5E6' }}
         >
           45/70
         </div>
@@ -260,7 +261,7 @@ function WireframePreview({
           className="absolute rounded-sm pointer-events-none"
           style={{
             left: toPercent(1371, 1920),
-            top: toPercent(623, 1080),
+            top: toPercent(635, 1080),
             width: toPercent(145, 1920),
             height: toPercent(12, 1080),
             backgroundColor: '#C05050',
@@ -268,7 +269,7 @@ function WireframePreview({
         />
         <div
           className="absolute text-[6px] font-bold pointer-events-none select-none"
-          style={{ left: toPercent(1450, 1920), top: toPercent(622, 1080), color: '#FFF5E6' }}
+          style={{ left: toPercent(1450, 1920), top: toPercent(634, 1080), color: '#FFF5E6' }}
         >
           12/18
         </div>
@@ -276,7 +277,7 @@ function WireframePreview({
         {/* 장식 — 코인 현황 (Zone B 하단) */}
         <div
           className="absolute flex items-center justify-center gap-[0.8%] pointer-events-none"
-          style={{ left: toPercent(910, 1920), top: toPercent(830, 1080) }}
+          style={{ left: toPercent(910, 1920), top: toPercent(842, 1080) }}
         >
           <div className="flex items-center gap-1">
             <div className="rounded-full" style={{ width: 8, height: 8, backgroundColor: '#FFD700' }} />

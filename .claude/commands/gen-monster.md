@@ -1,19 +1,19 @@
 # /gen-monster 명령어
 
-게임 스타일에 맞는 몬스터 카드 이미지를 생성합니다.
+v4.0 Dark Frame Edition 스타일에 맞는 몬스터 에셋 프롬프트를 생성합니다.
 
 ---
 
 ## 사용법
 
 ```
-/gen-monster [몬스터명] [옵션]
+/gen-monster [몬스터명 또는 gameplan ID] [옵션]
 
 예시:
 /gen-monster goblin
-/gen-monster slime --region forest --tier 1
-/gen-monster dragon --region castle --tier 3
-/gen-monster skeleton --region dungeon --tier 2
+/gen-monster MON_F01
+/gen-monster poison-spider --tier 1 --region forest
+/gen-monster ancient-grove-lord --tier 3 --region forest
 ```
 
 ---
@@ -23,44 +23,58 @@
 ```
 /gen-monster [몬스터명]
      ↓
-[Phase 1] 몬스터 정보 파싱 (이름, 지역, 티어)
+[Phase 1] 엔티티 식별
+  - promptExamples.ts에서 ID/이름 매칭
+  - gameplan Tier 1 명세서 참조 (몬스터-명세서.md)
+  - designStatus 확인 (confirmed/draft/undesigned/concept)
      ↓
 [Phase 2] 프롬프트 레이어 조합
+  - Layer 1~5 순서대로 조합
      ↓
-[Phase 3] 이미지 생성 (mcp__imggen__generate_image)
+[Phase 3] 프롬프트 + 네거티브 프롬프트 출력
      ↓
-[Phase 4] 결과 검증 및 출력
+[Phase 4] 검증 체크리스트 대조
      ↓
 완료
 ```
 
 ---
 
+## 데이터 원천
+
+| 우선순위 | 원천 | 경로 |
+|----------|------|------|
+| 1순위 | gameplan Tier 1 | `projects/gameplan/docs/specific/몬스터-명세서.md` |
+| 2순위 | 프롬프트 코드 | `projects/gamedesign/src/data/promptExamples.ts` |
+| 3순위 | 프롬프트 문서 | `projects/gamedesign/PROMPT-EXAMPLES.md` |
+
+---
+
 ## 티어 시스템
 
 ### Tier 1: 일반 몬스터 (Normal)
-| 요소 | 특징 |
-|------|------|
-| 크기 | 캐릭터와 비슷하거나 작음 (80-100%) |
-| 색상 | 어두운 자연색 |
-| 디테일 | 단순하지만 날카로운 특징 |
-| 표정 | 야생적, 악의적 (feral, malicious) |
+| 요소 | v4.0 스펙 |
+|------|-----------|
+| 등신 비율 | 2 등신 (tiny) |
+| 존재감 | common enemy creature |
+| 프레임 악센트 | 실버 #C0C0C0 |
+| 디테일 수준 | 단순하지만 위협적 |
 
 ### Tier 2: 정예 몬스터 (Elite)
-| 요소 | 특징 |
-|------|------|
-| 크기 | 캐릭터보다 약간 큼 (100-120%) |
-| 색상 | 더 진하고 어두운 색조 |
-| 디테일 | 위협적인 장식 요소 |
-| 표정 | 교활하고 계산적 (calculating, cunning) |
+| 요소 | v4.0 스펙 |
+|------|-----------|
+| 등신 비율 | 2.5 등신 (small) |
+| 존재감 | elite enemy creature, notable presence |
+| 프레임 악센트 | 퍼플 #6B4B8C |
+| 디테일 수준 | 위협적 + 장식 요소 |
 
 ### Tier 3: 보스 몬스터 (Boss)
-| 요소 | 특징 |
-|------|------|
-| 크기 | 캐릭터보다 큼 (120-150%) |
-| 색상 | 강렬하고 어두운 색상 |
-| 디테일 | 위압적인 장식, 왕관/뿔 등 |
-| 표정 | 압도적, 지배적 (dominating, overwhelming) |
+| 요소 | v4.0 스펙 |
+|------|-----------|
+| 등신 비율 | 3 등신 (medium) |
+| 존재감 | legendary boss creature, aura of authority, imposing presence |
+| 프레임 악센트 | 크림슨 #8B0000 |
+| 디테일 수준 | 압도적 + 왕관/뿔 등 권위 요소 |
 
 ---
 
@@ -69,140 +83,139 @@
 ### 숲 (Forest)
 | 요소 | 색상 | HEX |
 |------|------|-----|
-| 주색 | Dark Forest Green | #228B22 |
-| 보조색 | Murky Brown | #5C4033 |
-| 눈 악센트 | Glowing Yellow | #FFD700 |
-| 위협 악센트 | Poison Green | #7CFC00 |
-
-**대표 몬스터:** 사악한 고블린, 독슬라임, 광폭한 늑대
+| 주색 | Forest Green | #2D5A3D |
+| 보조색 | Warm Brown | #6B4423 |
+| 이끼/식물 | Moss Green | #4A6741 |
+| 독/보라 | Muted Purple | #6B4B8C |
+| 균사/곰팡이 | Dusty Mauve | #8B668B |
 
 ### 던전 (Dungeon)
 | 요소 | 색상 | HEX |
 |------|------|-----|
-| 주색 | Cold Stone Gray | #696969 |
-| 보조색 | Bone White | #E8E4D9 |
-| 눈 악센트 | Ghostly Blue | #00CED1 |
-| 위협 악센트 | Eerie Green | #00FF7F |
-
-**대표 몬스터:** 해골 병사, 파괴 골렘, 원한의 유령
+| 주색 | Bone Cream | #E8E4D9 |
+| 보조색 | Warm Gold | #D4A574 |
+| 눈 | Soft Teal | #6B8E9F |
+| 금속 | Steel Gray | #5A5F6B |
 
 ### 성 (Castle)
 | 요소 | 색상 | HEX |
 |------|------|-----|
-| 주색 | Blood Red | #8B0000 |
+| 주색 | Burgundy | #8B4049 |
 | 보조색 | Tarnished Gold | #B8860B |
-| 눈 악센트 | Crimson Glow | #DC143C |
-| 위협 악센트 | Dark Purple | #4B0082 |
-
-**대표 몬스터:** 암흑 기사, 저주받은 하인, 흡혈귀
+| 악센트 | Dark Purple | #6B4B8C |
+| 금속 | Dark Steel | #5A5F6B |
 
 ---
 
 ## 프롬프트 레이어 시스템
 
-### Layer 1: 마스터 스타일 베이스 (필수)
+### Layer 1: 몬스터 마스터 스타일 (필수)
 ```
-hand-drawn storybook illustration style,
-pencil sketch with watercolor coloring,
-dark fairytale medieval fantasy atmosphere,
-muted dark color palette,
-vintage aged parchment card border with vine leaf decorations,
-dark brown border with green nature accents,
-rounded rectangle card shape,
-worn torn vintage paper corners,
-slightly darker beige paper background,
-watercolor paper grain texture,
-old paper with subtle stains forest feel,
-vertical portrait card 3:4 ratio,
-dark fairytale illustration quality,
-dramatic lighting from top-left
+hand-drawn ink illustration style,
+pen and ink sketch base with visible line work,
+variable line weight with organic imperfect strokes,
+gouache and ink wash coloring with controlled color application,
+muted earthy color palette (35-55% saturation),
+warm gray linework,
+solid white background for clean extraction,
+moody atmospheric lighting from upper-left,
+subtle rim light highlighting creature silhouette edges
 ```
 
-### Layer 2: 몬스터 에셋 레이어 (필수)
+### Layer 2: 몬스터 에셋 공통 (필수)
 ```
-menacing monster creature portrait,
-exaggerated threatening proportions,
-glowing piercing intense eyes,
-sharp teeth fangs visible,
-villainous antagonistic expression,
+vertical portrait 2:3 aspect ratio,
+NO rosy blush on cheeks,
 body facing left diagonal direction,
 three-quarter view angled to left,
-creature looking toward front-left,
-angular sharp body shapes,
-vertical portrait 2:3 ratio
+solid white background,
+single creature only
 ```
 
-### Layer 3: 티어별 수정자
+### Layer 3: Tier별 수정자
 
 #### Tier 1 (Normal)
 ```
-small feral creature,
-simple but threatening design,
-wild feral malicious expression,
-dangerous enemy appearance
+tiny 2 head ratio,
+common enemy creature
 ```
 
 #### Tier 2 (Elite)
 ```
-larger dangerous creature,
-cunning calculating expression,
-threatening decorative elements,
-intimidating elite enemy pose
+small 2.5 head ratio,
+elite enemy creature,
+notable presence
 ```
 
 #### Tier 3 (Boss)
 ```
-imposing impressive creature,
-dominating overwhelming presence,
-menacing crown or horns,
-tyrannical dignified expression,
-dark royal accents
+medium 3 head ratio,
+imposing presence,
+legendary boss creature,
+aura of authority
 ```
 
 ### Layer 4: 지역별 수정자
 
 #### Forest
 ```
-wild primal forest creature,
-moss vine root decorations,
-dark green and murky brown colors,
-savage predator lurking feeling
+enchanted forest aesthetic,
+forest green and warm brown palette (#2D5A3D, #6B4423)
 ```
 
 #### Dungeon
 ```
-undead stone dungeon creature,
-bone chain ghostly glow,
-cold gray and blue colors,
-relentless guardian feeling
+dungeon stone aesthetic,
+warm gray and cream palette (#E8E4D9, #5A5F6B)
 ```
 
 #### Castle
 ```
-corrupted fallen noble creature,
-torn cape bloody crown,
-blood red and tarnished gold colors,
-tyrannical ruler appearance
+castle interior aesthetic,
+burgundy gold and dark palette (#8B4049, #B8860B)
 ```
 
-### Layer 5: 네거티브 프롬프트 (필수)
+### Layer 5: 개별 몬스터 설명
+
+`promptExamples.ts`의 해당 엔티티 prompt에서 Layer 1~4에 해당하지 않는 **고유 설명 부분**을 추출.
+
+예시 (고블린 MON_F01):
 ```
-cute friendly adorable kawaii,
-chibi SD proportions,
-rosy blushing cheeks,
-playful innocent expression,
-round soft body shapes,
-realistic 3D render CGI,
-overly grotesque excessive gore,
-anime manga style sharp lines,
-modern sci-fi elements,
-complex cluttered design,
-wooden frame,
-gold trim gold decorations,
-facing right,
-looking right,
-back view
+small goblin creature,
+simple crude appearance tutorial-level weak enemy,
+greenish-tinted skin (#4A6741),
+ragged torn cloth clothing,
+holding small rusty knife,
+hunched sneaky posture,
+beady cunning eyes,
+pointy ears and crooked nose
 ```
+
+### 네거티브 프롬프트 (필수)
+```
+rosy blushing cheeks, facing right, looking right,
+photorealistic, 3D render, CGI,
+dark horror scary gothic,
+cream paper, parchment texture, complex detailed background,
+multiple characters,
+creature too dark blending into shadows,
+blurry low quality
+```
+
+---
+
+## 속성 시스템 시각적 표현 가이드
+
+gameplan의 6종 상태 태그를 시각적으로 표현할 때 참고:
+
+| 속성 | 시각적 힌트 | 프롬프트 키워드 예시 |
+|------|------------|---------------------|
+| 독 (Poison) | 보라빛 독액, 방울 | venom droplets, purple-tinted markings (#6B4B8C) |
+| 포자 (Spore) | 포자 입자, 균사 | spore particles floating, fungal growths (#8B668B) |
+| 가시 (Thorns) | 날카로운 가시 돌출 | sharp thorns protruding from body |
+| 경화 (Hardening) | 돌/바위 질감, 이끼 | stone surface, moss-covered rock (#4A6741) |
+| 회피 (Evasion) | 은밀한 자세, 그림자 | stealthy lurking posture, dark and secretive |
+| 취약 (Vulnerable) | 금이 간 표면, 빛 새어나옴 | cracks with faint inner glow |
 
 ---
 
@@ -212,21 +225,7 @@ back view
 |------|------|------|
 | --region | 지역 지정 | forest, dungeon, castle |
 | --tier | 티어 지정 | 1, 2, 3 |
-| --expression | 표정 지정 | playful, proud, mischievous |
-| --color | 주색 변경 | green, purple, orange |
-
----
-
-## 이미지 생성 실행
-
-### mcp__imggen__generate_image 호출
-```
-도구: mcp__imggen__generate_image
-파라미터:
-  - prompt: [Layer 1] + [Layer 2] + [Layer 3 티어] + [Layer 4 지역] + [몬스터 설명] + "--negative" + [Layer 5]
-  - aspectRatio: "3:4" (세로형 카드)
-  - style: "card-fantasy" 또는 "none"
-```
+| --status | 설계 상태 필터 | confirmed, draft, undesigned, concept |
 
 ---
 
@@ -234,59 +233,36 @@ back view
 
 | 항목 | 확인 |
 |------|------|
-| 위협적 비율 (과장된 특징)? | □ |
-| 빛나는/날카로운 눈? | □ |
-| 적대적/악당스러운 표정? | □ |
-| 몸이 좌측 대각선을 향함? | □ |
-| 해당 지역 테마와 일치? | □ |
-| 어두운/위협적 색상 팔레트? | □ |
-| 스토리북 느낌 유지? | □ |
-| 낡은 양피지 테두리? | □ |
-| 둥근 사각형 형태? | □ |
-| 빈티지 닳은 모서리? | □ |
-| 질감 있는 베이지 배경? | □ |
-| 악당답고 위협적인 디자인? | □ |
-| 볼 홍조 없음? | □ |
+| **마스터 스타일**: ink illustration + gouache + muted earthy? | □ |
+| **방향**: 몸이 좌측 대각선 ↖ 을 향함? | □ |
+| **볼 홍조**: 없음 (NO rosy blush)? | □ |
+| **비율**: 2:3 세로형 (vertical portrait)? | □ |
+| **배경**: solid white background? | □ |
+| **등신**: Tier에 맞는 등신 비율 (T1=2, T2=2.5, T3=3)? | □ |
+| **색상**: 어스톤 위주 (35-55% 채도)? 네온/차가운 색 없음? | □ |
+| **속성 표현**: gameplan 속성 태그가 시각적으로 반영됨? | □ |
+| **gameplan 정합성**: gameplanId와 designStatus 일치? | □ |
+| **네거티브**: MONSTER_NEGATIVE 적용됨? | □ |
 
 ---
 
-## 예시 프롬프트 (성공 사례)
+## 숲 몬스터 참조 (promptExamples.ts 기준)
 
-### 사악한 숲 고블린
-```
-hand-drawn storybook illustration style,
-pencil sketch with watercolor coloring,
-dark fairytale medieval fantasy atmosphere,
-
-menacing forest goblin creature,
-exaggerated threatening proportions,
-glowing yellow piercing eyes,
-sharp teeth visible in wicked grin,
-feral malicious wild expression,
-
-sickly green rough skin, pointed sharp ears,
-ragged dirty cloth clothing,
-jagged wooden club weapon,
-angular sharp body shapes,
-
-vintage aged parchment border,
-rounded rectangle card shape,
-worn torn vintage paper corners,
-textured beige paper background,
-dark forest colors murky green brown,
-vertical portrait 2:3 ratio
-
---negative
-cute friendly adorable kawaii,
-chibi SD proportions,
-rosy blushing cheeks,
-playful innocent expression,
-wooden frame, gold trim
-```
+| ID | gameplan ID | 이름 | Tier | 속성 | 설계 상태 |
+|----|------------|------|------|------|-----------|
+| goblin | MON_F01 | 고블린 | T1 | — | confirmed |
+| poison-spider | MON_F02 | 독거미 | T1 | 독, 회피 | confirmed |
+| spore-parasite | MON_F03 | 버섯 기생체 | T1 | 포자 | confirmed |
+| thorn-vine | MON_F04 | 가시 덩굴 | T2 | 가시 | confirmed |
+| golem | MON_F05 | 골렘 | T2 | 경화 | confirmed |
+| wolf-pack | MON_F06 | 늑대 | T2 | 하울링 | draft |
+| rotten-tree | MON_F07 | 썩은 나무 | T2 | 집중, 지속방어 | confirmed |
+| ancient-grove-lord | BOSS_F01 | 고대 수목군주 | T3 | 뿌리속박, 경화, 회복 | undesigned |
 
 ---
 
 ## 참조
-- `docs/04. design/03. monsters/01. monster-design-guide.md`
-- `docs/04. design/03. monsters/02. prompt-templates.md`
-- `docs/04. design/06. ai-generation/02. prompt-library.md`
+- `projects/gameplan/docs/specific/몬스터-명세서.md` — 몬스터 데이터 구조 (Tier 1)
+- `projects/gamedesign/src/data/promptExamples.ts` — 프롬프트 코드 (Source of Truth)
+- `projects/gamedesign/PROMPT-EXAMPLES.md` — 프롬프트 종합 가이드
+- `projects/gamedesign/CONTEXT.md` — 작업 맥락 및 비주얼 규칙

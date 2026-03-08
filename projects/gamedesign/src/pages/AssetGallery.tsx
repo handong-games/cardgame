@@ -7,11 +7,14 @@ import type { AssetInfo } from '../lib/api'
 const categoryLabels: Record<string, string> = {
   backgrounds: '배경',
   characters: '캐릭터',
+  companions: '동료',
   monsters: '몬스터',
+  npcs: 'NPC',
   frames: '프레임',
   coins: '코인',
   icons: '아이콘',
   buttons: '버튼',
+  skills: '스킬',
 }
 
 // 메타데이터 상세 모달 컴포넌트

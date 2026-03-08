@@ -5,7 +5,7 @@ import { useState, useMemo } from 'react'
 interface LayoutComponent {
   id: string
   name: string
-  zone: 'overlay' | 'S-1' | 'S-2' | 'S-3' | 'S-4' | 'S-5' | 'modal'
+  zone: 'A' | 'B' | 'C' | 'modal'
   x: number
   y: number
   w: number
@@ -18,57 +18,55 @@ interface LayoutComponent {
 // --- 레이아웃 데이터 (1920x1080 절대좌표) ---
 
 const ZONES = [
-  { id: 'overlay', name: '상점 오버레이', y: 0, h: 1080, color: '#5A5F6B', description: '전체 화면 어둡기 + 패널 (z:10~11)' },
-  { id: 'S-1', name: '상인 캐릭터', y: 162, h: 120, color: '#D4A574', description: '초상화 + 대사 버블' },
-  { id: 'S-2', name: '스킬 상품', y: 298, h: 260, color: '#4A90C0', description: '스킬 카드 5장 수평 배치' },
-  { id: 'S-3', name: '전리품 상품', y: 574, h: 200, color: '#6B4B8C', description: '전리품 카드 3장 + 슬롯 확장' },
-  { id: 'S-5', name: '나가기', y: 898, h: 52, color: '#5A5F6B', description: '상점 나가기 버튼' },
+  { id: 'A', name: '상단 HUD', y: 0, h: 72, color: '#D4A574', description: 'TopBar: 상점 이름, 소울, 설정 (6.7%)' },
+  { id: 'B', name: '상인 + 상품 진열', y: 72, h: 848, color: '#4A90C0', description: '좌측 1/6 상인 사이드바 + 우측 5/6 상품 영역 (78.5%)' },
+  { id: 'C', name: '장착 스킬 바', y: 920, h: 160, color: '#C05050', description: '장착 스킬 슬롯 + 나가기 버튼 (14.8%)' },
 ] as const
 
 const COMPONENTS: LayoutComponent[] = [
-  // 오버레이 구조
-  { id: 'dim', name: '어둡기 오버레이', zone: 'overlay', x: 0, y: 0, w: 1920, h: 1080, description: '전체 화면 어둡기 (#000000 50%)', color: '#5A5F6B', details: { 'z-index': '10', '배경': '#000000 50%', '등장': '0.3s 페이드인', '클릭': '패널 외부 → 즉시 닫기' } },
-  { id: 'panel', name: '상점 패널', zone: 'overlay', x: 480, y: 130, w: 960, h: 820, description: '메인 상점 패널 (화면 중앙)', color: '#4A4A55', details: { 'z-index': '11', '배경': '#16161C 95%', '테두리': '#4A4A55 2px', 'border-radius': '16px', '패딩': '32px' } },
+  // Zone A: 상단 HUD
+  { id: 'a1-title', name: 'A-1 상점 이름', zone: 'A', x: 600, y: 19, w: 200, h: 34, description: '"떠돌이 상점" + 🛒 아이콘', color: '#D4A574', details: { '폰트': '18px Medium', '색상': '#FFF5E6', '아이콘': '🛒' } },
+  { id: 'a2-souls', name: 'A-2 소울 카운터', zone: 'A', x: 1740, y: 24, w: 100, h: 24, description: '소울 재화 표시', color: '#D4A574', details: { '폰트': '20px Bold', '포맷': '"◆ 42"' } },
+  { id: 'a3-menu', name: 'A-3 메뉴 버튼', zone: 'A', x: 1868, y: 15, w: 42, h: 42, description: '설정 메뉴 열기', color: '#FFF5E6', details: { '크기': '36x36px (터치 48x48)', '아이콘': '톱니바퀴' } },
 
-  // S-1: 상인 캐릭터 + 대사
-  { id: 's1-area', name: 'S-1 전체 영역', zone: 'S-1', x: 512, y: 162, w: 896, h: 120, description: '상인 초상화 + 대사 버블', color: '#D4A574', details: { '구성': '좌측: 초상화 80×80, 우측: 대사 버블', '배경': '패널 배경 위' } },
-  { id: 's1-portrait', name: '상인 초상화', zone: 'S-1', x: 512, y: 182, w: 80, h: 80, description: '원형 클리핑, 지역별 변형', color: '#D4A574', details: { '형태': '원형 클리핑', '테두리': '#D4A574 2px', '폴백': '#2A2A32 배경', '숲': '여행하는 약초상' } },
-  { id: 's1-bubble', name: '대사 버블', zone: 'S-1', x: 608, y: 192, w: 780, h: 60, description: '상인 대사 텍스트 (타이핑 애니메이션)', color: '#1E1E24', details: { '배경': '#1E1E24', '테두리': '#4A4A55 1px', '폰트': '16px, #FFF5E6 90%', '타이핑': '2자/프레임' } },
+  // Zone B 좌측: 상인 사이드바 (w-1/6 = 320px)
+  { id: 'b1-sidebar', name: 'B-1 상인 사이드바', zone: 'B', x: 0, y: 72, w: 320, h: 848, description: '좌측 1/6, 말풍선+상인 세로 중앙 배치', color: '#D4A574', details: { '너비': 'w-1/6 (min 160px)', '배경': '#16161C/40', '테두리': '우측 #4A4A55/30', '레이아웃': 'flex-col center gap-16' } },
+  { id: 'b1-bubble', name: 'B-1 말풍선', zone: 'B', x: 16, y: 376, w: 288, h: 80, description: '상인 대사 (세로 중앙 그룹 상단)', color: '#2A2218', details: { '배경': '#2A2218→#1E1E24', '테두리': '#D4A574/40 1px', '폰트': '14px italic #FFF5E6/80', '포인터': '하단 중앙 삼각형' } },
+  { id: 'b1-merchant', name: 'B-1 상인 이미지', zone: 'B', x: 104, y: 472, w: 112, h: 144, description: 'npc_wandering-merchant.png (세로 중앙 그룹 하단)', color: '#D4A574', details: { '크기': '112×144px (w-28 h-36)', '에셋': 'npc_wandering-merchant.png', '글로우': 'box-shadow 0 0 24px rgba(212,165,116,0.3)', '호버': 'rotate -2°→2°→0° (0.5s)' } },
 
-  // S-2: 스킬 상품 (5장)
-  { id: 's2-area', name: 'S-2 전체 영역', zone: 'S-2', x: 512, y: 298, w: 896, h: 260, description: '스킬 상품 5장 수평 배치', color: '#4A90C0', details: { '섹션 라벨': '"스킬" 14px Bold #D4A574', '카드': '140×140px, 16px 간격' } },
-  { id: 's2-card1', name: '스킬 카드 1', zone: 'S-2', x: 578, y: 330, w: 140, h: 140, description: '스킬 상품 (◆12)', color: '#4A90C0', details: { '프레임': '#1E1E24→#2A2A32', '테두리': '#4A4A55 2px', '가격': '좌상단 뱃지 ◆12', '호버': 'y-8px, 그림자' } },
-  { id: 's2-card2', name: '스킬 카드 2', zone: 'S-2', x: 734, y: 330, w: 140, h: 140, description: '스킬 상품 (◆15)', color: '#4A90C0', details: { '프레임': '#1E1E24→#2A2A32', '가격': '◆15' } },
-  { id: 's2-card3', name: '스킬 카드 3', zone: 'S-2', x: 890, y: 330, w: 140, h: 140, description: '스킬 상품 (◆10)', color: '#4A90C0', details: { '프레임': '#1E1E24→#2A2A32', '가격': '◆10' } },
-  { id: 's2-card4', name: '스킬 카드 4', zone: 'S-2', x: 1046, y: 330, w: 140, h: 140, description: '스킬 상품 (◆18)', color: '#4A90C0', details: { '프레임': '#1E1E24→#2A2A32', '가격': '◆18' } },
-  { id: 's2-card5', name: '스킬 카드 5', zone: 'S-2', x: 1202, y: 330, w: 140, h: 140, description: '스킬 상품 (◆8)', color: '#4A90C0', details: { '프레임': '#1E1E24→#2A2A32', '가격': '◆8' } },
+  // Zone B 우측: 스킬 상품 영역 (x=320~1920, 수직·수평 중앙)
+  { id: 'b2-area', name: 'B-2 스킬 상품 영역', zone: 'B', x: 344, y: 230, w: 1552, h: 250, description: '스킬 5장 수평·수직 중앙 배치', color: '#4A90C0', details: { '섹션 라벨': '"⚔️ 스킬" 14px Bold #D4A574', '카드': 'w-44 (176px), gap-4 (16px)', '정렬': 'flex-wrap justify-center' } },
+  { id: 'b2-card1', name: '스킬 카드 1', zone: 'B', x: 688, y: 270, w: 160, h: 200, description: '스킬 상품 (◆12)', color: '#4A90C0', details: { '프레임': '#1E1E24→#2A2A32', '가격': '◆12', '이미지': 'SKILL_IMAGES fallback' } },
+  { id: 'b2-card2', name: '스킬 카드 2', zone: 'B', x: 864, y: 270, w: 160, h: 200, description: '스킬 상품 (◆15)', color: '#4A90C0', details: { '프레임': '#1E1E24→#2A2A32', '가격': '◆15' } },
+  { id: 'b2-card3', name: '스킬 카드 3', zone: 'B', x: 1040, y: 270, w: 160, h: 200, description: '스킬 상품 (◆10)', color: '#4A90C0', details: { '프레임': '#1E1E24→#2A2A32', '가격': '◆10' } },
+  { id: 'b2-card4', name: '스킬 카드 4', zone: 'B', x: 1216, y: 270, w: 160, h: 200, description: '스킬 상품 (◆18)', color: '#4A90C0', details: { '프레임': '#1E1E24→#2A2A32', '가격': '◆18' } },
+  { id: 'b2-card5', name: '스킬 카드 5', zone: 'B', x: 1392, y: 270, w: 160, h: 200, description: '스킬 상품 (◆8)', color: '#4A90C0', details: { '프레임': '#1E1E24→#2A2A32', '가격': '◆8' } },
 
-  // S-3: 전리품 상품 (3장)
-  { id: 's3-area', name: 'S-3 전체 영역', zone: 'S-3', x: 512, y: 574, w: 520, h: 200, description: '전리품 카드 3장 수평 배치', color: '#6B4B8C', details: { '섹션 라벨': '"전리품" 14px Bold #D4A574', '카드': '140×160px, 16px 간격' } },
-  { id: 's3-card1', name: '전리품 카드 1', zone: 'S-3', x: 512, y: 606, w: 140, h: 160, description: '전리품 (◆8, 일반)', color: '#6B4B8C', details: { '등급': '일반', '테두리': '#4A4A55 2px', '가격': '◆8' } },
-  { id: 's3-card2', name: '전리품 카드 2', zone: 'S-3', x: 668, y: 606, w: 140, h: 160, description: '전리품 (◆6, 일반)', color: '#6B4B8C', details: { '등급': '일반', '테두리': '#4A4A55 2px', '가격': '◆6' } },
-  { id: 's3-card3', name: '전리품 카드 3', zone: 'S-3', x: 824, y: 606, w: 140, h: 160, description: '전리품 (◆14, 희귀)', color: '#6B4B8C', details: { '등급': '희귀', '테두리': '#6B4B8C 2px + 글로우', '가격': '◆14' } },
+  // Zone B 우측: 전리품 + 슬롯 확장 영역 (스킬 섹션 하단)
+  { id: 'b3-area', name: 'B-3 전리품 & 기타', zone: 'B', x: 344, y: 504, w: 1552, h: 260, description: '전리품 3장 + 슬롯 확장 1장, 수평 중앙 배치', color: '#6B4B8C', details: { '섹션 라벨': '"🎒 전리품 & 기타" 14px Bold', '카드': 'w-44 (176px) / 슬롯 200px, gap-4' } },
+  { id: 'b3-card1', name: '전리품 카드 1', zone: 'B', x: 756, y: 544, w: 160, h: 220, description: '전리품 (◆8, 일반)', color: '#6B4B8C', details: { '등급': '일반', '테두리': '#4A4A55 2px', '가격': '◆8' } },
+  { id: 'b3-card2', name: '전리품 카드 2', zone: 'B', x: 932, y: 544, w: 160, h: 220, description: '전리품 (◆6, 일반)', color: '#6B4B8C', details: { '등급': '일반', '가격': '◆6' } },
+  { id: 'b3-card3', name: '전리품 카드 3', zone: 'B', x: 1108, y: 544, w: 160, h: 220, description: '전리품 (◆14, 희귀)', color: '#6B4B8C', details: { '등급': '희귀', '테두리': '#6B4B8C 2px + 글로우', '가격': '◆14' } },
+  { id: 'b4-card', name: '슬롯 확장 카드', zone: 'B', x: 1284, y: 544, w: 200, h: 220, description: '스킬 슬롯 +1 (◆30)', color: '#D4A574', details: { '가격': '◆25~35', '테두리': '#D4A574 2px 점선', '상태': '현재 4 → 5' } },
 
-  // S-4: 스킬 슬롯 확장
-  { id: 's4-area', name: 'S-4 전체 영역', zone: 'S-3', x: 1064, y: 574, w: 344, h: 200, description: '스킬 슬롯 확장 영역', color: '#D4A574', details: { '섹션 라벨': '"슬롯 확장" 14px Bold #D4A574' } },
-  { id: 's4-card', name: '슬롯 확장 카드', zone: 'S-3', x: 1136, y: 606, w: 200, h: 160, description: '스킬 슬롯 +1 (◆30)', color: '#D4A574', details: { '가격': '◆25~35', '테두리': '#D4A574 2px 점선', '상태': '현재 4 → 5', '최대': '6슬롯까지' } },
-
-  // S-5: 나가기 버튼
-  { id: 's5-btn', name: '나가기 버튼', zone: 'S-5', x: 860, y: 898, w: 200, h: 52, description: '상점 나가기 (pill shape)', color: '#5A5F6B', details: { '배경': '#2A2A32', '테두리': '#4A4A55 1px', '텍스트': '"상점 나가기" 18px Bold #FFF5E6', 'border-radius': '26px' } },
+  // Zone C: 장착 스킬 + 나가기
+  { id: 'c1-slot1', name: 'C-1 스킬 슬롯 1', zone: 'C', x: 782, y: 932, w: 80, h: 96, description: '기본 공격 (장착) — 스킬 이미지 + 프레임', color: '#D4A574', details: { '크기': '80×96px', '프레임': '#2A2A32', '테두리': '#4A4A55 1px' } },
+  { id: 'c1-slot2', name: 'C-1 스킬 슬롯 2', zone: 'C', x: 874, y: 932, w: 80, h: 96, description: '기본 방어 (장착) — 스킬 이미지 + 프레임', color: '#D4A574', details: { '크기': '80×96px' } },
+  { id: 'c1-slot3', name: 'C-1 스킬 슬롯 3', zone: 'C', x: 966, y: 932, w: 80, h: 96, description: '투지 (장착) — 스킬 이미지 + 프레임', color: '#D4A574', details: { '크기': '80×96px' } },
+  { id: 'c1-slot4', name: 'C-1 스킬 슬롯 4', zone: 'C', x: 1058, y: 932, w: 80, h: 96, description: '빈 슬롯 (점선)', color: '#4A4A55', details: { '크기': '80×96px', '테두리': '#4A4A55 1px 점선' } },
+  { id: 'c2-exit', name: 'C-2 나가기 버튼', zone: 'C', x: 1560, y: 952, w: 200, h: 56, description: '상점 나가기 (우측 고정)', color: '#5A5F6B', details: { '배경': '#2A2A32', '테두리': '#4A4A55 1px', '텍스트': '"나가기 →" 18px Bold #FFF5E6', 'border-radius': '12px' } },
 
   // 확인 팝업 (모달)
-  { id: 'confirm', name: '구매 확인 팝업', zone: 'modal', x: 760, y: 440, w: 400, h: 200, description: '구매/교체 확인 다이얼로그', color: '#D4A574', details: { 'z-index': '13', '배경': '#16161C 98%', '테두리': '#4A4A55 2px', '버튼': '[구매] #D4A574 + [취소] #2A2A32' } },
+  { id: 'confirm', name: '구매 확인 팝업', zone: 'modal', x: 760, y: 452, w: 400, h: 200, description: '구매/교체 확인 다이얼로그', color: '#D4A574', details: { 'z-index': '13', '배경': '#16161C 98%', '테두리': '#4A4A55 2px', '버튼': '[구매] #D4A574 + [취소] #2A2A32' } },
 ]
 
 const Z_INDEX_LAYERS = [
-  { z: 14, name: '상인 대사', content: '타이핑 애니메이션 버블' },
   { z: 13, name: '구매 확인 팝업', content: '모달 다이얼로그 (구매/교체)' },
-  { z: 12, name: '상품 호버/드래그', content: '카드 프리뷰, 드래그 중 카드' },
-  { z: 11, name: '상점 패널', content: '메인 상점 UI (960×820)' },
-  { z: 10, name: '상점 오버레이', content: '어둡기 배경 (#000000 50%)' },
-  { z: 9, name: '(기존) 툴팁', content: '스킬 프리뷰, 몬스터 상세' },
-  { z: 4, name: '(기존) Zone A / Zone C', content: '상단 HUD, 액션 바 — 유지' },
-  { z: 0, name: '(기존) 배경', content: '전투 배경 이미지' },
+  { z: 12, name: '상품 호버', content: '카드 프리뷰, 호버 효과' },
+  { z: 10, name: 'Zone B 레이아웃', content: '좌측 사이드바(상인+말풍선) + 우측 상품 영역 (flex)' },
+  { z: 9, name: '툴팁', content: '스킬 프리뷰, 상세 정보' },
+  { z: 4, name: 'Zone A / Zone C', content: '상단 HUD, 장착 스킬 바' },
+  { z: 0, name: '배경', content: '배경 이미지 (전투 배경과 동일)' },
 ]
 
 const COLOR_PALETTE = [
@@ -89,12 +87,9 @@ const COLOR_PALETTE = [
 
 // --- 영역 색상 맵 ---
 const ZONE_COLORS: Record<string, { border: string; bg: string; text: string }> = {
-  overlay: { border: 'border-slate-500/60', bg: 'bg-slate-500/5', text: 'text-slate-400' },
-  'S-1': { border: 'border-amber-500/60', bg: 'bg-amber-500/5', text: 'text-amber-400' },
-  'S-2': { border: 'border-blue-500/60', bg: 'bg-blue-500/5', text: 'text-blue-400' },
-  'S-3': { border: 'border-purple-500/60', bg: 'bg-purple-500/5', text: 'text-purple-400' },
-  'S-4': { border: 'border-amber-500/60', bg: 'bg-amber-500/5', text: 'text-amber-400' },
-  'S-5': { border: 'border-slate-500/60', bg: 'bg-slate-500/5', text: 'text-slate-400' },
+  A: { border: 'border-amber-500/60', bg: 'bg-amber-500/5', text: 'text-amber-400' },
+  B: { border: 'border-blue-500/60', bg: 'bg-blue-500/5', text: 'text-blue-400' },
+  C: { border: 'border-red-500/60', bg: 'bg-red-500/5', text: 'text-red-400' },
   modal: { border: 'border-amber-500/60', bg: 'bg-amber-500/5', text: 'text-amber-400' },
 }
 
@@ -113,24 +108,28 @@ function WireframePreview({
 
   return (
     <div className="relative w-full" style={{ aspectRatio: '16/9' }}>
-      {/* 배경 */}
       <div className="absolute inset-0 rounded-lg overflow-hidden" style={{ backgroundColor: '#16161C' }}>
 
-        {/* 어둡기 오버레이 영역 표시 */}
-        <div
-          className="absolute border border-slate-600/30"
-          style={{
-            left: toPercent(480, 1920),
-            top: toPercent(130, 1080),
-            width: toPercent(960, 1920),
-            height: toPercent(820, 1080),
-            backgroundColor: '#16161C',
-            borderRadius: '8px',
-            border: '2px solid #4A4A55',
-          }}
-        />
+        {ZONES.map((zone) => (
+          <div
+            key={zone.id}
+            className={`absolute border ${ZONE_COLORS[zone.id].border} ${ZONE_COLORS[zone.id].bg}`}
+            style={{
+              left: 0,
+              top: toPercent(zone.y, 1080),
+              width: '100%',
+              height: toPercent(zone.h, 1080),
+            }}
+          >
+            <span className={`absolute top-1 left-2 text-[10px] font-bold opacity-60 ${ZONE_COLORS[zone.id].text}`}>
+              Zone {zone.id}
+            </span>
+          </div>
+        ))}
 
-        {/* 컴포넌트 요소들 */}
+        <div className="absolute w-full h-px" style={{ top: toPercent(72, 1080), backgroundColor: '#4A4A55' }} />
+        <div className="absolute w-full h-px" style={{ top: toPercent(920, 1080), backgroundColor: '#4A4A55' }} />
+
         {COMPONENTS.map((comp) => {
           const isHovered = hovered === comp.id
           const isSelected = selected === comp.id
@@ -161,10 +160,9 @@ function WireframePreview({
                 className="text-[8px] leading-tight text-center font-medium truncate px-0.5 select-none pointer-events-none"
                 style={{ color: isHighlighted ? '#FFF5E6' : `${comp.color}CC` }}
               >
-                {comp.name.replace(/^S-\d+\s*/, '')}
+                {comp.name.replace(/^[A-C]-\d+\s*/, '')}
               </span>
 
-              {/* 호버 툴팁 */}
               {isHovered && !isSelected && (
                 <div
                   className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 px-2 py-1 rounded text-[9px] whitespace-nowrap pointer-events-none z-30"
@@ -178,21 +176,48 @@ function WireframePreview({
           )
         })}
 
-        {/* 장식 — 상인 대사 */}
+        <div
+          className="absolute text-[8px] font-medium pointer-events-none select-none"
+          style={{ left: toPercent(640, 1920), top: toPercent(22, 1080), color: '#FFF5E6' }}
+        >
+          🛒 떠돌이 상점
+        </div>
+
+        <div
+          className="absolute w-px pointer-events-none"
+          style={{
+            left: toPercent(320, 1920),
+            top: toPercent(72, 1080),
+            height: toPercent(848, 1080),
+            backgroundColor: '#4A4A55',
+          }}
+        />
+
+        <div
+          className="absolute rounded-full pointer-events-none"
+          style={{
+            left: toPercent(130, 1920),
+            top: toPercent(496, 1080),
+            width: toPercent(60, 1920),
+            height: toPercent(60, 1080),
+            backgroundColor: '#2A2A32',
+            border: '2px solid #D4A574',
+          }}
+        />
+
         <div
           className="absolute text-[7px] font-medium pointer-events-none select-none"
-          style={{ left: toPercent(640, 1920), top: toPercent(212, 1080), color: '#FFF5E6' }}
+          style={{ left: toPercent(40, 1920), top: toPercent(396, 1080), color: '#FFF5E6' }}
         >
           "오늘은 좋은 물건이 왔다네."
         </div>
 
-        {/* 장식 — 가격 뱃지들 */}
         {[
-          { x: 582, y: 336, text: '◆12' },
-          { x: 738, y: 336, text: '◆15' },
-          { x: 894, y: 336, text: '◆10' },
-          { x: 1050, y: 336, text: '◆18' },
-          { x: 1206, y: 336, text: '◆8' },
+          { x: 692, y: 276, text: '◆12' },
+          { x: 868, y: 276, text: '◆15' },
+          { x: 1044, y: 276, text: '◆10' },
+          { x: 1220, y: 276, text: '◆18' },
+          { x: 1396, y: 276, text: '◆8' },
         ].map((badge) => (
           <div
             key={badge.text + badge.x}
@@ -207,41 +232,18 @@ function WireframePreview({
           </div>
         ))}
 
-        {/* 장식 — 나가기 버튼 텍스트 */}
         <div
-          className="absolute text-[7px] font-bold pointer-events-none select-none flex items-center justify-center"
-          style={{
-            left: toPercent(890, 1920),
-            top: toPercent(916, 1080),
-            color: '#FFF5E6',
-          }}
-        >
-          상점 나가기
-        </div>
-
-        {/* 장식 — 상인 초상화 원형 */}
-        <div
-          className="absolute rounded-full pointer-events-none"
-          style={{
-            left: toPercent(530, 1920),
-            top: toPercent(192, 1080),
-            width: toPercent(50, 1920),
-            height: toPercent(50, 1080),
-            backgroundColor: '#2A2A32',
-            border: '2px solid #D4A574',
-          }}
-        />
-
-        {/* 장식 — 슬롯 확장 + 아이콘 */}
-        <div
-          className="absolute text-[8px] font-bold pointer-events-none select-none flex items-center justify-center"
-          style={{
-            left: toPercent(1200, 1920),
-            top: toPercent(666, 1080),
-            color: '#D4A574',
-          }}
+          className="absolute text-[8px] font-bold pointer-events-none select-none"
+          style={{ left: toPercent(1344, 1920), top: toPercent(640, 1080), color: '#D4A574' }}
         >
           +1
+        </div>
+
+        <div
+          className="absolute text-[7px] font-bold pointer-events-none select-none"
+          style={{ left: toPercent(1620, 1920), top: toPercent(972, 1080), color: '#FFF5E6' }}
+        >
+          나가기 →
         </div>
       </div>
     </div>
@@ -250,7 +252,7 @@ function WireframePreview({
 
 function ComponentDetail({ component }: { component: LayoutComponent }) {
   const zoneInfo = ZONES.find((z) => z.id === component.zone)
-  const zoneStyle = ZONE_COLORS[component.zone] ?? ZONE_COLORS['overlay']
+  const zoneStyle = ZONE_COLORS[component.zone] ?? ZONE_COLORS['modal']
 
   return (
     <div className="bg-slate-800 rounded-xl p-5 border border-slate-700">
@@ -259,7 +261,7 @@ function ComponentDetail({ component }: { component: LayoutComponent }) {
         <h4 className="text-lg font-bold text-slate-100">{component.name}</h4>
         {zoneInfo && (
           <span className={`text-xs px-2 py-0.5 rounded-full border ${zoneStyle.border} ${zoneStyle.text}`}>
-            {component.zone}: {zoneInfo.name}
+            Zone {component.zone}: {zoneInfo.name}
           </span>
         )}
       </div>
@@ -319,11 +321,7 @@ export default function ShopLayout() {
   )
 
   const componentsByZone = useMemo(() => {
-    const grouped: Record<string, LayoutComponent[]> = {}
-    for (const zone of ZONES) {
-      grouped[zone.id] = []
-    }
-    grouped['modal'] = []
+    const grouped: Record<string, LayoutComponent[]> = { A: [], B: [], C: [], modal: [] }
     for (const comp of COMPONENTS) {
       const key = comp.zone
       if (key in grouped) {
@@ -345,7 +343,7 @@ export default function ShopLayout() {
       <div className="bg-gradient-to-r from-amber-900/40 to-slate-800 p-6 rounded-xl border border-amber-700/40">
         <h2 className="text-2xl font-bold text-emerald-400 mb-1">상점 화면 UI 레이아웃</h2>
         <p className="text-slate-300 text-sm">
-          1920 x 1080 기준 | 비파괴적 오버레이 | Zone A·C 유지 |{' '}
+          1920 x 1080 기준 | Zone A·B·C 3분할 | v4.0 Dark Frame Edition |{' '}
           <span className="text-slate-400">컴포넌트를 클릭하면 상세 정보를 확인할 수 있습니다</span>
         </p>
       </div>
@@ -360,7 +358,7 @@ export default function ShopLayout() {
               className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border ${style.border} bg-slate-800/50`}
             >
               <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: zone.color }} />
-              <span className={`text-sm font-medium ${style.text}`}>{zone.id}</span>
+              <span className={`text-sm font-medium ${style.text}`}>Zone {zone.id}</span>
               <span className="text-xs text-slate-400">{zone.name}</span>
               <span className="text-xs text-slate-500">{zone.description}</span>
             </div>
@@ -392,12 +390,12 @@ export default function ShopLayout() {
             </h3>
             {Object.entries(componentsByZone).map(([zone, comps]) => {
               if (comps.length === 0) return null
-              const style = ZONE_COLORS[zone] ?? ZONE_COLORS['overlay']
+              const style = ZONE_COLORS[zone] ?? ZONE_COLORS['modal']
               const zoneInfo = ZONES.find((z) => z.id === zone)
               return (
                 <div key={zone} className="mb-4">
                   <div className={`text-xs font-bold mb-1.5 ${style.text}`}>
-                    {zone} — {zoneInfo?.name ?? '모달'}
+                    Zone {zone} — {zoneInfo?.name ?? '모달'}
                   </div>
                   <div className="space-y-1">
                     {comps.map((comp) => (

@@ -213,7 +213,7 @@ export interface EnemyIntent {
 }
 
 // 행선지 타입 (라운드 선택 시스템)
-export type DestinationType = 'normal' | 'elite' | 'rest' | 'shop' | 'event' | 'village';
+export type DestinationType = 'normal' | 'elite' | 'boss' | 'rest' | 'shop' | 'event' | 'village';
 
 export interface DestinationOption {
   id: string;

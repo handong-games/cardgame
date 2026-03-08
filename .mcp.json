@@ -23,6 +23,10 @@
       "ClaudeTalkToFigma": {
         "command": "bunx",
         "args": ["claude-talk-to-figma-mcp@latest"]
+      },
+      "chrome-devtools": {
+        "command": "npx",
+        "args": ["-y", "chrome-devtools-mcp@latest"]
       }
     }
   }

@@ -5,7 +5,7 @@ import { useState, useMemo } from 'react'
 interface LayoutComponent {
   id: string
   name: string
-  zone: 'overlay' | 'E-1' | 'E-2' | 'E-3' | 'E-4' | 'E-5' | 'modal' | 'effect'
+  zone: 'A' | 'B' | 'C' | 'modal' | 'effect'
   x: number
   y: number
   w: number
@@ -18,60 +18,55 @@ interface LayoutComponent {
 // --- 레이아웃 데이터 (1920x1080 절대좌표) ---
 
 const ZONES = [
-  { id: 'overlay', name: '이벤트 오버레이', y: 0, h: 1080, color: '#5A5F6B', description: '전체 화면 어둡기 + 패널 (z:10~11)' },
-  { id: 'E-1', name: '이벤트 헤더', y: 162, h: 120, color: '#D4A574', description: '일러스트 + 이름 + 유형 뱃지' },
-  { id: 'E-2', name: '나레이션', y: 298, h: 140, color: '#1E1E24', description: '타이핑 텍스트 (3자/프레임)' },
-  { id: 'E-3', name: '선택지', y: 454, h: 264, color: '#2A2A32', description: '선택지 카드 2~3장 수직 배치' },
-  { id: 'E-4', name: '포기/계속', y: 866, h: 52, color: '#5A5F6B', description: '포기 버튼 (A/C만) / 계속 버튼' },
+  { id: 'A', name: '상단 HUD', y: 0, h: 72, color: '#D4A574', description: 'TopBar: 이벤트 이름, 유형 뱃지, 소울, 설정 (6.7%)' },
+  { id: 'B', name: '이벤트 무대', y: 72, h: 848, color: '#4A90C0', description: '아이콘 + 나레이션 + 선택지/코인플립/결과 (78.5%)' },
+  { id: 'C', name: '상태 & 액션 바', y: 920, h: 160, color: '#C05050', description: 'HP바 + 소울 + 미니 스킬 + 포기/계속 (14.8%)' },
 ] as const
 
 const COMPONENTS: LayoutComponent[] = [
-  // 오버레이 구조
-  { id: 'dim', name: '어둡기 오버레이', zone: 'overlay', x: 0, y: 0, w: 1920, h: 1080, description: '전체 화면 어둡기 (#000000 50%)', color: '#5A5F6B', details: { 'z-index': '10', '배경': '#000000 50%', '등장': '0.3s 페이드인', '클릭': '동작 없음 (상점과 다름)' } },
-  { id: 'panel', name: '이벤트 패널', zone: 'overlay', x: 480, y: 130, w: 960, h: 820, description: '메인 이벤트 패널 (화면 중앙)', color: '#4A4A55', details: { 'z-index': '11', '배경': '#16161C 95%', '테두리': '#4A4A55 2px (D유형: #C45555)', 'border-radius': '16px', '패딩': '32px' } },
+  // Zone A: 상단 HUD
+  { id: 'a1-title', name: 'A-1 이벤트 이름', zone: 'A', x: 560, y: 19, w: 240, h: 34, description: '이벤트 이름 + 이모지 아이콘', color: '#D4A574', details: { '폰트': '18px Medium', '색상': '#FFF5E6' } },
+  { id: 'a2-badge', name: 'A-2 유형 뱃지', zone: 'A', x: 32, y: 19, w: 120, h: 34, description: '이벤트 유형 뱃지 (A/B/C/D)', color: '#6B9E78', details: { '배경': '악센트 20%', '테두리': '악센트 40% 1px', 'A': '#6B9E78 / B: #8B7BB5 / C: #D4985A / D: #C45555' } },
+  { id: 'a3-souls', name: 'A-3 소울 카운터', zone: 'A', x: 1740, y: 24, w: 100, h: 24, description: '소울 재화 표시', color: '#D4A574', details: { '폰트': '20px Bold', '포맷': '"◆ 42"' } },
+  { id: 'a4-menu', name: 'A-4 메뉴 버튼', zone: 'A', x: 1868, y: 15, w: 42, h: 42, description: '설정 메뉴 열기', color: '#FFF5E6', details: { '아이콘': '톱니바퀴' } },
 
-  // E-1: 이벤트 헤더
-  { id: 'e1-area', name: 'E-1 전체 영역', zone: 'E-1', x: 512, y: 162, w: 896, h: 120, description: '이벤트 일러스트 + 이름 + 유형 뱃지', color: '#D4A574', details: { '구성': '좌측: 일러스트 120×120, 우측: 이름 + 뱃지', '등장': '0.4s 스케일인 + 페이드인' } },
-  { id: 'e1-illust', name: '이벤트 일러스트', zone: 'E-1', x: 512, y: 162, w: 120, h: 120, description: '라운드 사각형 클리핑, 유형별 테두리 색상', color: '#D4A574', details: { 'border-radius': '12px', '테두리': '유형별 악센트 2px', '폴백': '#2A2A32 배경', '등장': '0.4s 스케일 0.8→1.0' } },
-  { id: 'e1-name', name: '이벤트 이름', zone: 'E-1', x: 648, y: 170, w: 400, h: 28, description: '이벤트 이름 텍스트', color: '#FFF5E6', details: { '폰트': '22px Bold', '색상': '#FFF5E6' } },
-  { id: 'e1-badge', name: '유형 뱃지', zone: 'E-1', x: 648, y: 206, w: 120, h: 28, description: '이벤트 유형 표시 뱃지 (pill)', color: '#6B9E78', details: { '배경': '악센트 20%', '테두리': '악센트 40% 1px', 'border-radius': '14px', 'A': '#6B9E78 / B: #8B7BB5 / C: #D4985A / D: #C45555' } },
+   // Zone B: 이벤트 콘텐츠
+   { id: 'b1-icon', name: 'B-1 이벤트 아이콘', zone: 'B', x: 860, y: 112, w: 200, h: 200, description: '이벤트 아이콘 (유형별 테두리)', color: '#D4A574', details: { 'border-radius': '16px', '테두리': '유형별 악센트 2px', '등장': '0.4s 스케일 0.8→1.0' } },
+   { id: 'b1-safety', name: 'B-1 안전 표시', zone: 'B', x: 900, y: 322, w: 120, h: 20, description: 'HP 리스크 여부 (C/D: ⚠️, A/B: ✓)', color: '#6B9E78', details: { 'A/B': '✓ 안전 #6B9E78', 'C/D': '⚠️ HP 리스크 #C45555' } },
 
-  // E-2: 나레이션 텍스트
-  { id: 'e2-area', name: 'E-2 전체 영역', zone: 'E-2', x: 512, y: 298, w: 896, h: 140, description: '나레이션 텍스트 (타이핑 애니메이션)', color: '#1E1E24', details: { '배경': '#1E1E24', '테두리': '#4A4A55 1px', 'border-radius': '10px', '패딩': '좌우24 상하20px' } },
-  { id: 'e2-text', name: '텍스트 영역', zone: 'E-2', x: 536, y: 318, w: 848, h: 100, description: '실제 텍스트 (패딩 제외)', color: '#FFF5E6', details: { '폰트': '16px, #FFF5E6 90%', '행간': '1.6 (26px)', '최대': '4줄', '따옴표': '" 32px #D4A574 30%' } },
+   { id: 'b2-narration', name: 'B-2 나레이션 영역', zone: 'B', x: 360, y: 362, w: 1200, h: 140, description: '나레이션 텍스트 (타이핑 애니메이션)', color: '#1E1E24', details: { '배경': '#1E1E24', '테두리': '#4A4A55 1px', 'border-radius': '12px', '패딩': '좌우24 상하20px' } },
+   { id: 'b2-text', name: 'B-2 텍스트', zone: 'B', x: 384, y: 382, w: 1152, h: 100, description: '실제 텍스트 (패딩 제외)', color: '#FFF5E6', details: { '폰트': '16px, #FFF5E6 90%', '행간': '1.6', '최대': '4줄' } },
 
-  // E-3: 선택지 카드
-  { id: 'e3-area', name: 'E-3 전체 영역', zone: 'E-3', x: 512, y: 454, w: 896, h: 264, description: '선택지 카드 2~3장 수직 배치', color: '#2A2A32', details: { '카드': '800×80px 가로형', '간격': '12px', '수평 오프셋': '48px' } },
-  { id: 'e3-card1', name: '선택지 카드 1', zone: 'E-3', x: 560, y: 454, w: 800, h: 80, description: '선택지 1 (악센트바 + 아이콘 + 텍스트 + 코스트)', color: '#6B9E78', details: { '악센트바': '4×80px 좌측', '아이콘': '48×48px (x:20 y:16)', '텍스트': '16px Bold #FFF5E6', '배경': '#2A2A32' } },
-  { id: 'e3-card2', name: '선택지 카드 2', zone: 'E-3', x: 560, y: 546, w: 800, h: 80, description: '선택지 2', color: '#6B9E78', details: { '악센트바': '4×80px 좌측', '아이콘': '48×48px', '텍스트': '16px Bold #FFF5E6' } },
-  { id: 'e3-card3', name: '선택지 카드 3', zone: 'E-3', x: 560, y: 638, w: 800, h: 80, description: '선택지 3 (3장 이벤트 시)', color: '#6B9E78', details: { '악센트바': '4×80px 좌측', '아이콘': '48×48px', '조건': '2~3장 (이벤트에 따라)' } },
+   { id: 'b3-area', name: 'B-3 선택지 영역', zone: 'B', x: 360, y: 532, w: 1200, h: 280, description: '선택지 카드 2~3장 수직 배치', color: '#2A2A32', details: { '카드': '1100×80px 가로형', '간격': '12px' } },
+   { id: 'b3-card1', name: '선택지 카드 1', zone: 'B', x: 410, y: 542, w: 1100, h: 80, description: '선택지 1', color: '#6B9E78', details: { '악센트바': '4×80px 좌측', '텍스트': '16px Bold #FFF5E6', '배경': '#2A2A32' } },
+   { id: 'b3-card2', name: '선택지 카드 2', zone: 'B', x: 410, y: 634, w: 1100, h: 80, description: '선택지 2', color: '#6B9E78', details: { '악센트바': '4×80px 좌측', '텍스트': '16px Bold #FFF5E6' } },
+   { id: 'b3-card3', name: '선택지 카드 3', zone: 'B', x: 410, y: 726, w: 1100, h: 80, description: '선택지 3 (선택적)', color: '#6B9E78', details: { '조건': '2~3장 (이벤트에 따라)' } },
 
-  // E-4: 포기/계속 버튼
-  { id: 'e4-abandon', name: '포기하기 버튼', zone: 'E-4', x: 860, y: 866, w: 200, h: 52, description: '포기 버튼 (A/C 유형만 표시)', color: '#5A5F6B', details: { '배경': '#5A5F6B 40%', '테두리': '#5A5F6B 1px', '텍스트': '"포기하기" 16px Bold #FFF5E6 70%', '조건': 'A/C만 표시, B/D 미표시' } },
-  { id: 'e4-continue', name: '계속 버튼', zone: 'E-4', x: 860, y: 866, w: 200, h: 52, description: '결과 화면의 계속 버튼 (포기 자리 대체)', color: '#D4A574', details: { '배경': '#D4A574', '텍스트': '"계속" 16px Bold #16161C', '호버': '#E4B584', '조건': '결과 화면에서만 표시' } },
+   { id: 'b4-result', name: 'B-4 결과 영역', zone: 'B', x: 360, y: 532, w: 1200, h: 280, description: '크로스페이드 후 보상/손실 표시', color: '#6B9E78', details: { '전환': '0.45s 크로스페이드', '보상': '#6B9E78', '손실': '#C45555' } },
 
-  // E-5: 결과 화면 (크로스페이드 후 E-2+E-3 대체)
-  { id: 'e5-result', name: '결과 화면 영역', zone: 'E-5', x: 512, y: 298, w: 896, h: 420, description: '크로스페이드 후 보상/손실 표시', color: '#6B9E78', details: { '전환': '0.45s 크로스페이드', '나레이션': '결과 텍스트', '보상': '#6B9E78 / 손실: #C45555' } },
-  { id: 'e5-narration', name: '결과 나레이션', zone: 'E-5', x: 536, y: 318, w: 848, h: 80, description: '결과 상황 설명 텍스트', color: '#FFF5E6', details: { '폰트': '16px, #FFF5E6 90%', '예시': '"행상인이 보따리에서 붉은 물약을 꺼내 건넨다."' } },
-  { id: 'e5-rewards', name: '보상/손실 항목', zone: 'E-5', x: 560, y: 418, w: 800, h: 200, description: '보상 및 손실 목록', color: '#6B9E78', details: { 'HP 회복': '#6B9E78 🧪', '소울 획득': '#D4A574 ◆', 'HP 손실': '#C45555 💔', '소울 소비': '#C45555 70% ◆' } },
+   // Zone C: 상태 + 액션
+   { id: 'c1-hp', name: 'C-1 HP 바', zone: 'C', x: 600, y: 950, w: 220, h: 20, description: '플레이어 HP 표시 (중앙)', color: '#C05050', details: { '채움': 'green-500', '배경': '#2A2A32', '테두리': '#4A4A55 1px' } },
+   { id: 'c3-skills', name: 'C-3 미니 스킬', zone: 'C', x: 840, y: 940, w: 300, h: 80, description: '장착 스킬 아이콘 (읽기전용, 중앙)', color: '#4A4A55', details: { '크기': '40×40px', '간격': '6px', '최대': '6개' } },
+   { id: 'c4-abandon', name: 'C-4 포기 버튼', zone: 'C', x: 1520, y: 952, w: 160, h: 48, description: '포기 버튼 (A/C만)', color: '#5A5F6B', details: { '배경': '#5A5F6B 40%', '텍스트': '"포기하기" 16px Bold #FFF5E6 70%', '조건': 'A/C만, B/D 숨김' } },
+   { id: 'c4-continue', name: 'C-4 계속 버튼', zone: 'C', x: 1520, y: 952, w: 160, h: 48, description: '계속 버튼 (결과 시)', color: '#D4A574', details: { '배경': '#D4A574', '텍스트': '"계속 →" 16px Bold #16161C', '조건': '결과 화면에서만' } },
 
-  // 확률 연출 영역
-  { id: 'coin-flip', name: '코인 플립 연출', zone: 'effect', x: 912, y: 420, w: 96, h: 96, description: '운명의 동전 이벤트 전용 (Y축 3바퀴)', color: '#FFD700', details: { 'z-index': '14', '크기': '96×96px', '회전': 'Y축 3바퀴 1.0s', '성공': '#FFD700 글로우', '실패': '#C45555 글로우' } },
-  { id: 'gauge', name: '확률 게이지', zone: 'effect', x: 810, y: 420, w: 300, h: 20, description: '어둠의 덫 이벤트 전용 (게이지 스위핑)', color: '#D4A574', details: { 'z-index': '14', '성공': '#6B9E78 채움 (좌측)', '실패': '#C45555 채움 (우측)', '포인터': '3회 왕복 0.8s → 정지' } },
+   // 확률 연출
+   { id: 'coin-flip', name: '코인 플립 연출', zone: 'effect', x: 912, y: 432, w: 96, h: 96, description: '운명의 동전 (Y축 3바퀴)', color: '#FFD700', details: { 'z-index': '14', '크기': '96×96px', '성공': '#FFD700 글로우', '실패': '#C45555 글로우' } },
+   { id: 'gauge', name: '확률 게이지', zone: 'effect', x: 810, y: 432, w: 300, h: 20, description: '게이지 스위핑', color: '#D4A574', details: { 'z-index': '14', '성공': '#6B9E78', '실패': '#C45555' } },
 
-  // 확인 팝업 (모달)
-  { id: 'confirm', name: '리스크 확인 팝업', zone: 'modal', x: 760, y: 440, w: 400, h: 220, description: '유형 C 리스크 선택지 확인', color: '#D4985A', details: { 'z-index': '13', '배경': '#16161C 98%', '테두리': '#4A4A55 2px', '버튼': '[진행] #D4985A + [취소] #2A2A32' } },
+   // 확인 팝업 (모달)
+   { id: 'confirm', name: '리스크 확인 팝업', zone: 'modal', x: 760, y: 452, w: 400, h: 220, description: '유형 C 리스크 선택지 확인', color: '#D4985A', details: { 'z-index': '13', '배경': '#16161C 98%', '테두리': '#4A4A55 2px', '버튼': '[진행] #D4985A + [취소] #2A2A32' } },
 ]
 
 const Z_INDEX_LAYERS = [
-  { z: 14, name: '확률 연출', content: '코인 플립 (§12.2), 게이지 스위핑 (§12.6)' },
+  { z: 14, name: '확률 연출', content: '코인 플립, 게이지 스위핑' },
   { z: 13, name: '확인 팝업', content: '리스크 선택지 확인 다이얼로그' },
-  { z: 12, name: '선택지 호버/프리뷰', content: '선택지 카드 툴팁, 호버 프리뷰' },
-  { z: 11, name: '이벤트 패널', content: '메인 이벤트 UI (960×820)' },
-  { z: 10, name: '이벤트 오버레이', content: '어둡기 배경 (#000000 50%)' },
-  { z: 9, name: '(기존) 툴팁', content: '스킬 프리뷰, 몬스터 상세' },
-  { z: 4, name: '(기존) Zone A / Zone C', content: '상단 HUD, 액션 바 — 유지' },
-  { z: 0, name: '(기존) 배경', content: '전투 배경 이미지' },
+  { z: 12, name: '선택지 호버', content: '선택지 카드 호버 프리뷰' },
+  { z: 9, name: '툴팁', content: '선택지 상세, 보상 프리뷰' },
+  { z: 4, name: 'Zone A / Zone C', content: '상단 HUD, 상태 & 액션 바' },
+  { z: 2, name: '이벤트 콘텐츠', content: '나레이션, 선택지 카드, 결과' },
+  { z: 1, name: '이벤트 일러스트', content: '이벤트 아이콘/일러스트' },
+  { z: 0, name: '배경', content: '카테고리별 그라데이션 배경' },
 ]
 
 const EVENT_TYPE_COLORS = [
@@ -98,12 +93,9 @@ const COLOR_PALETTE = [
 
 // --- 영역 색상 맵 ---
 const ZONE_COLORS: Record<string, { border: string; bg: string; text: string }> = {
-  overlay: { border: 'border-slate-500/60', bg: 'bg-slate-500/5', text: 'text-slate-400' },
-  'E-1': { border: 'border-amber-500/60', bg: 'bg-amber-500/5', text: 'text-amber-400' },
-  'E-2': { border: 'border-slate-400/60', bg: 'bg-slate-400/5', text: 'text-slate-300' },
-  'E-3': { border: 'border-green-500/60', bg: 'bg-green-500/5', text: 'text-green-400' },
-  'E-4': { border: 'border-slate-500/60', bg: 'bg-slate-500/5', text: 'text-slate-400' },
-  'E-5': { border: 'border-emerald-500/60', bg: 'bg-emerald-500/5', text: 'text-emerald-400' },
+  A: { border: 'border-amber-500/60', bg: 'bg-amber-500/5', text: 'text-amber-400' },
+  B: { border: 'border-blue-500/60', bg: 'bg-blue-500/5', text: 'text-blue-400' },
+  C: { border: 'border-red-500/60', bg: 'bg-red-500/5', text: 'text-red-400' },
   modal: { border: 'border-orange-500/60', bg: 'bg-orange-500/5', text: 'text-orange-400' },
   effect: { border: 'border-yellow-500/60', bg: 'bg-yellow-500/5', text: 'text-yellow-400' },
 }
@@ -123,24 +115,28 @@ function WireframePreview({
 
   return (
     <div className="relative w-full" style={{ aspectRatio: '16/9' }}>
-      {/* 배경 */}
       <div className="absolute inset-0 rounded-lg overflow-hidden" style={{ backgroundColor: '#16161C' }}>
 
-        {/* 이벤트 패널 영역 */}
-        <div
-          className="absolute"
-          style={{
-            left: toPercent(480, 1920),
-            top: toPercent(130, 1080),
-            width: toPercent(960, 1920),
-            height: toPercent(820, 1080),
-            backgroundColor: '#16161C',
-            borderRadius: '8px',
-            border: '2px solid #4A4A55',
-          }}
-        />
+        {ZONES.map((zone) => (
+          <div
+            key={zone.id}
+            className={`absolute border ${ZONE_COLORS[zone.id].border} ${ZONE_COLORS[zone.id].bg}`}
+            style={{
+              left: 0,
+              top: toPercent(zone.y, 1080),
+              width: '100%',
+              height: toPercent(zone.h, 1080),
+            }}
+          >
+            <span className={`absolute top-1 left-2 text-[10px] font-bold opacity-60 ${ZONE_COLORS[zone.id].text}`}>
+              Zone {zone.id}
+            </span>
+          </div>
+        ))}
 
-        {/* 컴포넌트 요소들 */}
+        <div className="absolute w-full h-px" style={{ top: toPercent(72, 1080), backgroundColor: '#4A4A55' }} />
+        <div className="absolute w-full h-px" style={{ top: toPercent(920, 1080), backgroundColor: '#4A4A55' }} />
+
         {COMPONENTS.map((comp) => {
           const isHovered = hovered === comp.id
           const isSelected = selected === comp.id
@@ -171,10 +167,9 @@ function WireframePreview({
                 className="text-[8px] leading-tight text-center font-medium truncate px-0.5 select-none pointer-events-none"
                 style={{ color: isHighlighted ? '#FFF5E6' : `${comp.color}CC` }}
               >
-                {comp.name.replace(/^E-\d+\s*/, '')}
+                {comp.name.replace(/^[A-C]-\d+\s*/, '')}
               </span>
 
-              {/* 호버 툴팁 */}
               {isHovered && !isSelected && (
                 <div
                   className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 px-2 py-1 rounded text-[9px] whitespace-nowrap pointer-events-none z-30"
@@ -188,107 +183,88 @@ function WireframePreview({
           )
         })}
 
-        {/* 장식 — 이벤트 이름 */}
         <div
           className="absolute text-[8px] font-bold pointer-events-none select-none"
-          style={{ left: toPercent(660, 1920), top: toPercent(178, 1080), color: '#FFF5E6' }}
+          style={{ left: toPercent(600, 1920), top: toPercent(22, 1080), color: '#FFF5E6' }}
         >
-          떠돌이 행상인
+          ❓ 떠돌이 행상인
         </div>
 
-        {/* 장식 — 유형 뱃지 */}
         <div
           className="absolute text-[6px] font-bold pointer-events-none select-none px-1.5 py-0.5 rounded-full"
-          style={{
-            left: toPercent(660, 1920),
-            top: toPercent(210, 1080),
-            color: '#6B9E78',
-            backgroundColor: '#6B9E7833',
-            border: '1px solid #6B9E7866',
-          }}
+          style={{ left: toPercent(42, 1920), top: toPercent(22, 1080), color: '#6B9E78', backgroundColor: '#6B9E7833', border: '1px solid #6B9E7866' }}
         >
           관대한 이벤트
         </div>
 
-        {/* 장식 — 나레이션 따옴표 */}
-        <div
-          className="absolute text-[16px] font-bold pointer-events-none select-none"
-          style={{ left: toPercent(520, 1920), top: toPercent(304, 1080), color: '#D4A574', opacity: 0.3 }}
-        >
-          "
-        </div>
+         <div
+           className="absolute rounded-xl pointer-events-none"
+           style={{
+             left: toPercent(890, 1920),
+             top: toPercent(132, 1080),
+             width: toPercent(140, 1920),
+             height: toPercent(140, 1080),
+             backgroundColor: '#2A2A32',
+             border: '2px solid #6B9E78',
+           }}
+         />
 
-        {/* 장식 — 나레이션 텍스트 */}
-        <div
-          className="absolute text-[7px] font-medium pointer-events-none select-none"
-          style={{ left: toPercent(546, 1920), top: toPercent(330, 1080), color: '#FFF5E6', opacity: 0.9 }}
-        >
-          등에 커다란 보따리를 멘 행상인이 손을 흔든다.
-        </div>
+         <div
+           className="absolute text-[16px] font-bold pointer-events-none select-none"
+           style={{ left: toPercent(370, 1920), top: toPercent(368, 1080), color: '#D4A574', opacity: 0.3 }}
+         >
+           &ldquo;
+         </div>
 
-        {/* 장식 — 선택지 악센트바 */}
-        {[454, 546, 638].map((y) => (
-          <div
-            key={y}
-            className="absolute pointer-events-none"
-            style={{
-              left: toPercent(560, 1920),
-              top: toPercent(y, 1080),
-              width: toPercent(4, 1920),
-              height: toPercent(80, 1080),
-              backgroundColor: '#6B9E78',
-              borderRadius: '4px 0 0 4px',
-            }}
-          />
-        ))}
+         <div
+           className="absolute text-[7px] font-medium pointer-events-none select-none"
+           style={{ left: toPercent(400, 1920), top: toPercent(397, 1080), color: '#FFF5E6', opacity: 0.9 }}
+         >
+           등에 커다란 보따리를 멘 행상인이 손을 흔든다.
+         </div>
 
-        {/* 장식 — 선택지 텍스트 */}
-        {[
-          { y: 480, text: '소울 8 → 물약 구매', cost: '◆8' },
-          { y: 572, text: '소울 5 → 정보 구매', cost: '◆5' },
-          { y: 664, text: '그냥 지나간다', cost: '—' },
-        ].map((choice) => (
+         {[542, 634, 726].map((y) => (
+           <div
+             key={y}
+             className="absolute pointer-events-none"
+             style={{
+               left: toPercent(410, 1920),
+               top: toPercent(y, 1080),
+               width: toPercent(4, 1920),
+               height: toPercent(80, 1080),
+               backgroundColor: '#6B9E78',
+               borderRadius: '4px 0 0 4px',
+             }}
+           />
+         ))}
+
+         {[
+           { y: 572, text: '소울 8 → 물약 구매', cost: '◆8' },
+           { y: 664, text: '소울 5 → 정보 구매', cost: '◆5' },
+           { y: 756, text: '그냥 지나간다', cost: '—' },
+         ].map((choice) => (
           <div key={choice.y}>
             <div
               className="absolute text-[6px] font-medium pointer-events-none select-none"
-              style={{ left: toPercent(600, 1920), top: toPercent(choice.y, 1080), color: '#FFF5E6' }}
+              style={{ left: toPercent(450, 1920), top: toPercent(choice.y, 1080), color: '#FFF5E6' }}
             >
               {choice.text}
             </div>
             <div
               className="absolute text-[6px] font-bold pointer-events-none select-none"
-              style={{ left: toPercent(1290, 1920), top: toPercent(choice.y, 1080), color: '#D4A574' }}
+              style={{ left: toPercent(1440, 1920), top: toPercent(choice.y, 1080), color: '#D4A574' }}
             >
               {choice.cost}
             </div>
           </div>
         ))}
 
-        {/* 장식 — 포기 버튼 텍스트 */}
         <div
-          className="absolute text-[7px] font-bold pointer-events-none select-none flex items-center justify-center"
-          style={{
-            left: toPercent(910, 1920),
-            top: toPercent(885, 1080),
-            color: '#FFF5E6',
-            opacity: 0.7,
-          }}
+          className="absolute text-[7px] font-bold pointer-events-none select-none"
+          style={{ left: toPercent(1560, 1920), top: toPercent(968, 1080), color: '#FFF5E6', opacity: 0.7 }}
         >
           포기하기
         </div>
-
-        {/* 장식 — 이벤트 일러스트 사각형 */}
-        <div
-          className="absolute rounded-lg pointer-events-none"
-          style={{
-            left: toPercent(516, 1920),
-            top: toPercent(166, 1080),
-            width: toPercent(70, 1920),
-            height: toPercent(70, 1080),
-            backgroundColor: '#2A2A32',
-            border: '2px solid #6B9E78',
-          }}
-        />
       </div>
     </div>
   )
@@ -296,7 +272,7 @@ function WireframePreview({
 
 function ComponentDetail({ component }: { component: LayoutComponent }) {
   const zoneInfo = ZONES.find((z) => z.id === component.zone)
-  const zoneStyle = ZONE_COLORS[component.zone] ?? ZONE_COLORS['overlay']
+  const zoneStyle = ZONE_COLORS[component.zone] ?? ZONE_COLORS['A']
 
   return (
     <div className="bg-slate-800 rounded-xl p-5 border border-slate-700">
@@ -305,7 +281,7 @@ function ComponentDetail({ component }: { component: LayoutComponent }) {
         <h4 className="text-lg font-bold text-slate-100">{component.name}</h4>
         {zoneInfo && (
           <span className={`text-xs px-2 py-0.5 rounded-full border ${zoneStyle.border} ${zoneStyle.text}`}>
-            {component.zone}: {zoneInfo.name}
+            Zone {component.zone}: {zoneInfo.name}
           </span>
         )}
       </div>
@@ -365,13 +341,7 @@ export default function EventLayout() {
   )
 
   const componentsByZone = useMemo(() => {
-    const grouped: Record<string, LayoutComponent[]> = {}
-    for (const zone of ZONES) {
-      grouped[zone.id] = []
-    }
-    grouped['E-5'] = []
-    grouped['modal'] = []
-    grouped['effect'] = []
+    const grouped: Record<string, LayoutComponent[]> = { A: [], B: [], C: [], modal: [], effect: [] }
     for (const comp of COMPONENTS) {
       const key = comp.zone
       if (key in grouped) {
@@ -393,7 +363,7 @@ export default function EventLayout() {
       <div className="bg-gradient-to-r from-green-900/40 to-slate-800 p-6 rounded-xl border border-green-700/40">
         <h2 className="text-2xl font-bold text-emerald-400 mb-1">이벤트 화면 UI 레이아웃</h2>
         <p className="text-slate-300 text-sm">
-          1920 x 1080 기준 | 비파괴적 오버레이 | Zone A·C 유지 | 유형 4종 (A/B/C/D) |{' '}
+          1920 x 1080 기준 | Zone A·B·C 3분할 | 유형 4종 (A/B/C/D) | v4.0 Dark Frame Edition |{' '}
           <span className="text-slate-400">컴포넌트를 클릭하면 상세 정보를 확인할 수 있습니다</span>
         </p>
       </div>
@@ -401,14 +371,14 @@ export default function EventLayout() {
       {/* 영역 범례 */}
       <div className="flex flex-wrap gap-4">
         {ZONES.map((zone) => {
-          const style = ZONE_COLORS[zone.id] ?? ZONE_COLORS['overlay']
+          const style = ZONE_COLORS[zone.id] ?? ZONE_COLORS['A']
           return (
             <div
               key={zone.id}
               className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border ${style.border} bg-slate-800/50`}
             >
               <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: zone.color }} />
-              <span className={`text-sm font-medium ${style.text}`}>{zone.id}</span>
+              <span className={`text-sm font-medium ${style.text}`}>Zone {zone.id}</span>
               <span className="text-xs text-slate-400">{zone.name}</span>
               <span className="text-xs text-slate-500">{zone.description}</span>
             </div>
@@ -455,13 +425,13 @@ export default function EventLayout() {
             </h3>
             {Object.entries(componentsByZone).map(([zone, comps]) => {
               if (comps.length === 0) return null
-              const style = ZONE_COLORS[zone] ?? ZONE_COLORS['overlay']
+              const style = ZONE_COLORS[zone] ?? ZONE_COLORS['A']
               const zoneInfo = ZONES.find((z) => z.id === zone)
-              const zoneName = zoneInfo?.name ?? (zone === 'modal' ? '모달' : zone === 'effect' ? '확률 연출' : '결과 화면')
+              const zoneName = zoneInfo?.name ?? (zone === 'modal' ? '모달' : zone === 'effect' ? '확률 연출' : zone)
               return (
                 <div key={zone} className="mb-4">
                   <div className={`text-xs font-bold mb-1.5 ${style.text}`}>
-                    {zone} — {zoneName}
+                    Zone {zone} — {zoneName}
                   </div>
                   <div className="space-y-1">
                     {comps.map((comp) => (

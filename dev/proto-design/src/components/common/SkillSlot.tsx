@@ -4,33 +4,8 @@ import type { Skill, SkillState, PreviewEffects, CoinTossResult } from '../../ty
 import { SkillTooltip } from './SkillTooltip';
 import { getSkillCosts } from '../../utils/skillSystem';
 import { calculateCoinValues } from '../../utils/coinToss';
-import skillAttackImg from '@assets/skills/W_BAS_01_basic-attack.png';
-import skillAttack2Img from '@assets/skills/W_ATK_01_heavy-attack.png';
-import skillDefenseImg from '@assets/skills/W_BAS_02_basic-defense.png';
-import skillDefense2Img from '@assets/skills/W_DEF_01_defense-up.png';
-import skillFightingSpiritImg from '@assets/skills/W_BAS_03_fighting-spirit.png';
-import skillDesperateStrikeImg from '@assets/skills/W_ATK_02_desperate-strike.png';
-import skillComboStrikeImg from '@assets/skills/W_ATK_03_combo-strike.png';
-import skillCleaveImg from '@assets/skills/W_ATK_04_cleave.png';
-import skillDesperateShieldImg from '@assets/skills/W_DEF_02_desperate-shield.png';
 import frameSkillsImg from '@assets/frames/skill-frame.png';
-
-const SKILL_IMAGES: Record<string, string> = {
-  basic_strike: skillAttackImg,
-  fighting_spirit: skillFightingSpiritImg,
-  combo_strike: skillComboStrikeImg,
-  cleave: skillCleaveImg,
-  weakening_strike: skillAttack2Img,
-  weakening_blow: skillAttack2Img,
-  charge_attack: skillAttack2Img,
-  vulnerable_strike: skillAttack2Img,
-  desperate_strike: skillDesperateStrikeImg,
-  focus: skillAttack2Img,
-  defense: skillDefenseImg,
-  regenerative_defense: skillDefense2Img,
-  weakening_defense: skillDefense2Img,
-  desperate_shield: skillDesperateShieldImg,
-};
+import { SKILL_IMAGES } from '../../data/skillImages';
 
 interface SkillSlotProps {
   skill: Skill;
