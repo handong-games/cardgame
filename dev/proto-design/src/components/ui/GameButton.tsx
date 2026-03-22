@@ -54,7 +54,7 @@ export function GameButton({
       style={{
         backgroundImage: `url(${bgImage})`,
         backgroundSize: '100% 100%',
-        textShadow: '0 1px 3px rgba(0,0,0,0.5)',
+        textShadow: '0 1px 2px rgba(58,48,64,0.3)',
         ...style,
       }}
       {...motionProps}

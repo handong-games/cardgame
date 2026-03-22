@@ -343,7 +343,7 @@ export default function ShopLayout() {
       <div className="bg-gradient-to-r from-amber-900/40 to-slate-800 p-6 rounded-xl border border-amber-700/40">
         <h2 className="text-2xl font-bold text-emerald-400 mb-1">상점 화면 UI 레이아웃</h2>
         <p className="text-slate-300 text-sm">
-          1920 x 1080 기준 | Zone A·B·C 3분할 | v4.0 Dark Frame Edition |{' '}
+          1920 x 1080 기준 | Zone A·B·C 3분할 | v6.0 "라벤더 안개" |{' '}
           <span className="text-slate-400">컴포넌트를 클릭하면 상세 정보를 확인할 수 있습니다</span>
         </p>
       </div>

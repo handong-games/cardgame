@@ -15,7 +15,7 @@
 코인 플립 기반 자원 분배로 전략적 의사결정을 하는 **로그라이크 덱빌더** (Slay the Spire 스타일).
 
 ### 코인 시스템
-- 매 턴 코인 N개를 플립 → 앞면/뒷면 결과로 스킬 코스트 지불
+- 매 턴 해/달 코인 N개를 플립 → 해(앞면)/달(뒷면) 결과로 스킬 코스트 지불
 - 시작 코인 3개 → 최대 10개 (보스 처치/상점/이벤트로 성장)
 - **환율(헌법급)**: 파워 1 = 앞면 1개 = 뒷면 1개, 앞면 1 = 4딜 = 3방어
 
@@ -122,9 +122,9 @@ gameplan 문서 간 충돌 시 **Tier 1 > Tier 2** 순서로 준수합니다.
 | MON_F03 | 버섯 기생체 | T1 | 18 | 포자 | 포자1 → 공격4 → 가속 | 확정 | spore-parasite |
 | MON_F04 | 가시 덩굴 | T2 | 18 | 가시 | 가시2 → 공격4 → 반복 | 확정 | thorn-vine |
 | MON_F05 | 골렘 | T2 | 18 | 경화 | 경화1 → 경화1+공격4 → 가속 | 확정 | golem |
-| MON_F06 | 늑대 (알파+베타) | T2 | TBD | 하울링(힘) | 2마리 교대 버프+공격 | 초안 | wolf-pack |
+| MON_F06 | 늑대 | T2 | TBD | 하울링(힘) | 1마리 하울링 힘 버프+공격 | 초안 | wolf |
 | MON_F07 | 썩은 나무 | T2 | 24 | 집중, 지속방어 | 집중(2턴)→대공격15→방어6, 3타 해제 | 확정 | rotten-tree |
-| BOSS_F01 | 고대 수목군주 | T3 | — | 뿌리속박, 경화, 회복 | 2페이즈(50%HP 전환), 미설계 | 미설계 | ancient-grove-lord |
+| BOSS_F01 | 고대 수목군주 | T3 | — | 뿌리속박, 경화, 회복 | 2페이즈(50%HP 전환), 나무+인간형 | 초안 | ancient-grove-lord-p1, ancient-grove-lord-p2 |
 
 ### 상성 매트릭스 (스킬 × 몬스터)
 
@@ -168,77 +168,85 @@ interface PromptExample {
 | `undesigned` | gameplan에 등록되었으나 미설계 | 마법사, 고대 수목군주 |
 | `concept` | gameplan에 미등록, 향후 기획 예정 | 던전/성 몬스터 |
 
-## 비주얼 스타일 v4.0: "Dark Frame Edition"
+## 비주얼 스타일 v6.0: "라벤더 안개" (Lavender Mist)
+
+> **상세 문서**: `projects/gamedesign/docs/비주얼-디자인-DNA-v6.md`
+> 아래는 핵심 요약이며, 전체 규칙은 상세 문서를 참조한다.
+> v5.0 "황혼의 경계"를 완전히 대체한다.
 
 ### 핵심 비전
-> "다크 실루엣 배경 위의 극적인 카드 게임 아트"
+> "라벤더빛 몽환 파스텔 세계에서 펼쳐지는 아늑한 카드 모험"
+>
+> 뮤트드 파스텔 색상의 부드러운 판타지 세계. 기본 분위기는 아늑하고 편안하지만,
+> 라운드가 진행될수록 색상이 점진적으로 진해지며 긴장감을 형성한다.
 
-### 색상 팔레트
-| 역할 | HEX | CSS 변수 | 용도 |
-|------|-----|----------|------|
-| Card BG Start | `#1E1E24` | `--dark-charcoal` | 카드 배경 그라데이션 시작 |
-| Card BG End | `#2A2A32` | `--dark-deep` | 카드 배경 그라데이션 끝 |
-| Card Border | `#4A4A55` | `--dark-graphite` | 카드 테두리, 구분선 |
-| HP/Panel BG | `#16161C` | `--dark-surface` | HP바 컨테이너, 패널 배경 |
-| Outline | `#1A1A1E` | — | 니어블랙 외곽선 (프롬프트용) |
-| Gen BG | `#FFFFFF` | — | 생성용 흰색 배경 (AI 생성 시) |
+### 코어 테크닉 (전 에셋 공통)
+- **렌더링**: 플랫 컬러 일러스트 (3~5색, 그라디언트/텍스처/셰이딩 없음)
+- **표현**: 상반신 bust portrait (가슴 위, 프레임에 딱 맞게 크롭) — 모든 캐릭터/몬스터 카드형
+- **등신**: 슈퍼 디포르메 치비 2~2.5등신
+- **외곽선**: 단일 색상 균일 굵기 아웃라인 (warm dark tone, 순수 검정 아님)
+- **얼굴**: 눈동자가 보이지 않는 작은 단순 눈 + 간단한 선 눈썹, 코 생략, 최소 표현
+- **헤어**: 클래스별 개성 있는 실루엣 헤어 (전사=스파이키, 마법사=긴 머리+모자, 도적=후드)
+- **디자인**: 실루엣이 캐릭터를 정의, 소품 1~2개 최대
+- **조명**: 따뜻한 자연광 (라벤더/쿨톤 색조 조명 금지)
+- **카드 재질**: 양피지/오래된 종이 (크림 `#F0E8D8`)
+- **톤**: Cozy + 긴장감 (채도 시프트), 그로테스크/고어 불허
 
-### 이펙트/악센트 색상
+### 색상 팔레트 (v6.0 운영 기준)
 | 역할 | HEX | 용도 |
 |------|-----|------|
-| Primary | `#D4A574` | 하이라이트, 역광, 보상 |
-| Secondary | `#5A5F6B` | 금속, 중립 요소 |
-| Accent | `#C4867A` | 볼 홍조, 악센트 |
+| 주조색 (라벤더) | `#D8C8E8` | 게임 전체 기조, 배경 베이스 |
+| 보조색 (연핑크) | `#E8D0D8` | 보조 배경, 하이라이트 |
+| 크림 | `#F0E8D8` | 양피지 카드 배경, 텍스트 배경 |
+| 골드 악센트 | `#C9A86C` | 강조, 보상, 코인 발광, 중요 UI |
+| 텍스트 주요 | `#3A3040` | 주요 텍스트 (다크 라벤더) |
+| 텍스트 보조 | `#6A6070` | 보조 텍스트 (뮤트드 그레이) |
 
-### 캐릭터 마스터 스타일 키워드
-```
-flat color illustration style,
-hard edge cel shading with clean defined color blocks,
-bold clean outlines in near-black (#1A1A1E),
-muted desaturated dark fantasy color palette,
-solid white background for clean extraction,
-strong rim light along character edges from behind,
-soft key light from upper-left illuminating face
-```
+### 색상 체계
+- **캐릭터**: 클래스별 보석 톤 (전사=로즈쿼츠 `#E8B4B8`, 마법사=아메시스트 `#B8A0D0`, 도적=에메랄드 `#A0C8B0`)
+- **몬스터**: 지역 파스텔 팔레트 종속 (숲=민트+라벤더, 던전=스카이+라벤더, 성=로즈+라벤더)
+- **이펙트**: 공격=골드, 방어=스카이, 회복=세이지 / 속성별=뮤트드 보석톤
 
-### 몬스터 마스터 스타일 키워드
-```
-hand-drawn ink illustration style,
-pen and ink sketch base with visible line work,
-variable line weight with organic imperfect strokes,
-gouache and ink wash coloring with controlled color application,
-muted earthy color palette (35-55% saturation),
-solid white background for clean extraction,
-moody atmospheric lighting from upper-left,
-subtle rim light highlighting creature silhouette edges
-```
+### 배경 시스템
+- **단일 시스템**: 소프트 일러스트 (부드러운 수채화풍, 60~70% 블러)
+- **환경만** 표현 — 캐릭터/몬스터/생물 배치 금지
+- **긴장감**: 채도/명도 시프트 3단계 (평온→긴장→위기)
 
-### 배경 마스터 스타일 키워드
+### 캐릭터/몬스터 마스터 키워드 (v6.0)
 ```
-layered silhouette background,
-dark muted color palette,
-strong vignette effect darker edges,
-low saturation restrained colors,
-minimal atmospheric scene,
-wide 16:9 aspect ratio,
-no characters no creatures
+simple flat color illustration with clean solid fills and no gradients,
+bust portrait from mid-chest upward,
+centered composition with moderate headroom above the head,
+character fills most of the frame,
+card game character portrait for cozy fantasy card game,
+super-deformed chibi proportions around 2 to 2.5 head body ratio,
+flat coloring with only 3 to 5 colors per character and no shading or tonal layering,
+single color uniform weight outline in warm dark tone,
+muted warm pastel colors strictly 40 to 55 percent saturation,
+silhouette-driven character design recognizable from shape alone,
+only 1 to 2 iconic props maximum,
+tiny simplified eyes with no visible pupils or irises, paired with short simple line eyebrows and no nose detail,
+solid cream parchment background #F0E8D8
 ```
 
 ### 캔버스 비율 규칙
-| 에셋 타입 | 비율 | 예시 해상도 | 비고 |
-|----------|------|------------|------|
-| 캐릭터/몬스터 | **2:3 세로형** | 512x768, 1024x1536 | 전신 구도 |
-| 동료 | **1:1 정사각 (원형 프레임)** | 512x512 | 상반신/얼굴 클로즈업 |
-| 배경 | **16:9 가로형** | 1920x1080 | — |
+| 에셋 타입 | 비율 | 예시 해상도 |
+|----------|------|------------|
+| 캐릭터/몬스터 카드 | **2:3 세로형** | 512x768 |
+| 동료 카드 | **1:1 정사각 (원형 프레임)** | 512x512 |
+| 스킬 카드 | **2:3 세로형** | 512x768 |
+| 배경 | **16:9 가로형** | 1920x1080 |
 
 ### 방향 규칙
-- **캐릭터**: 우측 대각선 ↗ (전진, 희망) + 볼 홍조 있음
-- **몬스터**: 좌측 대각선 ↖ (대립, 위협) + 볼 홍조 없음
+- **캐릭터**: 우측 → (전진, 희망, 공격 방향)
+- **몬스터**: 좌측 ← (대립, 위협, 방어 방향)
+- **동료**: 우측 → (캐릭터와 같은 진영)
 
 ### 금지 사항
-- 순수 검정/흰색 금지 → 따뜻한 어스톤 사용
-- 네온/차가운 색상 금지 → 머스타드/버건디/네이비 톤
-- 과도한 채도 금지 → 40-60% 채도 유지
+- 순수 검정/흰색 금지 → 다크 라벤더(`#3A3040`) / 크림(`#F0E8D8`) 사용
+- 네온/비비드 원색 금지 → 뮤트드 파스텔 버전 사용
+- 채도 60% 이상 금지 → 40~55% 유지
+- 피/고어/그로테스크/공포 금지
 
 ## 관련 문서
 
@@ -254,6 +262,8 @@ no characters no creatures
 - `projects/gameplan/docs/plan/마을-시스템-기획서.md` — 동료 시스템, HP 회복
 
 ### 에셋 디자인
-- `docs/04. design/06. ai-generation/04. character-prompt-master-v2.md` — 캐릭터 마스터
-- `docs/04. design/06. ai-generation/03. monster-prompt-master-v2.md` — 몬스터 마스터
+- `projects/gamedesign/docs/비주얼-디자인-DNA-v6.md` — 비주얼 디자인 DNA (최상위)
+- `projects/gamedesign/docs/디자인-에센스-v6.md` — 게임 디자인 에센스
+- `projects/gamedesign/docs/디자인-설계도-운영-인덱스-v6.md` — 세분화된 설계도 관리 기준
+- `projects/gamedesign/docs/설계도/카드-UI-레이아웃-v6.md` — 카드 UI 레이아웃 스펙 (캐릭터/몬스터 카드)
 - `projects/gamedesign/docs/PROMPT-EXAMPLES.md` — 실전 프롬프트 예시

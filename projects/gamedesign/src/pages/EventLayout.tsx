@@ -51,7 +51,7 @@ const COMPONENTS: LayoutComponent[] = [
    { id: 'c4-continue', name: 'C-4 계속 버튼', zone: 'C', x: 1520, y: 952, w: 160, h: 48, description: '계속 버튼 (결과 시)', color: '#D4A574', details: { '배경': '#D4A574', '텍스트': '"계속 →" 16px Bold #16161C', '조건': '결과 화면에서만' } },
 
    // 확률 연출
-   { id: 'coin-flip', name: '코인 플립 연출', zone: 'effect', x: 912, y: 432, w: 96, h: 96, description: '운명의 동전 (Y축 3바퀴)', color: '#FFD700', details: { 'z-index': '14', '크기': '96×96px', '성공': '#FFD700 글로우', '실패': '#C45555 글로우' } },
+   { id: 'coin-flip', name: '코인 플립 연출', zone: 'effect', x: 912, y: 432, w: 96, h: 96, description: '운명의 해/달 코인 (Y축 3바퀴)', color: '#FFD700', details: { 'z-index': '14', '크기': '96×96px', '해 결과': '#FFD700 글로우', '달 결과': '#6A5080 글로우' } },
    { id: 'gauge', name: '확률 게이지', zone: 'effect', x: 810, y: 432, w: 300, h: 20, description: '게이지 스위핑', color: '#D4A574', details: { 'z-index': '14', '성공': '#6B9E78', '실패': '#C45555' } },
 
    // 확인 팝업 (모달)
@@ -363,7 +363,7 @@ export default function EventLayout() {
       <div className="bg-gradient-to-r from-green-900/40 to-slate-800 p-6 rounded-xl border border-green-700/40">
         <h2 className="text-2xl font-bold text-emerald-400 mb-1">이벤트 화면 UI 레이아웃</h2>
         <p className="text-slate-300 text-sm">
-          1920 x 1080 기준 | Zone A·B·C 3분할 | 유형 4종 (A/B/C/D) | v4.0 Dark Frame Edition |{' '}
+          1920 x 1080 기준 | Zone A·B·C 3분할 | 유형 4종 (A/B/C/D) | v6.0 "라벤더 안개" |{' '}
           <span className="text-slate-400">컴포넌트를 클릭하면 상세 정보를 확인할 수 있습니다</span>
         </p>
       </div>

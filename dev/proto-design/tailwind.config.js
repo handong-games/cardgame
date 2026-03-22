@@ -74,6 +74,41 @@ export default {
           secondary: '#FFFDD0',
           accent: '#87CEEB',
         },
+        // v6.0 Lavender Mist palette
+        v6: {
+          lavender: '#D8C8E8',
+          pink: '#E8D0D8',
+          cream: '#F0E8D8',
+          gold: '#C9A86C',
+          'text-primary': '#3A3040',
+          'text-secondary': '#6A6070',
+        },
+        gem: {
+          'rose-quartz': '#E8B4B8',
+          amethyst: '#B8A0D0',
+          emerald: '#A0C8B0',
+        },
+        tier: {
+          t1: '#B8B8C8',
+          t2: '#C8B888',
+          t3: '#C89098',
+        },
+        skill: {
+          attack: '#D4A0A0',
+          defense: '#A0B8D4',
+          buff: '#A0C8A0',
+          utility: '#B8A0D4',
+        },
+        'skill-type': {
+          attack: '#D4A0A0',
+          defense: '#A0B8D4',
+          buff: '#A0C8A0',
+          utility: '#B8A0D4',
+        },
+        hp: {
+          rose: '#E8B4B8',
+          depleted: '#A0A0A8',
+        },
       },
       // 커스텀 배경
       backgroundImage: {

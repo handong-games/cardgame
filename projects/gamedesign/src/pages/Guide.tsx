@@ -3,6 +3,100 @@ import { Link } from 'react-router-dom'
 
 type TabType = 'essence' | 'prompt' | 'workflow'
 
+const GUIDE_REFERENCE_DOCS: Record<TabType, Array<{ title: string, path: string, desc: string }>> = {
+  essence: [
+    {
+      title: '디자인 에센스',
+      path: 'docs/디자인-에센스-v6.md',
+      desc: '감정 축, 가독성 우선순위, 파스텔 세계관 일관성 기준'
+    },
+    {
+      title: '설계도 운영 인덱스',
+      path: 'docs/디자인-설계도-운영-인덱스-v6.md',
+      desc: '카테고리별 관리 구조와 변경 순서'
+    },
+    {
+      title: '캐릭터 설계도',
+      path: 'docs/설계도/캐릭터-설계도-v6.md',
+      desc: 'bust portrait, 보석톤 클래스색, 컬러 아웃라인'
+    },
+    {
+      title: '몬스터 설계도',
+      path: 'docs/설계도/몬스터-설계도-v6.md',
+      desc: '카드형 bust, 지역 파스텔 팔레트, 보석톤 속성'
+    },
+  ],
+  prompt: [
+    {
+      title: '디자인 에센스',
+      path: 'docs/디자인-에센스-v6.md',
+      desc: '감정 축, 가독성 우선순위, 파스텔 세계관 일관성 기준'
+    },
+    {
+      title: '설계도 운영 인덱스',
+      path: 'docs/디자인-설계도-운영-인덱스-v6.md',
+      desc: '카테고리별 관리 구조와 변경 순서'
+    },
+    {
+      title: '프레임 설계도',
+      path: 'docs/설계도/프레임-설계도-v6.md',
+      desc: '양피지 크림 9종, 파스텔 테두리, 카드 레이아웃'
+    },
+    {
+      title: '배경 설계도',
+      path: 'docs/설계도/배경-설계도-v6.md',
+      desc: '소프트 블러 60~70%, 채도 시프트 3단계, 환경만'
+    },
+  ],
+  workflow: [
+    {
+      title: '설계도 운영 인덱스',
+      path: 'docs/디자인-설계도-운영-인덱스-v6.md',
+      desc: '카테고리별 관리 구조와 변경 순서'
+    },
+    {
+      title: 'UI 설계도',
+      path: 'docs/설계도/UI-설계도-v6.md',
+      desc: '양피지 재질, 해/달 코인, 파스텔 가독성'
+    },
+    {
+      title: '이펙트 설계도',
+      path: 'docs/설계도/이펙트-설계도-v6.md',
+      desc: '뮤트드 보석톤 이펙트, 골드 악센트 발광 규칙'
+    },
+    {
+      title: '배경 설계도',
+      path: 'docs/설계도/배경-설계도-v6.md',
+      desc: '소프트 블러 60~70%, 채도 시프트 3단계, 환경만'
+    },
+  ],
+}
+
+function GuideReferenceCards({ tab }: { tab: TabType }) {
+  const referenceDocs = GUIDE_REFERENCE_DOCS[tab]
+
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+      {referenceDocs.map((doc) => (
+        <div key={doc.path} className="bg-slate-900/70 border border-slate-700 rounded-lg p-4">
+          <div className="flex items-start justify-between gap-3">
+            <div className="text-sm font-medium text-emerald-300">{doc.title}</div>
+            <button
+              type="button"
+              onClick={() => navigator.clipboard.writeText(doc.path)}
+              className="px-2 py-1 text-[11px] bg-slate-800 hover:bg-slate-700 text-slate-200 rounded border border-slate-600 transition-colors"
+            >
+              경로 복사
+            </button>
+          </div>
+          <p className="text-xs text-slate-400 mt-1">{doc.desc}</p>
+          <code className="block text-xs text-amber-300 mt-3 break-all">{doc.path}</code>
+        </div>
+      ))}
+    </div>
+  )
+}
+
 export default function Guide() {
   const [activeTab, setActiveTab] = useState<TabType>('essence')
 
@@ -49,38 +143,39 @@ function PromptGuide() {
           일관성 있고 퀄리티 높은 게임 에셋 이미지를 생성하기 위한 완벽한 프롬프트 작성 가이드입니다.
           레이어 시스템, 스타일 차이, 핵심 키워드를 숙지하면 전문가 수준의 이미지를 생성할 수 있습니다.
         </p>
+        <GuideReferenceCards tab="prompt" />
       </section>
 
       {/* 캐릭터 vs 몬스터 스타일 차이 */}
       <section className="bg-gradient-to-r from-emerald-900/20 to-red-900/20 rounded-xl p-6 border border-slate-700">
         <h3 className="text-xl font-semibold text-white mb-4">⚔️ 캐릭터 vs 몬스터 스타일 차이</h3>
         <p className="text-slate-300 text-sm mb-4">
-          캐릭터와 몬스터는 완전히 다른 스타일로 디자인됩니다. 이 차이를 명확히 이해해야 일관된 결과물을 얻을 수 있습니다.
+          캐릭터/동료/NPC와 몬스터 모두 전신 스토리북 렌더링을 사용하되, 몬스터는 상체 디테일 집중과 리전 팔레트로 위협감을 정리합니다.
         </p>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="bg-emerald-900/30 p-5 rounded-lg border border-emerald-600/50">
-            <h4 className="font-bold text-emerald-400 mb-3 text-lg">🦸 캐릭터 (귀여운 SD 스타일)</h4>
+            <h4 className="font-bold text-emerald-400 mb-3 text-lg">🦸 캐릭터 (플랫 컬러 bust portrait)</h4>
             <div className="space-y-3 text-sm">
               <div>
-                <span className="text-emerald-300 font-medium">분위기:</span>
-                <span className="text-slate-300 ml-2">따뜻한 동화 (warm cozy fairy tale)</span>
+                <span className="text-emerald-300 font-medium">기법:</span>
+                <span className="text-slate-300 ml-2">플랫 컬러 3~5색, 그라디언트/텍스처 없음</span>
               </div>
               <div>
                 <span className="text-emerald-300 font-medium">비율:</span>
-                <span className="text-slate-300 ml-2">SD 비율 2-2.5등신 (big head small body)</span>
+                <span className="text-slate-300 ml-2">2~2.5등신 (super-deformed chibi)</span>
               </div>
               <div>
-                <span className="text-emerald-300 font-medium">표정:</span>
-                <span className="text-slate-300 ml-2">친근하고 귀여움 (adorable friendly)</span>
+                <span className="text-emerald-300 font-medium">톤:</span>
+                <span className="text-slate-300 ml-2">아늑한 판타지 (cozy fantasy card game)</span>
               </div>
               <div>
-                <span className="text-emerald-300 font-medium">눈:</span>
-                <span className="text-slate-300 ml-2">크고 둥근 눈 (large expressive round eyes)</span>
+                <span className="text-emerald-300 font-medium">색상:</span>
+                <span className="text-slate-300 ml-2">클래스별 고유색 (리전 독립)</span>
               </div>
               <div>
-                <span className="text-emerald-300 font-medium">볼:</span>
-                <span className="text-slate-300 ml-2">양 볼에 홍조 필수 (rosy blushing cheeks)</span>
+                <span className="text-emerald-300 font-medium">배경:</span>
+                <span className="text-slate-300 ml-2">크림 양피지 (cream parchment background #F0E8D8)</span>
               </div>
               <div>
                 <span className="text-emerald-300 font-medium">방향:</span>
@@ -90,27 +185,27 @@ function PromptGuide() {
           </div>
 
           <div className="bg-red-900/30 p-5 rounded-lg border border-red-600/50">
-            <h4 className="font-bold text-red-400 mb-3 text-lg">👹 몬스터 (악당 스타일)</h4>
+                <h4 className="font-bold text-red-400 mb-3 text-lg">👹 몬스터 (플랫 컬러 bust portrait)</h4>
             <div className="space-y-3 text-sm">
               <div>
-                <span className="text-red-300 font-medium">분위기:</span>
-                <span className="text-slate-300 ml-2">어두운 동화 (dark fairytale)</span>
+                <span className="text-red-300 font-medium">기법:</span>
+                <span className="text-slate-300 ml-2">플랫 컬러 3~5색, 실루엣으로 캐릭터 정의</span>
               </div>
               <div>
                 <span className="text-red-300 font-medium">비율:</span>
-                <span className="text-slate-300 ml-2">위협적 비율 (exaggerated threatening)</span>
+                <span className="text-slate-300 ml-2">2~2.5등신 (super-deformed chibi)</span>
               </div>
               <div>
-                <span className="text-red-300 font-medium">표정:</span>
-                <span className="text-slate-300 ml-2">적대적 악당 (villainous antagonistic)</span>
+                <span className="text-red-300 font-medium">톤:</span>
+                <span className="text-slate-300 ml-2">아늑한 판타지 (cozy fantasy card game) — 동일</span>
               </div>
               <div>
-                <span className="text-red-300 font-medium">눈:</span>
-                <span className="text-slate-300 ml-2">빛나는 날카로운 눈 (glowing piercing eyes)</span>
+                <span className="text-red-300 font-medium">색상:</span>
+                <span className="text-slate-300 ml-2">리전 팔레트 종속 (숲/던전/성)</span>
               </div>
               <div>
-                <span className="text-red-300 font-medium">이빨:</span>
-                <span className="text-slate-300 ml-2">날카로운 이빨 노출 (sharp teeth fangs visible)</span>
+                <span className="text-red-300 font-medium">외곽선:</span>
+                <span className="text-slate-300 ml-2">리전별 틴트 (#1A2A1A / #1A1A2A / #2A1A1A)</span>
               </div>
               <div>
                 <span className="text-red-300 font-medium">방향:</span>
@@ -133,18 +228,20 @@ function PromptGuide() {
           <div className="space-y-3">
             <div className="bg-slate-900 p-4 rounded-lg border-l-4 border-emerald-500">
               <h4 className="font-medium text-emerald-400">Layer 1: 마스터 스타일 베이스 (필수)</h4>
-              <p className="text-slate-400 text-sm mt-1">전체적인 아트 스타일, 분위기 정의 - v4.0 Dark Frame Edition</p>
+              <p className="text-slate-400 text-sm mt-1">전체적인 아트 스타일, 분위기 정의 - v6.0 "라벤더 안개"</p>
               <pre className="text-xs text-slate-500 bg-slate-950 p-3 rounded mt-2 overflow-x-auto">
-{`flat color illustration style,
-hard edge cel shading with clean defined color blocks,
-bold clean outlines in near-black,
-muted desaturated dark fantasy color palette,
-earthy tones with burgundy ochre navy accents,
-stylized character illustration,
-solid white background for clean extraction,
-no border no frame,
-strong rim light along character edges from behind,
-soft key light from upper-left illuminating face`}
+{`simple flat color illustration with clean solid fills and no gradients,
+bust portrait from mid-chest upward,
+centered composition with moderate headroom above the head,
+character fills most of the frame,
+card game character portrait for cozy fantasy card game,
+super-deformed chibi proportions around 2 to 2.5 head body ratio,
+flat coloring with only 3 to 5 colors per character and no shading or tonal layering,
+single color uniform weight outline in warm dark tone,
+muted warm pastel colors strictly 40 to 55 percent saturation,
+silhouette-driven character design recognizable from shape alone,
+small simple dot eyes with short simple line eyebrows and minimal facial features with no nose detail,
+solid cream parchment background #F0E8D8`}
               </pre>
             </div>
 
@@ -154,16 +251,17 @@ soft key light from upper-left illuminating face`}
               <div className="grid grid-cols-2 gap-3 mt-2">
                 <pre className="text-xs text-emerald-400 bg-slate-950 p-2 rounded overflow-x-auto">
 {`[캐릭터]
-2.5-3 head body ratio,
-rosy blushing cheeks,
-confident expression,
+2-2.5 head body ratio,
+class-specific accent color,
+silhouette-driven design,
+small dot eyes,
 facing right diagonal`}
                 </pre>
                 <pre className="text-xs text-red-400 bg-slate-950 p-2 rounded overflow-x-auto">
 {`[몬스터]
-tier-based ratio,
-NO blush on cheeks,
-menacing expression,
+2-2.5 head body ratio,
+region-undertone outlines,
+small dot eyes,
 facing left diagonal`}
                 </pre>
               </div>
@@ -175,19 +273,19 @@ facing left diagonal`}
               <div className="grid grid-cols-4 gap-2 mt-2 text-xs">
                 <div className="bg-slate-950 p-2 rounded">
                   <span className="text-amber-400">Player</span>
-                  <p className="text-slate-500">gold glow #FFD700</p>
+                  <p className="text-slate-500">보석톤 클래스색 (로즈쿼츠/아메시스트/에메랄드)</p>
                 </div>
                 <div className="bg-slate-950 p-2 rounded">
                   <span className="text-gray-400">Tier 1</span>
-                  <p className="text-slate-500">silver glow #C0C0C0</p>
+                  <p className="text-slate-500">뮤트드 실버 #B8B8C8</p>
                 </div>
                 <div className="bg-slate-950 p-2 rounded">
                   <span className="text-purple-400">Tier 2</span>
-                  <p className="text-slate-500">purple glow #6B4B8C</p>
+                  <p className="text-slate-500">뮤트드 골드 #C8B888</p>
                 </div>
                 <div className="bg-slate-950 p-2 rounded">
                   <span className="text-red-400">Tier 3</span>
-                  <p className="text-slate-500">red glow #8B0000</p>
+                  <p className="text-slate-500">뮤트드 로즈 #C89098</p>
                 </div>
               </div>
             </div>
@@ -217,17 +315,17 @@ facing left diagonal`}
               <div className="grid grid-cols-2 gap-3 mt-2">
                 <pre className="text-xs text-emerald-400 bg-slate-950 p-2 rounded overflow-x-auto">
 {`[캐릭터 네거티브]
-dark gothic horror scary,
-no blush on cheeks,
-scary fierce expression,
+tonal layering, gradient shading,
+visible brushwork, gouache texture,
+detailed eyes with highlights,
 facing left, back view,
 photorealistic 3D render`}
                 </pre>
                 <pre className="text-xs text-red-400 bg-slate-950 p-2 rounded overflow-x-auto">
 {`[몬스터 네거티브]
-rosy blushing cheeks,
-cute adorable kawaii,
-chibi SD proportions,
+tonal layering, gradient shading,
+visible brushwork, gouache texture,
+detailed eyes with highlights,
 facing right, back view,
 photorealistic 3D render`}
                 </pre>
@@ -250,20 +348,20 @@ photorealistic 3D render`}
             </h4>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
               <div className="bg-slate-900 p-3 rounded-lg">
-                <code className="text-amber-300">flat color illustration style</code>
-                <p className="text-slate-500 text-xs mt-1">플랫 컬러 일러스트 스타일 (v4.0)</p>
+                <code className="text-amber-300">simple flat color illustration with clean solid fills</code>
+                <p className="text-slate-500 text-xs mt-1">플랫 컬러 일러스트 (그라디언트 없음)</p>
               </div>
               <div className="bg-slate-900 p-3 rounded-lg">
-                <code className="text-amber-300">hard edge cel shading</code>
-                <p className="text-slate-500 text-xs mt-1">하드 엣지 셀쉐이딩</p>
+                <code className="text-amber-300">flat coloring with only 3 to 5 colors and no shading</code>
+                <p className="text-slate-500 text-xs mt-1">캐릭터당 3~5색, 톤 레이어링/텍스처 없음</p>
               </div>
               <div className="bg-slate-900 p-3 rounded-lg">
-                <code className="text-amber-300">bold clean outlines in near-black</code>
-                <p className="text-slate-500 text-xs mt-1">니어블랙 볼드 외곽선</p>
+                <code className="text-amber-300">single color uniform weight outline</code>
+                <p className="text-slate-500 text-xs mt-1">단일 색상 균일 굵기 아웃라인</p>
               </div>
               <div className="bg-slate-900 p-3 rounded-lg">
-                <code className="text-amber-300">solid white background for clean extraction</code>
-                <p className="text-slate-500 text-xs mt-1">깔끔한 추출용 흰색 배경</p>
+                <code className="text-amber-300">solid cream parchment background #F0E8D8</code>
+                <p className="text-slate-500 text-xs mt-1">크림 양피지 배경 (카드 배경)</p>
               </div>
             </div>
           </div>
@@ -276,19 +374,19 @@ photorealistic 3D render`}
             </h4>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
               <div className="bg-emerald-900/20 p-3 rounded-lg border border-emerald-800/50">
-                <code className="text-emerald-300">muted desaturated dark fantasy color palette</code>
-                <p className="text-slate-500 text-xs mt-1">채도 낮은 다크 판타지 색조</p>
+                <code className="text-emerald-300">fairy tale storybook mood</code>
+                <p className="text-slate-500 text-xs mt-1">동화적 분위기</p>
               </div>
               <div className="bg-emerald-900/20 p-3 rounded-lg border border-emerald-800/50">
-                <code className="text-emerald-300">2.5-3 head body ratio</code>
-                <p className="text-slate-500 text-xs mt-1">2.5~3등신 SD 비율</p>
+                <code className="text-emerald-300">2-2.5 head body ratio</code>
+                <p className="text-slate-500 text-xs mt-1">2~2.5등신 슈퍼 디포르메 치비</p>
               </div>
               <div className="bg-emerald-900/20 p-3 rounded-lg border border-emerald-800/50">
-                <code className="text-emerald-300">rosy blushing cheeks on both sides</code>
-                <p className="text-slate-500 text-xs mt-1">양 볼의 분홍 홍조 (필수!)</p>
+                <code className="text-emerald-300">silhouette-driven character design recognizable from shape alone</code>
+                <p className="text-slate-500 text-xs mt-1">실루엣만으로 식별 가능한 디자인</p>
               </div>
               <div className="bg-emerald-900/20 p-3 rounded-lg border border-emerald-800/50">
-                <code className="text-emerald-300">large expressive round eyes</code>
+                <code className="text-emerald-300">small dot eyes + line eyebrows</code>
                 <p className="text-slate-500 text-xs mt-1">크고 표현력 있는 둥근 눈</p>
               </div>
             </div>
@@ -302,28 +400,28 @@ photorealistic 3D render`}
             </h4>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
               <div className="bg-red-900/20 p-3 rounded-lg border border-red-800/50">
-                <code className="text-red-300">dark fairytale medieval fantasy</code>
-                <p className="text-slate-500 text-xs mt-1">어두운 중세 판타지 동화</p>
+                <code className="text-red-300">fairy tale storybook mood</code>
+                <p className="text-slate-500 text-xs mt-1">동화적 분위기 — 캐릭터와 동일</p>
               </div>
               <div className="bg-red-900/20 p-3 rounded-lg border border-red-800/50">
-                <code className="text-red-300">exaggerated threatening proportions</code>
-                <p className="text-slate-500 text-xs mt-1">과장된 위협적 비율</p>
+                <code className="text-red-300">lower body stays readable with subtle shadow falloff</code>
+                <p className="text-slate-500 text-xs mt-1">하체 가독성 유지 + 완만한 음영</p>
               </div>
               <div className="bg-red-900/20 p-3 rounded-lg border border-red-800/50">
-                <code className="text-red-300">glowing piercing intense eyes</code>
-                <p className="text-slate-500 text-xs mt-1">빛나는 날카로운 눈</p>
+                <code className="text-red-300">subtle region-tint outlines</code>
+                <p className="text-slate-500 text-xs mt-1">리전별 외곽선 틴트</p>
               </div>
               <div className="bg-red-900/20 p-3 rounded-lg border border-red-800/50">
-                <code className="text-red-300">sharp teeth fangs visible</code>
-                <p className="text-slate-500 text-xs mt-1">날카로운 이빨/송곳니 노출</p>
+                <code className="text-red-300">muted region-specific color palette</code>
+                <p className="text-slate-500 text-xs mt-1">리전별 뮤트드 색상</p>
               </div>
               <div className="bg-red-900/20 p-3 rounded-lg border border-red-800/50">
-                <code className="text-red-300">villainous antagonistic expression</code>
-                <p className="text-slate-500 text-xs mt-1">악당스러운 적대적 표정</p>
+                <code className="text-red-300">mysterious slightly ominous but not scary</code>
+                <p className="text-slate-500 text-xs mt-1">신비롭지만 무섭지 않은</p>
               </div>
               <div className="bg-red-900/20 p-3 rounded-lg border border-red-800/50">
-                <code className="text-red-300">angular sharp body shapes</code>
-                <p className="text-slate-500 text-xs mt-1">각지고 날카로운 실루엣</p>
+                <code className="text-red-300">small dot eyes + line eyebrows</code>
+                <p className="text-slate-500 text-xs mt-1">점 눈 + 선 눈썹 (캐릭터와 통일)</p>
               </div>
             </div>
           </div>
@@ -373,16 +471,16 @@ creature looking toward front-left`}
             <h4 className="font-medium text-emerald-400 mb-3">캐릭터 색상 (따뜻하고 친근함)</h4>
             <div className="flex flex-wrap gap-2">
               <div className="flex items-center gap-2 bg-slate-900 px-3 py-2 rounded">
-                <div className="w-4 h-4 rounded" style={{backgroundColor: '#FFB6C1'}}></div>
-                <span className="text-xs text-slate-300">볼 홍조 #FFB6C1</span>
+                <div className="w-4 h-4 rounded" style={{backgroundColor: '#F5E6D0'}}></div>
+                <span className="text-xs text-slate-300">종이 질감 #F5E6D0</span>
               </div>
               <div className="flex items-center gap-2 bg-slate-900 px-3 py-2 rounded">
-                <div className="w-4 h-4 rounded" style={{backgroundColor: '#FFD700'}}></div>
-                <span className="text-xs text-slate-300">팔라딘 골드 #FFD700</span>
+                <div className="w-4 h-4 rounded" style={{backgroundColor: '#D4A574'}}></div>
+                <span className="text-xs text-slate-300">앰버 악센트 #D4A574</span>
               </div>
               <div className="flex items-center gap-2 bg-slate-900 px-3 py-2 rounded">
-                <div className="w-4 h-4 rounded" style={{backgroundColor: '#B85450'}}></div>
-                <span className="text-xs text-slate-300">전사 레드 #B85450</span>
+                <div className="w-4 h-4 rounded" style={{backgroundColor: '#8B4049'}}></div>
+                <span className="text-xs text-slate-300">전사 버건디 #8B4049</span>
               </div>
             </div>
           </div>
@@ -391,20 +489,20 @@ creature looking toward front-left`}
             <h4 className="font-medium text-red-400 mb-3">몬스터 색상 (어둡고 위협적)</h4>
             <div className="flex flex-wrap gap-2">
               <div className="flex items-center gap-2 bg-slate-900 px-3 py-2 rounded">
-                <div className="w-4 h-4 rounded" style={{backgroundColor: '#FFD700'}}></div>
-                <span className="text-xs text-slate-300">빛나는 눈 #FFD700</span>
+                <div className="w-4 h-4 rounded" style={{backgroundColor: '#1A2A1A'}}></div>
+                <span className="text-xs text-slate-300">숲 올리브 틴트 #1A2A1A</span>
               </div>
               <div className="flex items-center gap-2 bg-slate-900 px-3 py-2 rounded">
-                <div className="w-4 h-4 rounded" style={{backgroundColor: '#DC143C'}}></div>
-                <span className="text-xs text-slate-300">크림슨 눈 #DC143C</span>
+                <div className="w-4 h-4 rounded" style={{backgroundColor: '#1A1A2A'}}></div>
+                <span className="text-xs text-slate-300">던전 블루 틴트 #1A1A2A</span>
               </div>
               <div className="flex items-center gap-2 bg-slate-900 px-3 py-2 rounded">
-                <div className="w-4 h-4 rounded" style={{backgroundColor: '#7CFC00'}}></div>
-                <span className="text-xs text-slate-300">독 그린 #7CFC00</span>
+                <div className="w-4 h-4 rounded" style={{backgroundColor: '#2A1A1A'}}></div>
+                <span className="text-xs text-slate-300">성 레드 틴트 #2A1A1A</span>
               </div>
               <div className="flex items-center gap-2 bg-slate-900 px-3 py-2 rounded">
-                <div className="w-4 h-4 rounded" style={{backgroundColor: '#8B0000'}}></div>
-                <span className="text-xs text-slate-300">블러드 레드 #8B0000</span>
+                <div className="w-4 h-4 rounded" style={{backgroundColor: '#D4A574'}}></div>
+                <span className="text-xs text-slate-300">앰버 발광 #D4A574</span>
               </div>
             </div>
           </div>
@@ -496,6 +594,7 @@ function WorkflowGuide() {
         <p className="text-slate-300 mb-6">
           에셋 이미지 생성의 전체 프로세스를 단계별로 안내합니다.
         </p>
+        <GuideReferenceCards tab="workflow" />
       </section>
 
       {/* 워크플로우 다이어그램 */}
@@ -541,11 +640,11 @@ function WorkflowGuide() {
             <ul className="space-y-2 text-sm text-slate-300">
               <li className="flex items-center gap-2">
                 <input type="checkbox" className="rounded border-slate-600" disabled />
-                <span>SD 비율 (2-2.5 등신)</span>
+                <span>전신 스토리북 렌더링 적용</span>
               </li>
               <li className="flex items-center gap-2">
                 <input type="checkbox" className="rounded border-slate-600" disabled />
-                <span>양 볼에 홍조</span>
+                <span>종이 질감 오버레이</span>
               </li>
               <li className="flex items-center gap-2">
                 <input type="checkbox" className="rounded border-slate-600" disabled />
@@ -557,11 +656,11 @@ function WorkflowGuide() {
               </li>
               <li className="flex items-center gap-2">
                 <input type="checkbox" className="rounded border-slate-600" disabled />
-                <span>플랫 셀쉐이딩 채색 (v4.0)</span>
+                <span>흰색 배경 (white)</span>
               </li>
               <li className="flex items-center gap-2">
                 <input type="checkbox" className="rounded border-slate-600" disabled />
-                <span>흰색 배경 (추출용)</span>
+                <span>fairy tale storybook mood</span>
               </li>
             </ul>
           </div>
@@ -575,11 +674,11 @@ function WorkflowGuide() {
               </li>
               <li className="flex items-center gap-2">
                 <input type="checkbox" className="rounded border-slate-600" disabled />
-                <span>빛나는/날카로운 눈</span>
+                <span>리전별 틴트 외곽선</span>
               </li>
               <li className="flex items-center gap-2">
                 <input type="checkbox" className="rounded border-slate-600" disabled />
-                <span>적대적/악당스러운 표정</span>
+                <span>신비롭지만 무섭지 않은 톤</span>
               </li>
               <li className="flex items-center gap-2">
                 <input type="checkbox" className="rounded border-slate-600" disabled />
@@ -587,11 +686,11 @@ function WorkflowGuide() {
               </li>
               <li className="flex items-center gap-2">
                 <input type="checkbox" className="rounded border-slate-600" disabled />
-                <span>볼 홍조 없음!</span>
+                <span>종이 질감 오버레이</span>
               </li>
               <li className="flex items-center gap-2">
                 <input type="checkbox" className="rounded border-slate-600" disabled />
-                <span>잉크/가우슈 스타일 (v4.0 몬스터)</span>
+                <span>전신 렌더링 + 하체 가독성 유지</span>
               </li>
             </ul>
           </div>
@@ -609,15 +708,15 @@ function WorkflowGuide() {
               </li>
               <li className="flex items-center gap-2">
                 <input type="checkbox" className="rounded border-slate-600" disabled />
-                <span>흰색 배경 (추출용)</span>
+                <span>흰색 배경 (white)</span>
               </li>
               <li className="flex items-center gap-2">
                 <input type="checkbox" className="rounded border-slate-600" disabled />
-                <span>림 라이트 + 키 라이트 조명</span>
+                <span>전신 렌더링 + 종이 질감</span>
               </li>
               <li className="flex items-center gap-2">
                 <input type="checkbox" className="rounded border-slate-600" disabled />
-                <span>v4.0 Dark Frame Edition 스타일</span>
+                <span>v6.0 "라벤더 안개" 스타일</span>
               </li>
             </ul>
           </div>
@@ -664,55 +763,68 @@ function VisualEssenceGuide() {
     { role: 'Card BG End', name: 'Dark Deep', hex: '#2A2A32', usage: '카드 배경 그라데이션 끝' },
     { role: 'Card Border', name: 'Dark Graphite', hex: '#4A4A55', usage: '카드 테두리, 구분선' },
     { role: 'HP/Panel BG', name: 'Dark Surface', hex: '#16161C', usage: 'HP바 컨테이너, 패널 배경' },
-    { role: 'Gen BG', name: 'White', hex: '#FFFFFF', usage: '생성용 흰색 배경 (AI 생성 시)' },
+    { role: 'Texture', name: 'Paper Grain', hex: '#F5E6D0', usage: '종이 질감 오버레이 (5~8% opacity)' },
   ]
 
   const accentPalette = [
     { role: 'Primary', name: 'Warm Highlight', hex: '#D4A574', usage: '하이라이트, 역광, 보상' },
     { role: 'Secondary', name: 'Metal Gray', hex: '#5A5F6B', usage: '금속, 중립 요소' },
-    { role: 'Accent', name: 'Warm Blush', hex: '#C4867A', usage: '볼 홍조, 악센트' },
+    { role: 'Accent', name: 'Outline', hex: '#3A3040', usage: '외곽선 (다크 라벤더, 각 면 어두운 톤)' },
   ]
 
   const tierColors = [
-    { tier: 'Player', usage: '플레이어 캐릭터', hex: '#FFD700', glow: '#FFF8DC', shadow: '#B8860B' },
-    { tier: 'Tier 1', usage: '일반 몬스터', hex: '#C0C0C0', glow: '#E8E8E8', shadow: '#808080' },
-    { tier: 'Tier 2', usage: '정예 몬스터', hex: '#6B4B8C', glow: '#9370DB', shadow: '#3D2952' },
-    { tier: 'Tier 3', usage: '보스 몬스터', hex: '#8B0000', glow: '#DC143C', shadow: '#4A0000' },
+    { tier: 'Player', usage: '플레이어 캐릭터', hex: '#D4A574', glow: '#FFF5E6', shadow: '#8F6A46' },
+    { tier: 'Tier 1', usage: '일반 몬스터', hex: '#B8BDC6', glow: '#E2E5EA', shadow: '#6C707A' },
+    { tier: 'Tier 2', usage: '정예 몬스터', hex: '#6B4B8C', glow: '#9A7BB7', shadow: '#3D2952' },
+    { tier: 'Tier 3', usage: '보스 몬스터', hex: '#8B0000', glow: '#B54040', shadow: '#4A0000' },
   ]
 
   const essenceTable = [
-    { element: '렌더링', style: '플랫 컬러 + 하드 엣지 셀쉐이딩', keyword: 'flat color illustration style' },
-    { element: '색상', style: '채도 낮은 다크 판타지 팔레트', keyword: 'muted desaturated dark fantasy color palette' },
-    { element: '비율', style: '캐릭터 2.5~3등신 / 몬스터 티어별', keyword: '2.5-3 head body ratio' },
-    { element: '선 작업', style: '니어블랙 볼드 클린 외곽선', keyword: 'bold clean outlines in near-black' },
-    { element: '배경', style: '흰색 배경 (추출용)', keyword: 'solid white background for clean extraction' },
-    { element: '조명', style: '림 라이트 + 좌상단 키 라이트', keyword: 'strong rim light, soft key light from upper-left' },
+    { element: '렌더링', style: '플랫 컬러 일러스트, 상반신 bust portrait', keyword: 'simple flat color illustration with clean solid fills and no gradients' },
+    { element: '색상', style: '뮤트드 따뜻한 파스텔 (40~55% 채도), 캐릭터당 3~5색', keyword: 'flat coloring with only 3 to 5 colors per character and no shading or tonal layering' },
+    { element: '비율', style: '캐릭터/몬스터 슈퍼디포름 치비 2~2.5등신', keyword: 'super-deformed chibi proportions around 2 to 2.5 head body ratio' },
+    { element: '외곽선', style: '단일 색상 균일 굵기 아웃라인', keyword: 'single color uniform weight outline in warm dark tone' },
+    { element: '배경', style: '크림 양피지 배경 (#F0E8D8)', keyword: 'solid cream parchment background #F0E8D8' },
+    { element: '디테일', style: '실루엣이 캐릭터를 정의, 소품 1~2개, 점 눈', keyword: 'silhouette-driven character design recognizable from shape alone' },
   ]
 
-  const characterKeywords = `flat color illustration style,
-hard edge cel shading with clean defined color blocks,
-bold clean outlines in near-black (#1A1A1E),
-muted desaturated dark fantasy color palette,
-solid white background for clean extraction,
-strong rim light along character edges from behind,
-soft key light from upper-left illuminating face`
+  const characterKeywords = `simple flat color illustration with clean solid fills and no gradients,
+bust portrait from mid-chest upward,
+centered composition with moderate headroom above the head,
+character fills most of the frame,
+card game character portrait for cozy fantasy card game,
+super-deformed chibi proportions around 2 to 2.5 head body ratio,
+flat coloring with only 3 to 5 colors per character and no shading or tonal layering,
+single color uniform weight outline in warm dark tone,
+muted warm pastel colors strictly 40 to 55 percent saturation,
+silhouette-driven character design recognizable from shape alone,
+only 1 to 2 iconic props maximum,
+small simple dot eyes with short simple line eyebrows and minimal facial features with no nose detail,
+solid cream parchment background #F0E8D8`
 
-  const monsterKeywords = `hand-drawn ink illustration style,
-pen and ink sketch base with visible line work,
-variable line weight with organic imperfect strokes,
-gouache and ink wash coloring with controlled color application,
-muted earthy color palette (35-55% saturation),
-solid white background for clean extraction,
-moody atmospheric lighting from upper-left,
-subtle rim light highlighting creature silhouette edges`
+  const monsterKeywords = `simple flat color illustration with clean solid fills and no gradients,
+bust portrait of fantasy creature or monster from mid-chest upward,
+centered composition with moderate headroom above the head,
+creature fills most of the frame,
+card game monster portrait for cozy fantasy card game,
+super-deformed chibi proportions around 2 to 2.5 head body ratio,
+flat coloring with only 3 to 5 colors per creature and no shading or tonal layering,
+single color uniform weight outline with region undertone,
+muted warm pastel colors strictly 40 to 55 percent saturation,
+silhouette-driven monster design recognizable from shape alone,
+small simple dot eyes with short simple line eyebrows,
+cute and charming monster design that is not scary or threatening,
+solid cream parchment background #F0E8D8`
 
-  const backgroundKeywords = `layered silhouette background,
-dark muted color palette,
-strong vignette effect darker edges,
-low saturation restrained colors,
-minimal atmospheric scene,
-wide 16:9 aspect ratio,
-no characters no creatures`
+  const backgroundKeywords = `hand-painted storybook watercolor illustration background,
+dreamy muted pastel environment with soft visible brushwork,
+warm natural color tones without any color tint or cast,
+gentle blur effect 60 to 70 percent for depth of field,
+atmospheric fantasy landscape,
+soft warm diffused lighting,
+cozy fairy tale mood with gentle storybook atmosphere,
+wide landscape 16:9 aspect ratio,
+no characters no creatures no cards`
 
   return (
     <div className="space-y-8">
@@ -720,18 +832,21 @@ no characters no creatures`
       <section className="bg-gradient-to-r from-slate-900/50 to-amber-900/30 rounded-xl p-8 border border-slate-600">
         <h2 className="text-2xl font-bold text-amber-400 mb-4">핵심 비전</h2>
         <blockquote className="text-2xl font-semibold text-white mb-4 border-l-4 border-amber-500 pl-4">
-          "다크 실루엣 배경 위의 극적인 카드 게임 아트"
+          "라벤더빛 몽환 파스텔 세계에서 펼쳐지는 아늑한 카드 모험"
         </blockquote>
         <p className="text-slate-300 text-lg">
           <span className="text-emerald-400 font-medium">Slay the Spire</span>의 전략적 덱빌딩 + 
           <span className="text-amber-400 font-medium"> Dice & Fold</span>의 동화적 아트가 만난 로그라이크 카드 RPG
         </p>
+        <div className="mt-6">
+          <GuideReferenceCards tab="essence" />
+        </div>
       </section>
 
       {/* 확정 에센스 조합 */}
       <section className="bg-slate-800 rounded-xl p-6 border border-slate-700">
         <h3 className="text-xl font-semibold text-emerald-400 mb-2">확정 에센스 조합</h3>
-        <p className="text-amber-400 font-medium mb-4">"Dark Frame Edition" v4.0</p>
+        <p className="text-amber-400 font-medium mb-4">"라벤더 안개" v6.0</p>
         
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
@@ -889,7 +1004,7 @@ no characters no creatures`
             <div className="text-6xl mb-4">↗</div>
             <h4 className="text-emerald-400 font-semibold text-lg mb-2">캐릭터</h4>
             <p className="text-slate-300">우측 대각선 방향</p>
-            <p className="text-slate-500 text-sm mt-2">"전진, 희망" + 볼 홍조 있음</p>
+            <p className="text-slate-500 text-sm mt-2">"전진, 희망"</p>
             <code className="text-xs text-emerald-300 mt-3 block">body facing right diagonal direction</code>
           </div>
           
@@ -897,7 +1012,7 @@ no characters no creatures`
             <div className="text-6xl mb-4">↖</div>
             <h4 className="text-red-400 font-semibold text-lg mb-2">몬스터</h4>
             <p className="text-slate-300">좌측 대각선 방향</p>
-            <p className="text-slate-500 text-sm mt-2">"대립, 위협" + 볼 홍조 없음</p>
+            <p className="text-slate-500 text-sm mt-2">"대립, 위협"</p>
             <code className="text-xs text-red-300 mt-3 block">body facing left diagonal direction</code>
           </div>
         </div>
@@ -934,7 +1049,7 @@ no characters no creatures`
             </div>
             <div>
               <p className="text-red-400 font-medium">과도한 채도</p>
-              <p className="text-slate-400 text-sm">→ 40~60% 채도 유지</p>
+              <p className="text-slate-400 text-sm">→ 40~55% 채도 유지</p>
             </div>
           </div>
           
@@ -960,7 +1075,7 @@ no characters no creatures`
             '애니메 샤프 라인, 만화 스타일',
             '픽셀 아트, 벡터 플랫 디자인',
             '네온 색상, 차가운 톤',
-            '과도한 채도 (60% 이상)',
+            '과도한 채도 (55% 이상)',
             '순수 검정/흰색 사용',
           ].map((item, i) => (
             <span key={i} className="px-3 py-1 bg-red-900/30 border border-red-800/50 rounded-full text-red-300 text-sm">

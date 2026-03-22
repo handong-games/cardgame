@@ -5,7 +5,23 @@ import { SkillTooltip } from './SkillTooltip';
 import { getSkillCosts } from '../../utils/skillSystem';
 import { calculateCoinValues } from '../../utils/coinToss';
 import frameSkillsImg from '@assets/frames/skill-frame.png';
+import attackFrameImg from '@assets/frames/skill-frame-attack.png';
+import defenseFrameImg from '@assets/frames/skill-frame-defense.png';
 import { SKILL_IMAGES } from '../../data/skillImages';
+
+function getSkillFrameImage(skill: Skill): string {
+  const allEffects = [
+    ...skill.effects,
+    ...(skill.conditionalEffects?.map((entry) => entry.effect) ?? []),
+  ];
+
+  const hasDamage = allEffects.some((effect) => effect.type === 'damage');
+  const hasBlock = allEffects.some((effect) => effect.type === 'block');
+
+  if (hasDamage) return attackFrameImg;
+  if (hasBlock) return defenseFrameImg;
+  return frameSkillsImg;
+}
 
 interface SkillSlotProps {
   skill: Skill;
@@ -50,6 +66,7 @@ export function SkillSlot({
 
   const isEnemyTarget = skill.targetType === 'enemy';
   const hasImage = !!SKILL_IMAGES[skill.skillKey];
+  const skillFrameImg = getSkillFrameImage(skill);
 
   const handleClick = () => {
     if (isEnemyTarget) return;
@@ -116,7 +133,7 @@ export function SkillSlot({
         {hasImage ? (
           <div className="relative w-full h-full">
             <img
-              src={frameSkillsImg}
+              src={skillFrameImg}
               alt="skill frame"
               className="absolute inset-0 w-full h-full object-contain rounded-xl"
             />
@@ -127,15 +144,18 @@ export function SkillSlot({
             />
             {/* 이미지 스킬 이름 라벨 */}
             <div className="absolute bottom-1 left-0 right-0 text-center">
-              <span className="text-[10px] text-gray-200 bg-dark-surface/80 px-1.5 py-0.5 rounded font-medium truncate inline-block max-w-full">
+              <span
+                className="text-[10px] px-1.5 py-0.5 rounded font-medium truncate inline-block max-w-full"
+                style={{ color: '#3A3040', backgroundColor: 'rgba(240,232,216,0.9)' }}
+              >
                 {skill.name}
               </span>
             </div>
           </div>
-        ) : (
+         ) : (
           <>
             <span className="text-4xl">{skill.icon}</span>
-            <span className="text-sm text-gray-200 mt-1 truncate max-w-full px-1 font-medium">
+            <span className="text-sm mt-1 truncate max-w-full px-1 font-medium" style={{ color: '#3A3040' }}>
               {skill.name}
             </span>
           </>
@@ -175,22 +195,25 @@ export function SkillSlot({
         )}
 
         {isOnCooldown && (
-          <div className="absolute inset-0 bg-dark-surface/85 rounded-lg flex flex-col items-center justify-center gap-0.5">
+          <div className="absolute inset-0 rounded-lg flex flex-col items-center justify-center gap-0.5" style={{ backgroundColor: 'rgba(240,232,216,0.9)' }}>
             <span className="text-lg">🕐</span>
-            <span className="text-gray-300 text-sm font-bold">
+            <span className="text-sm font-bold" style={{ color: '#3A3040' }}>
               {skillState!.cooldownRemaining}턴
             </span>
           </div>
         )}
 
         {isMaxUsed && !isOnCooldown && (
-          <div className="absolute inset-0 bg-dark-surface/80 rounded-lg flex items-center justify-center">
-            <span className="text-gray-400 text-xs font-bold">사용 완료</span>
+          <div className="absolute inset-0 rounded-lg flex items-center justify-center" style={{ backgroundColor: 'rgba(240,232,216,0.85)' }}>
+            <span className="text-xs font-bold" style={{ color: '#6A6070' }}>사용 완료</span>
           </div>
         )}
 
         {usageText && !isOnCooldown && !isMaxUsed && (
-          <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 px-2 py-0.5 rounded text-xs font-bold bg-dark-graphite/90 text-gray-200 border border-dark-graphite">
+          <div
+            className="absolute -bottom-1 left-1/2 -translate-x-1/2 px-2 py-0.5 rounded text-xs font-bold border"
+            style={{ backgroundColor: 'rgba(58,48,64,0.8)', color: '#F0E8D8', borderColor: 'rgba(58,48,64,0.5)' }}
+          >
             {usageText}
           </div>
         )}

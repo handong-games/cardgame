@@ -83,7 +83,7 @@ soft graphite pencil texture border
 ### 프롬프트 (Player 티어)
 
 ```
-[CHARACTER CARD FRAME - PLAYER PROMPT v3.0]
+[CHARACTER CARD FRAME - PLAYER PROMPT v3.1]
 stylized storybook illustration,
 hand-drawn outlines with soft watercolor texture,
 flat color base with subtle warm gradients,
@@ -91,15 +91,21 @@ flat color base with subtle warm gradients,
 character card frame design,
 dark charcoal color #1E1E24 frame,
 soft graphite pencil texture border,
-warm parchment inner background #FFF5E6,
+deep gray inner structure #2A2A32,
+warm parchment to dusk-amber inner glow #FFF5E6 to #D4A574,
 
-subtle golden glow accent #FFD700,
+muted amber-gold glow accent #D4A574,
+soft upper-left rim light matching sunset forest lighting,
+subtle burgundy lining accent #8B4049,
+tiny weathered leather and carved wood cues,
 glow around frame edges 4-6px,
 rounded corners 12px,
 2:3 aspect ratio portrait,
 
 warm nostalgic fairy tale atmosphere,
 children's picture book quality,
+minimalist young adventurer equipment aesthetic,
+no ornate royal decoration,
 
 isolated on transparent background,
 portrait format 180x240px
@@ -109,6 +115,7 @@ photorealistic, 3D render, glossy,
 modern UI flat design,
 cold colors, dark scary gothic,
 complex ornate decorations,
+bright neon gold,
 text words letters
 ```
 

@@ -1,7 +1,7 @@
 # 상점 시스템 UI 설계서
 
 > **기준 해상도**: 1920 × 1080px
-> **비주얼 스타일**: v4.0 Dark Frame Edition
+> **비주얼 스타일**: v5.0 "황혼의 경계" (Twilight Threshold)
 > **최종 수정일**: 2026-03-08
 > **근거 문서**: 상점-시스템-기획서, 소울-경제-기획서, 전리품-시스템-기획서, 마을-시스템-기획서
 
@@ -754,7 +754,7 @@
 | 이벤트 시스템 기획서 | `projects/gameplan/docs/plan/이벤트-시스템-기획서.md` | 역할 경계 (이벤트 vs 상점) |
 | 배틀씬 UI 레이아웃 설계서 | `projects/gamedesign/docs/배틀씬-UI-레이아웃-설계서.md` | Zone A/C 레이아웃, 스킬 카드 스펙, z-index 표 |
 | 마인드맵 | `projects/gameplan/docs/specific/mindmap.md` | 환율, 기대값 |
-| CONTEXT.md | `projects/gamedesign/CONTEXT.md` | v4.0 색상 팔레트, 비주얼 규칙 |
+| CONTEXT.md | `projects/gamedesign/CONTEXT.md` | v5.0 운영 기준, 비주얼 규칙 |
 
 ---
 

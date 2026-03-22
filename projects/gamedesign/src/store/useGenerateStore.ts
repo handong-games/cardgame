@@ -48,6 +48,7 @@ const CATEGORY_TO_ENTITY: Record<string, string> = {
   castle: 'monster',
   background: 'background',
   ui: 'ui',
+  skillIcon: 'ui',
   npc: 'npc',
 }
 

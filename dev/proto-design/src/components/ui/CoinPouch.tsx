@@ -42,15 +42,15 @@ export function CoinPouch({ onToss, disabled, isOpen }: CoinPouchProps) {
         className="w-full h-full object-contain"
         style={{
           filter: isOpen
-            ? 'drop-shadow(0 0 12px rgba(255, 215, 0, 0.7)) drop-shadow(0 0 6px rgba(255, 215, 0, 0.4))'
-            : 'drop-shadow(0 3px 6px rgba(0, 0, 0, 0.5))',
+            ? 'drop-shadow(0 0 12px rgba(201, 168, 108, 0.7)) drop-shadow(0 0 6px rgba(201, 168, 108, 0.4))'
+            : 'drop-shadow(0 3px 6px rgba(58, 48, 64, 0.4))',
         }}
       />
 
       
 
       {disabled && (
-        <div className="absolute inset-0 bg-black/20 rounded-lg" />
+        <div className="absolute inset-0 rounded-lg" style={{ backgroundColor: 'rgba(58, 48, 64, 0.2)' }} />
       )}
     </motion.button>
   );

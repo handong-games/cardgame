@@ -3,7 +3,6 @@ import { useEffect, useRef, useState } from 'react';
 import type { Enemy } from '../../types';
 import { HPBar } from '../common/HPBar';
 import {
-  COMBAT_TIMING,
   getScaledEnemyAttack,
   getScaledHitReact,
   getScaledShieldShake,
@@ -43,7 +42,6 @@ const MONSTER_IMAGES: Record<string, { src: string; frame?: string }> = {
 
 interface EnemyCardProps {
   enemy: Enemy;
-  enemyName?: string;
   isAttacking?: boolean;
   isHit?: boolean;
   previewDamage?: number;
@@ -53,7 +51,6 @@ interface EnemyCardProps {
 
 export function EnemyCard({
   enemy,
-  enemyName,
   isAttacking = false,
   isHit = false,
   previewDamage = 0,
@@ -195,13 +192,6 @@ export function EnemyCard({
           </motion.div>
         )}
       </AnimatePresence>
-      {enemyName && (
-        <div className="mb-1 px-3 py-0.5 text-sm font-bold text-[#FFF5E6]/90 tracking-wide">
-          {enemyName}
-          {isElite && <span className="text-amber-400 ml-1 text-xs">(엘리트)</span>}
-          {isBoss && <span className="text-red-400 ml-1 text-xs">(보스)</span>}
-        </div>
-      )}
       <motion.div
         className={`mb-2 px-3 py-1.5 rounded-lg text-xs border ${currentIntent.bg} ${currentIntent.border}`}
         animate={enemy.intent.type === 'attack' ? {
@@ -219,8 +209,42 @@ export function EnemyCard({
         <span className={`ml-1 font-bold ${currentIntent.text}`}>{enemy.intent.value}</span>
       </motion.div>
 
+      <div className="mb-2 px-1" style={{ width: 'var(--enemy-card-width)' }}>
+        <div className="flex items-center gap-1.5">
+          <motion.div
+            className="relative flex-shrink-0"
+            animate={shieldControls}
+          >
+            <div
+              className="w-6 h-6 rounded-full border-2 flex items-center justify-center text-xs font-bold shadow-coin"
+              style={{
+                backgroundColor: enemy.block > 0 ? '#A0B8D4' : '#F0E8D8',
+                borderColor: enemy.block > 0 ? '#A0B8D4' : '#D8C8E8',
+                color: enemy.block > 0 ? '#FFFFFF' : '#3A3040',
+              }}
+            >
+              {enemy.block > 0 ? (
+                <motion.span animate={blockNumberControls}>{enemy.block}</motion.span>
+              ) : (
+                <span className="text-xs">🛡️</span>
+              )}
+            </div>
+          </motion.div>
+
+          <div className="flex-1">
+            <HPBar
+              current={enemy.hp}
+              max={enemy.maxHp}
+              color="red"
+              previewDamage={previewDamage}
+            />
+          </div>
+        </div>
+      </div>
+
       <motion.div
         className="enemy-card relative transition-shadow duration-200"
+        style={{ filter: 'drop-shadow(0 4px 8px rgba(58,48,64,0.3))' }}
         animate={{
           scale: isTargeted ? 1.05 : 1,
           boxShadow: isTargeted
@@ -255,7 +279,7 @@ export function EnemyCard({
             <img
               src={monsterImage}
               alt={enemy.name}
-              className="w-3/4 h-auto object-contain"
+              className="w-[72%] h-[62%] object-contain -translate-y-[6%]"
               onError={() => setImageError(true)}
             />
           ) : (
@@ -273,39 +297,10 @@ export function EnemyCard({
             />
           )}
         </AnimatePresence>
-      </motion.div>
-
-       <div className="w-full px-1">
-         <div className="flex items-center gap-1.5">
-          <motion.div
-            className="relative flex-shrink-0"
-            animate={shieldControls}
-          >
-            <div
-              className={`w-6 h-6 rounded-full border-2 flex items-center justify-center text-xs font-bold shadow-coin
-                ${enemy.block > 0
-                  ? 'bg-moon-twilight border-moon-silver text-white'
-                  : 'bg-coin-dark-bronze border-moon-twilight text-moon-light'
-                }`}
-            >
-              {enemy.block > 0 ? (
-                <motion.span animate={blockNumberControls}>{enemy.block}</motion.span>
-              ) : (
-                <span className="text-xs">🛡️</span>
-              )}
-            </div>
-          </motion.div>
-
-          <div className="flex-1">
-            <HPBar
-              current={enemy.hp}
-              max={enemy.maxHp}
-              color="red"
-              previewDamage={previewDamage}
-            />
-          </div>
+        <div className="absolute left-1/2 -translate-x-1/2 flex items-center justify-center pointer-events-none z-10" style={{ bottom: '8%', width: '62%', height: '9%' }}>
+          <span className="block max-w-full truncate text-center text-[12px] font-semibold tracking-[0.04em]" style={{ color: '#3A3040', fontFamily: 'Georgia, "Times New Roman", serif' }}>{baseName}</span>
         </div>
-      </div>
+      </motion.div>
 
       {enemy.activeDebuffs && enemy.activeDebuffs.length > 0 && (
         <div className="mt-2 flex gap-1 flex-wrap justify-center">

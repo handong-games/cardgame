@@ -31,10 +31,10 @@ export function HPBar({
   const damagePreviewPercentage = hpPercentage - afterDamagePercentage;
   const healPreviewPercentage = afterHealPercentage - hpPercentage;
 
-  const barColors = {
-    red: 'bg-gradient-to-r from-effect-attack to-red-400',
-    green: 'bg-gradient-to-r from-effect-buff to-emerald-400',
-  };
+   const barColors = {
+     red: 'bg-[#E8B4B8]',
+     green: 'bg-[#E8B4B8]',
+   };
 
   const getFinalHp = () => {
     if (totalDamage > 0) return afterDamageHp;

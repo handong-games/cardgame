@@ -4,7 +4,6 @@ import type { ActiveBuff } from '../../types';
 import { HPBar } from '../common/HPBar';
 import { getBuffDefinition } from '../../utils/buffSystem';
 import {
-  COMBAT_TIMING,
   getScaledPlayerAttack,
   getScaledHitReact,
   getScaledShieldShake,
@@ -26,7 +25,6 @@ interface CharacterCardProps {
   block: number;
   attack?: number;
   emoji: string;
-  isPlayer?: boolean;
   isAttacking?: boolean;
   isHit?: boolean;
   isShieldHit?: boolean;
@@ -42,7 +40,6 @@ export function CharacterCard({
   maxHp,
   block,
   emoji,
-  isPlayer = false,
   isAttacking = false,
   isHit = false,
   isShieldHit = false,
@@ -141,7 +138,57 @@ export function CharacterCard({
           </motion.div>
         )}
       </AnimatePresence>
-      <div className="character-card relative">
+      <div className="mb-2 px-1" style={{ width: 'var(--character-card-width)' }}>
+        <div className="flex items-center gap-2">
+          <motion.div
+            className="relative flex-shrink-0"
+            animate={shieldControls}
+          >
+            <AnimatePresence>
+              {previewBlock > 0 && (
+                <motion.div
+                  key="preview-block"
+                  initial={{ opacity: 0, y: 5, scale: 0.8 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: -5, scale: 0.8 }}
+                  transition={{ duration: 0.15 }}
+                  className="absolute -top-4 left-1/2 -translate-x-1/2 text-effect-defense font-bold text-xs whitespace-nowrap"
+                >
+                  +{previewBlock}
+                </motion.div>
+              )}
+            </AnimatePresence>
+            <motion.div
+              animate={{
+                backgroundColor: previewBlock > 0 ? '#A0B8D4' : block > 0 ? '#A0B8D4' : '#F0E8D8',
+                borderColor: previewBlock > 0 ? '#A0B8D4' : block > 0 ? '#A0B8D4' : '#D8C8E8',
+              }}
+              transition={{ duration: 0.15 }}
+              className="card-shield rounded-full border-2 flex items-center justify-center font-bold shadow-coin"
+              style={{ color: block > 0 || previewBlock > 0 ? '#FFFFFF' : '#3A3040' }}
+            >
+              {block > 0 || previewBlock > 0 ? (
+                <motion.span animate={blockNumberControls}>
+                  {previewBlock > 0 ? block + previewBlock : block}
+                </motion.span>
+              ) : (
+                <span>🛡️</span>
+              )}
+            </motion.div>
+          </motion.div>
+
+          <div className="flex-1">
+            <HPBar
+              current={hp}
+              max={maxHp}
+              color="red"
+              previewHeal={previewHeal}
+              previewSelfDamage={previewSelfDamage}
+            />
+          </div>
+        </div>
+      </div>
+      <div className="character-card relative" style={{ filter: 'drop-shadow(0 4px 8px rgba(58,48,64,0.3))' }}>
         <img
           src={characterFrame}
           alt="카드 프레임"
@@ -152,7 +199,7 @@ export function CharacterCard({
             <img
               src={characterImage}
               alt={name}
-              className="w-3/4 h-auto object-contain"
+              className="w-[72%] h-[62%] object-contain -translate-y-[6%]"
               onError={() => setImageError(true)}
             />
           ) : (
@@ -188,55 +235,8 @@ export function CharacterCard({
             />
           )}
         </AnimatePresence>
-      </div>
-
-      <div className="w-full px-1">
-         <div className="flex items-center gap-2">
-          <motion.div
-            className="relative flex-shrink-0"
-            animate={shieldControls}
-          >
-            <AnimatePresence>
-              {previewBlock > 0 && (
-                <motion.div
-                  key="preview-block"
-                  initial={{ opacity: 0, y: 5, scale: 0.8 }}
-                  animate={{ opacity: 1, y: 0, scale: 1 }}
-                  exit={{ opacity: 0, y: -5, scale: 0.8 }}
-                  transition={{ duration: 0.15 }}
-                  className="absolute -top-4 left-1/2 -translate-x-1/2 text-effect-defense font-bold text-xs whitespace-nowrap"
-                >
-                  +{previewBlock}
-                </motion.div>
-              )}
-            </AnimatePresence>
-            <motion.div
-              animate={{
-                backgroundColor: previewBlock > 0 ? '#87CEEB' : block > 0 ? '#6B7B8C' : '#2A2A32',
-                borderColor: previewBlock > 0 ? '#87CEEB' : block > 0 ? '#C0C0C0' : '#4A4A55',
-              }}
-              transition={{ duration: 0.15 }}
-              className="card-shield rounded-full border-2 flex items-center justify-center font-bold text-white shadow-coin"
-            >
-              {block > 0 || previewBlock > 0 ? (
-                <motion.span animate={blockNumberControls}>
-                  {previewBlock > 0 ? block + previewBlock : block}
-                </motion.span>
-              ) : (
-                <span>🛡️</span>
-              )}
-            </motion.div>
-          </motion.div>
-
-          <div className="flex-1">
-            <HPBar
-              current={hp}
-              max={maxHp}
-              color={isPlayer ? 'green' : 'red'}
-              previewHeal={previewHeal}
-              previewSelfDamage={previewSelfDamage}
-            />
-          </div>
+        <div className="absolute left-1/2 -translate-x-1/2 flex items-center justify-center pointer-events-none z-10" style={{ bottom: '8%', width: '62%', height: '9%' }}>
+          <span className="block max-w-full truncate text-center text-[12px] font-semibold tracking-[0.04em]" style={{ color: '#3A3040', fontFamily: 'Georgia, "Times New Roman", serif' }}>{name}</span>
         </div>
       </div>
     </motion.div>

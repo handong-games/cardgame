@@ -25,6 +25,7 @@ const ZONES = [
 
 const COMPONENTS: LayoutComponent[] = [
   // Zone A
+  { id: 'a1', name: 'A-1 장신구', zone: 'A', x: 32, y: 22, w: 140, h: 28, description: '장신구 슬롯 (상단 HUD 좌측)', color: '#D4A574', details: { '크기': '28x28px 아이콘, 간격 6px', '최대': '3개', '빈 상태': '🎒 아이콘', '방향': '좌→우 성장' } },
   { id: 'a2', name: 'A-2 지역명', zone: 'A', x: 830, y: 19, w: 260, h: 34, description: '현재 지역 이름 (중앙 정렬)', color: '#FFF5E6', details: { '폰트': '18px Medium', '색상': '#FFF5E6/80', '예시': '"🌲 잊혀진 숲"' } },
 
   { id: 'a3', name: 'A-3 소울 카운터', zone: 'A', x: 1740, y: 24, w: 100, h: 24, description: '소울 재화 표시', color: '#D4A574', details: { '폰트': '20px Bold', '포맷': '"◆ 42"' } },
@@ -33,27 +34,30 @@ const COMPONENTS: LayoutComponent[] = [
   // Zone B — 화면 중앙(x:960) 기준 대칭 배치: B-1(좌, flex-1=760px) | B-3(중앙, 400px) | B-2(우, flex-1=760px)
   { id: 'b3', name: 'B-3 전투 중앙', zone: 'B', x: 760, y: 72, w: 400, h: 848, description: '코인 조작 패널 + 이펙트 (화면 중앙 정렬)', color: '#4A4A55', details: { '범위': 'x:760~1160', '중심': 'x:960 (화면 중앙)', '용도': '코인 조작 패널, 스킬 이펙트, 턴 배너' } },
 
-  { id: 'b1-sprite', name: 'B-1 플레이어', zone: 'B', x: 270, y: 272, w: 220, h: 330, description: '플레이어 캐릭터 (B-3 좌측, flex-1 영역)', color: '#4A90C0', details: { '영역': 'x:0~760 (flex-1)', '비율': '2:3 세로형', '방향': '우측 ↗' } },
-  { id: 'b1-hp', name: 'B-1 HP 바', zone: 'B', x: 270, y: 620, w: 220, h: 18, description: '플레이어 HP 표시', color: '#C05050', details: { 'HP>50%': '#C05050', 'HP<=50%': '#CC3333', 'HP<=25%': '#FF2222 + 펄스' } },
-  { id: 'b1-def', name: 'B-1 방어도', zone: 'B', x: 246, y: 608, w: 40, h: 40, description: '방어도 뱃지 (0이면 숨김)', color: '#4A90C0', details: { '배경': '#2A4A6B', '테두리': '#4A90C0 2px' } },
-  { id: 'b1-status', name: 'B-1 상태이상', zone: 'B', x: 270, y: 646, w: 264, h: 32, description: '상태 아이콘 행 (최대 8개)', color: '#6B4B8C', details: { '아이콘': '32x32px, 간격 4px', '종류': '독/포자/가시/경화/회피/취약/힘' } },
-  { id: 'b1-acc', name: 'B-1 장신구', zone: 'B', x: 270, y: 690, w: 200, h: 40, description: '장신구 슬롯 (플레이어 하단, 우측으로 성장)', color: '#D4A574', details: { '크기': '40×40px 아이콘', '최대': '3개', '인터랙션': '호버 시 툴팁', '방향': '좌→우 성장' } },
+  { id: 'b1-def', name: 'B-1 방어도', zone: 'B', x: 236, y: 218, w: 40, h: 40, description: '플레이어 방어도 뱃지 (프레임 바로 위)', color: '#4A90C0', details: { '배경': '#2A4A6B', '테두리': '#4A90C0 2px', '숨김': '방어도 0이면 숨김' } },
+  { id: 'b1-hp', name: 'B-1 HP 바', zone: 'B', x: 280, y: 228, w: 170, h: 18, description: '플레이어 HP 표시 (프레임 바로 위)', color: '#C05050', details: { 'HP>50%': '#C05050', 'HP<=50%': '#CC3333', 'HP<=25%': '#FF2222 + 펄스', '텍스트': '45/70' } },
+  { id: 'b1-card', name: 'B-1 플레이어 카드 프레임', zone: 'B', x: 250, y: 262, w: 240, h: 360, description: '플레이어 카드 프레임 + bust portrait', color: '#E8B4B8', details: { '영역': 'x:0~760 (flex-1)', '비율': '2:3 세로형', '프레임 외곽선': '3~5px / 10px radius / #E8B4B8', '내부 캐릭터': '약 96x122, 우측 3/4 각도, 중앙 정렬' } },
+  { id: 'b1-name', name: 'B-1 플레이어명', zone: 'B', x: 270, y: 560, w: 200, h: 44, description: '플레이어 이름 리본 (카드 하단)', color: '#F0E8D8', details: { '텍스트': '전사', '규격': '200x44', '형태': '양피지 리본', '위치': '카드 하단 내부' } },
+  { id: 'b1-status', name: 'B-1 상태이상', zone: 'B', x: 270, y: 634, w: 264, h: 32, description: '상태 아이콘 행 (최대 8개)', color: '#6B4B8C', details: { '아이콘': '32x32px, 간격 4px', '종류': '독/포자/가시/경화/회피/취약/힘' } },
 
-  { id: 'b2-name', name: 'B-2 몬스터명', zone: 'B', x: 1380, y: 190, w: 200, h: 24, description: '몬스터 이름 (카드 위, 의도 위)', color: '#FFF5E6', details: { '폰트': '14px Bold', '색상': '#FFF5E6/90', '예시': '"고블린"' } },
-  { id: 'b2-intent', name: 'B-2 행동 예고', zone: 'B', x: 1400, y: 218, w: 160, h: 40, description: '몬스터 의도 아이콘 + 수치 (몬스터명 아래)', color: '#C05050', details: { '1차': '아이콘24x24 + 수치', '미공개': '❓ 회색 물음표', '호버': '확장 툴팁 250x160' } },
-  { id: 'b2-monster', name: 'B-2 몬스터 (1체)', zone: 'B', x: 1360, y: 262, w: 240, h: 360, description: '몬스터 스프라이트 (B-3 우측, flex-1 영역)', color: '#C05050', details: { '영역': 'x:1160~1920 (flex-1)', '1체': '240x360', '2체': '200x300 x2', '3체': '170x255 x3' } },
-  { id: 'b2-hp', name: 'B-2 몬스터 HP', zone: 'B', x: 1370, y: 634, w: 220, h: 14, description: '몬스터 HP 바', color: '#C05050', details: { '채움': '#C05050', '킬 가능': 'KILL 텍스트 + 펄스' } },
+  { id: 'b2-def', name: 'B-2 몬스터 방어도', zone: 'B', x: 1326, y: 218, w: 40, h: 40, description: '몬스터 방어도 뱃지 (프레임 바로 위)', color: '#4A90C0', details: { '배경': '#2A4A6B', '테두리': '#4A90C0 2px', '숨김': '방어도 0이면 숨김' } },
+  { id: 'b2-hp', name: 'B-2 몬스터 HP', zone: 'B', x: 1370, y: 228, w: 170, h: 18, description: '몬스터 HP 바 (프레임 바로 위)', color: '#C05050', details: { '채움': '#C05050', '텍스트': '12/18', '킬 가능': 'KILL 텍스트 + 펄스' } },
+  { id: 'b2-intent', name: 'B-2 행동 예고', zone: 'B', x: 1390, y: 184, w: 160, h: 36, description: '몬스터 의도 아이콘 + 수치 (HP 위)', color: '#C05050', details: { '1차': '아이콘24x24 + 수치', '미공개': '❓ 회색 물음표', '호버': '확장 툴팁 250x160' } },
+  { id: 'b2-card', name: 'B-2 몬스터 카드 프레임', zone: 'B', x: 1360, y: 262, w: 240, h: 360, description: '몬스터 메인 카드 프레임 + bust portrait', color: '#C8B888', details: { '영역': 'x:1160~1920 (flex-1)', '메인 카드': '240x360', '프레임 외곽선': '3~5px / 10px radius / Tier 색상', '내부 몬스터': '약 92x118, 좌측 3/4 각도, 중앙 정렬' } },
+  { id: 'b2-name', name: 'B-2 몬스터명', zone: 'B', x: 1380, y: 560, w: 200, h: 44, description: '몬스터 이름 리본 (카드 하단)', color: '#F0E8D8', details: { '텍스트': '고블린', '규격': '200x44', '형태': '양피지 리본', '위치': '카드 하단 내부' } },
+  { id: 'b2-sub', name: 'B-2 서브 몬스터 카드', zone: 'B', x: 1600, y: 367, w: 170, h: 255, description: '멀티 전투 시 메인 카드 하단 기준으로 맞춘 축소 서브 카드', color: '#B8B8C8', details: { '비율': '메인 대비 75%', '정렬': '메인 카드 하단선 기준', '네임플레이트': '축소형 142x36 리본', '내부 몬스터': '약 72x90' } },
+  { id: 'b2-status', name: 'B-2 상태이상', zone: 'B', x: 1380, y: 634, w: 220, h: 32, description: '몬스터 상태 아이콘 행', color: '#6B4B8C', details: { '아이콘': '32x32px, 간격 4px', '예시': '경화2' } },
 
-  { id: 'b4', name: 'B-4 코인 플립', zone: 'B', x: 760, y: 312, w: 400, h: 300, description: '코인 플립 애니메이션 (B-3 내 상단)', color: '#FFD700', details: { '코인 크기': '80x80px', '최대': '10개 (2줄)', '중심': 'x:960' } },
+  { id: 'b4', name: 'B-4 코인 플립', zone: 'B', x: 760, y: 312, w: 400, h: 300, description: '해/달 코인 플립 애니메이션 (B-3 내 상단)', color: '#FFD700', details: { '코인 크기': '80x80px', '최대': '10개 (2줄)', '중심': 'x:960' } },
 
   { id: 'b3-1a', name: 'B-3-1a 코인 주머니', zone: 'B', x: 904, y: 712, w: 112, h: 112, description: '코인 주머니 (탭하면 코인 플립)', color: '#FFD700', details: { '크기': '112×112px (56px × scale-2)', '상태': '흔들림 애니메이션 (플립 가능 시)' } },
-  { id: 'b3-1b', name: 'B-3-1b 코인 현황', zone: 'B', x: 860, y: 832, w: 200, h: 30, description: '앞면/뒷면 코인 + 남은/전체', color: '#FFD700', details: { '앞면': '☀ #FFD700', '뒷면': '🌙 #C0C0C0', '포맷': '남은: N/전체: M' } },
+  { id: 'b3-1b', name: 'B-3-1b 코인 현황', zone: 'B', x: 860, y: 832, w: 200, h: 30, description: '해/달 코인 + 남은/전체', color: '#FFD700', details: { '해': '☀ #FFD700', '달': '🌙 #6A5080', '포맷': '남은: N/전체: M' } },
   { id: 'b3-1c', name: 'B-3-1c 턴 종료', zone: 'B', x: 880, y: 872, w: 160, h: 44, description: '턴 종료 버튼 (코인 조작 패널 내 수직 배치)', color: '#4A90C0', details: { '활성': 'gradient blue', '비활성': '"대기 중" 회색', '모양': 'rounded-xl', '배치': '코인 패널 하단 중앙' } },
   { id: 'b6', name: 'B-6 라운드 진행바', zone: 'B', x: 760, y: 77, w: 400, h: 8, description: '라운드 진행바 (Zone B 상단, pill shape)', color: '#D4A574', details: { '노드': '8개 (일반/보스)', '모양': 'pill, pointer-events-none', '상태': '완료/현재/미래' } },
 
-  { id: 'c1-1', name: 'C-1 스킬 1', zone: 'C', x: 650, y: 930, w: 140, h: 140, description: '기본 공격 (☀×1, 데미지 3)', color: '#D4A574', details: { '크기': '140x140 (정사각형)', '코스트': '앞면 1', '횟수': '무제한' } },
-  { id: 'c1-2', name: 'C-1 스킬 2', zone: 'C', x: 810, y: 930, w: 140, h: 140, description: '기본 방어 (☀×1, 방어 3)', color: '#D4A574', details: { '크기': '140x140 (정사각형)', '코스트': '앞면 1', '횟수': '3회/턴' } },
-  { id: 'c1-3', name: 'C-1 스킬 3', zone: 'C', x: 970, y: 930, w: 140, h: 140, description: '투지 (🌙×3, HP 회복 4)', color: '#D4A574', details: { '크기': '140x140 (정사각형)', '코스트': '뒷면 3', '횟수': '1회/턴' } },
+  { id: 'c1-1', name: 'C-1 스킬 1', zone: 'C', x: 650, y: 930, w: 140, h: 140, description: '기본 공격 (☀×1, 데미지 3)', color: '#D4A574', details: { '크기': '140x140 (정사각형)', '코스트': '해 1', '횟수': '무제한' } },
+  { id: 'c1-2', name: 'C-1 스킬 2', zone: 'C', x: 810, y: 930, w: 140, h: 140, description: '기본 방어 (☀×1, 방어 3)', color: '#D4A574', details: { '크기': '140x140 (정사각형)', '코스트': '해 1', '횟수': '3회/턴' } },
+  { id: 'c1-3', name: 'C-1 스킬 3', zone: 'C', x: 970, y: 930, w: 140, h: 140, description: '투지 (🌙×3, HP 회복 4)', color: '#D4A574', details: { '크기': '140x140 (정사각형)', '코스트': '달 3', '횟수': '1회/턴' } },
   { id: 'c1-4', name: 'C-1 스킬 4', zone: 'C', x: 1130, y: 930, w: 140, h: 140, description: '강공격 (초안)', color: '#D4A574', details: { '크기': '140x140 (정사각형)', '코스트': 'TBD', '상태': 'draft' } },
 ]
 
@@ -66,8 +70,8 @@ const Z_INDEX_LAYERS = [
   { z: 5, name: '턴 배너', content: '페이즈 전환 텍스트' },
   { z: 4, name: 'Zone C', content: '액션 바 (스킬 슬롯)' },
   { z: 3, name: '캐릭터 오버레이', content: '선택/호버 이펙트' },
-  { z: 2, name: '전투 UI', content: 'HP바, 방어도, 상태 아이콘, 행동 예고' },
-  { z: 1, name: '캐릭터 스프라이트', content: '플레이어, 몬스터 일러스트' },
+  { z: 2, name: '전투 UI', content: 'HP바, 방어도, 상태 아이콘, 행동 예고, 네임플레이트' },
+  { z: 1, name: '카드 프레임', content: '플레이어/몬스터 카드 프레임과 bust portrait' },
   { z: 0, name: '배경', content: '전투 배경 이미지 + 어둡기 오버레이' },
 ]
 
@@ -80,8 +84,8 @@ const COLOR_PALETTE = [
   { name: 'Accent', hex: '#D4A574', token: '--text-secondary' },
   { name: 'HP Red', hex: '#C05050', token: '--hp-high' },
   { name: 'Defense Blue', hex: '#4A90C0', token: '--defense' },
-  { name: 'Coin Gold', hex: '#FFD700', token: '--coin-heads' },
-  { name: 'Coin Silver', hex: '#C0C0C0', token: '--coin-tails' },
+  { name: 'Sun Coin', hex: '#FFD700', token: '--coin-heads' },
+  { name: 'Moon Coin', hex: '#6A5080', token: '--coin-tails' },
   { name: 'Damage', hex: '#FF4444', token: '--damage' },
   { name: 'Heal', hex: '#44CC44', token: '--heal' },
 ]
@@ -196,6 +200,18 @@ function WireframePreview({
 
         {/* 장식 — Zone A: 지역명 */}
         <div
+          className="absolute flex items-center gap-[0.35%] pointer-events-none"
+          style={{ left: toPercent(34, 1920), top: toPercent(24, 1080) }}
+        >
+          {['#D4A574', '#B8A0D0', '#A0C8B0'].map((fill, i) => (
+            <div
+              key={i}
+              className="rounded-full border"
+              style={{ width: 18, height: 18, backgroundColor: `${fill}55`, borderColor: `${fill}AA` }}
+            />
+          ))}
+        </div>
+        <div
           className="absolute text-[8px] font-medium pointer-events-none select-none"
           style={{ left: toPercent(890, 1920), top: toPercent(22, 1080), color: '#FFF5E6' }}
         >
@@ -229,7 +245,7 @@ function WireframePreview({
           className="absolute flex items-center gap-[0.5%] pointer-events-none"
           style={{ left: toPercent(820, 1920), top: toPercent(682, 1080) }}
         >
-          {['#FFD700', '#FFD700', '#FFD700', '#C0C0C0', '#C0C0C0'].map((fill, i) => (
+          {['#FFD700', '#FFD700', '#FFD700', '#6A5080', '#6A5080'].map((fill, i) => (
             <div
               key={i}
               className="rounded-full"
@@ -238,40 +254,168 @@ function WireframePreview({
           ))}
         </div>
 
-        {/* 장식 — 플레이어 HP 바 채움 */}
+        <div
+          className="absolute rounded-[12px] pointer-events-none"
+          style={{
+            left: toPercent(250, 1920),
+            top: toPercent(262, 1080),
+            width: toPercent(240, 1920),
+            height: toPercent(360, 1080),
+            backgroundColor: '#1E1E24CC',
+            border: '3px solid #E8B4B8',
+            boxShadow: '0 8px 24px rgba(58,48,64,0.3)',
+          }}
+        />
+        <div
+          className="absolute rounded-[8px] pointer-events-none"
+          style={{
+            left: toPercent(262, 1920),
+            top: toPercent(274, 1080),
+            width: toPercent(216, 1920),
+            height: toPercent(288, 1080),
+            backgroundColor: '#F0E8D8',
+          }}
+        />
+        <div
+          className="absolute rounded-full pointer-events-none"
+          style={{ left: toPercent(320, 1920), top: toPercent(318, 1080), width: toPercent(96, 1920), height: toPercent(122, 1080), backgroundColor: '#E8B4B855', border: '2px solid #3A304066' }}
+        />
+        <div
+          className="absolute pointer-events-none"
+          style={{ left: toPercent(334, 1920), top: toPercent(400, 1080), width: toPercent(70, 1920), height: toPercent(96, 1080), backgroundColor: '#A96A72AA', borderRadius: '40px 40px 8px 8px' }}
+        />
+        <div
+          className="absolute rounded-[10px] pointer-events-none"
+          style={{ left: toPercent(270, 1920), top: toPercent(560, 1080), width: toPercent(200, 1920), height: toPercent(44, 1080), backgroundColor: '#F0E8D8', border: '1px solid #d8cdb8' }}
+        />
+        <div
+          className="absolute text-[9px] font-bold pointer-events-none select-none"
+          style={{ left: toPercent(350, 1920), top: toPercent(574, 1080), color: '#3A3040' }}
+        >
+          전사
+        </div>
+
         <div
           className="absolute rounded-sm pointer-events-none"
           style={{
-            left: toPercent(341, 1920),
-            top: toPercent(621, 1080),
-            width: toPercent(140, 1920),
+            left: toPercent(280, 1920),
+            top: toPercent(228, 1080),
+            width: toPercent(170, 1920),
             height: toPercent(16, 1080),
             backgroundColor: '#C05050',
+            border: '1px solid #4A4A55',
           }}
         />
         <div
           className="absolute text-[7px] font-bold pointer-events-none select-none"
-          style={{ left: toPercent(420, 1920), top: toPercent(620, 1080), color: '#FFF5E6' }}
+          style={{ left: toPercent(355, 1920), top: toPercent(229, 1080), color: '#FFF5E6' }}
         >
           45/70
         </div>
-
-        {/* 장식 — 몬스터 HP 바 채움 */}
         <div
-          className="absolute rounded-sm pointer-events-none"
+          className="absolute rounded-full pointer-events-none"
+          style={{ left: toPercent(236, 1920), top: toPercent(218, 1080), width: toPercent(40, 1920), height: toPercent(40, 1080), backgroundColor: '#2A4A6B', border: '2px solid #4A90C0' }}
+        />
+        <div
+          className="absolute text-[8px] font-bold pointer-events-none select-none"
+          style={{ left: toPercent(250, 1920), top: toPercent(231, 1080), color: '#FFF5E6' }}
+        >
+          5
+        </div>
+
+        <div
+          className="absolute rounded-[12px] pointer-events-none"
           style={{
-            left: toPercent(1371, 1920),
-            top: toPercent(635, 1080),
-            width: toPercent(145, 1920),
-            height: toPercent(12, 1080),
-            backgroundColor: '#C05050',
+            left: toPercent(1360, 1920),
+            top: toPercent(262, 1080),
+            width: toPercent(240, 1920),
+            height: toPercent(360, 1080),
+            backgroundColor: '#1E1E24CC',
+            border: '3px solid #C8B888',
+            boxShadow: '0 8px 24px rgba(58,48,64,0.3)',
           }}
         />
         <div
-          className="absolute text-[6px] font-bold pointer-events-none select-none"
-          style={{ left: toPercent(1450, 1920), top: toPercent(634, 1080), color: '#FFF5E6' }}
+          className="absolute rounded-[8px] pointer-events-none"
+          style={{
+            left: toPercent(1372, 1920),
+            top: toPercent(274, 1080),
+            width: toPercent(216, 1920),
+            height: toPercent(288, 1080),
+            backgroundColor: '#F0E8D8',
+          }}
+        />
+        <div
+          className="absolute rounded-full pointer-events-none"
+          style={{ left: toPercent(1430, 1920), top: toPercent(320, 1080), width: toPercent(92, 1920), height: toPercent(118, 1080), backgroundColor: '#8B8B7855', border: '2px solid #3A304055' }}
+        />
+        <div
+          className="absolute pointer-events-none"
+          style={{ left: toPercent(1442, 1920), top: toPercent(402, 1080), width: toPercent(74, 1920), height: toPercent(96, 1080), backgroundColor: '#76805FAA', borderRadius: '36px 36px 8px 8px' }}
+        />
+        <div
+          className="absolute rounded-[10px] pointer-events-none"
+          style={{ left: toPercent(1380, 1920), top: toPercent(560, 1080), width: toPercent(200, 1920), height: toPercent(44, 1080), backgroundColor: '#F0E8D8', border: '1px solid #d8cdb8' }}
+        />
+        <div
+          className="absolute text-[9px] font-bold pointer-events-none select-none"
+          style={{ left: toPercent(1450, 1920), top: toPercent(574, 1080), color: '#3A3040' }}
+        >
+          고블린
+        </div>
+        <div
+          className="absolute rounded-[10px] pointer-events-none"
+          style={{ left: toPercent(1600, 1920), top: toPercent(367, 1080), width: toPercent(170, 1920), height: toPercent(255, 1080), backgroundColor: '#1E1E24B8', border: '3px solid #B8B8C8' }}
+        />
+        <div
+          className="absolute rounded-[8px] pointer-events-none"
+          style={{ left: toPercent(1610, 1920), top: toPercent(377, 1080), width: toPercent(150, 1920), height: toPercent(194, 1080), backgroundColor: '#F0E8D8' }}
+        />
+        <div
+          className="absolute rounded-full pointer-events-none"
+          style={{ left: toPercent(1640, 1920), top: toPercent(430, 1080), width: toPercent(60, 1920), height: toPercent(76, 1080), backgroundColor: '#A8A8B855' }}
+        />
+        <div
+          className="absolute rounded-[8px] pointer-events-none"
+          style={{ left: toPercent(1614, 1920), top: toPercent(581, 1080), width: toPercent(142, 1920), height: toPercent(36, 1080), backgroundColor: '#F0E8D8', border: '1px solid #d8cdb8' }}
+        />
+
+        <div
+          className="absolute rounded-sm pointer-events-none"
+          style={{
+            left: toPercent(1370, 1920),
+            top: toPercent(228, 1080),
+            width: toPercent(170, 1920),
+            height: toPercent(16, 1080),
+            backgroundColor: '#C05050',
+            border: '1px solid #4A4A55',
+          }}
+        />
+        <div
+          className="absolute text-[7px] font-bold pointer-events-none select-none"
+          style={{ left: toPercent(1444, 1920), top: toPercent(229, 1080), color: '#FFF5E6' }}
         >
           12/18
+        </div>
+        <div
+          className="absolute rounded-full pointer-events-none"
+          style={{ left: toPercent(1326, 1920), top: toPercent(218, 1080), width: toPercent(40, 1920), height: toPercent(40, 1080), backgroundColor: '#2A4A6B', border: '2px solid #4A90C0' }}
+        />
+        <div
+          className="absolute text-[8px] font-bold pointer-events-none select-none"
+          style={{ left: toPercent(1340, 1920), top: toPercent(231, 1080), color: '#FFF5E6' }}
+        >
+          3
+        </div>
+        <div
+          className="absolute rounded-lg pointer-events-none"
+          style={{ left: toPercent(1390, 1920), top: toPercent(184, 1080), width: toPercent(160, 1920), height: toPercent(36, 1080), backgroundColor: '#16161CD9', border: '1px solid #4A4A55' }}
+        />
+        <div
+          className="absolute text-[8px] font-bold pointer-events-none select-none"
+          style={{ left: toPercent(1448, 1920), top: toPercent(196, 1080), color: '#FFF5E6' }}
+        >
+          ⚔ 6
         </div>
 
         {/* 장식 — 코인 현황 (Zone B 하단) */}
@@ -284,8 +428,8 @@ function WireframePreview({
             <span className="text-[8px] font-bold" style={{ color: '#FFD700' }}>3</span>
           </div>
           <div className="flex items-center gap-1">
-            <div className="rounded-full" style={{ width: 8, height: 8, backgroundColor: '#C0C0C0' }} />
-            <span className="text-[8px] font-bold" style={{ color: '#C0C0C0' }}>2</span>
+            <div className="rounded-full" style={{ width: 8, height: 8, backgroundColor: '#6A5080' }} />
+            <span className="text-[8px] font-bold" style={{ color: '#6A5080' }}>2</span>
           </div>
         </div>
       </div>
@@ -385,7 +529,7 @@ export default function BattleLayout() {
       <div className="bg-gradient-to-r from-blue-900/40 to-slate-800 p-6 rounded-xl border border-blue-700/40">
         <h2 className="text-2xl font-bold text-emerald-400 mb-1">배틀씬 UI 레이아웃</h2>
         <p className="text-slate-300 text-sm">
-          1920 x 1080 기준 | v4.0 Dark Frame Edition |{' '}
+          1920 x 1080 기준 | v6.0 "라벤더 안개" |{' '}
           <span className="text-slate-400">컴포넌트를 클릭하면 상세 정보를 확인할 수 있습니다</span>
         </p>
       </div>

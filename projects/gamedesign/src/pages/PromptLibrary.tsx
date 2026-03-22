@@ -15,6 +15,7 @@ const CATEGORY_LABELS: Record<ExampleCategory, string> = {
   castle: '성 몬스터',
   background: '배경',
   ui: 'UI 에셋',
+  skillIcon: '스킬 아이콘',
   npc: 'NPC',
 }
 
@@ -66,6 +67,72 @@ function PromptExamples() {
   const [selectedCategory, setSelectedCategory] = useState<ExampleCategory>('frame')
   const [selectedExample, setSelectedExample] = useState<string>('frame-player')
 
+  const baseReferenceDocs = [
+    {
+      title: '디자인 에센스',
+      path: 'docs/디자인-에센스-v6.md',
+      desc: '감정 축, 가독성 우선순위, 파스텔 세계관 일관성 기준'
+    },
+    {
+      title: '설계도 인덱스',
+      path: 'docs/디자인-설계도-운영-인덱스-v6.md',
+      desc: '카테고리별 관리 구조와 변경 순서'
+    },
+  ]
+
+  const categoryBlueprintDocs: Record<ExampleCategory, { title: string, path: string, desc: string }> = {
+    frame: {
+      title: '프레임 설계도',
+      path: 'docs/설계도/프레임-설계도-v6.md',
+      desc: '양피지 크림 9종, 파스텔 테두리, 카드 레이아웃'
+    },
+    character: {
+      title: '캐릭터 설계도',
+      path: 'docs/설계도/캐릭터-설계도-v6.md',
+      desc: '플랫 컬러 bust portrait, 보석톤 클래스색, 균일 아웃라인'
+    },
+    companion: {
+      title: '캐릭터 설계도',
+      path: 'docs/설계도/캐릭터-설계도-v6.md',
+      desc: '원형 프레임 bust portrait, 파스텔 톤 동료'
+    },
+    forest: {
+      title: '몬스터 설계도',
+      path: 'docs/설계도/몬스터-설계도-v6.md',
+      desc: '카드형 bust, 민트+라벤더 팔레트, 보석톤 속성'
+    },
+    dungeon: {
+      title: '몬스터 설계도',
+      path: 'docs/설계도/몬스터-설계도-v6.md',
+      desc: '카드형 bust, 스카이+라벤더 팔레트'
+    },
+    castle: {
+      title: '몬스터 설계도',
+      path: 'docs/설계도/몬스터-설계도-v6.md',
+      desc: '카드형 bust, 로즈+라벤더 팔레트'
+    },
+    background: {
+      title: '배경 설계도',
+      path: 'docs/설계도/배경-설계도-v6.md',
+      desc: '소프트 블러 60~70%, 채도 시프트 3단계, 환경만'
+    },
+    ui: {
+      title: 'UI 설계도',
+      path: 'docs/설계도/UI-설계도-v6.md',
+      desc: '양피지 재질, 해/달 코인, 파스텔 가독성'
+    },
+    skillIcon: {
+      title: 'UI 설계도',
+      path: 'docs/설계도/UI-설계도-v6.md',
+      desc: '파스텔 보석톤 아이콘, 축소 가독성'
+    },
+    npc: {
+      title: '캐릭터 설계도',
+      path: 'docs/설계도/캐릭터-설계도-v6.md',
+      desc: 'bust portrait, 지역 파스텔 팔레트, 친근한 톤'
+    },
+  }
+
   const categories = [
     { id: 'frame' as ExampleCategory, label: '프레임', icon: '🖼️', color: 'amber' },
     { id: 'character' as ExampleCategory, label: '캐릭터', icon: '🦸', color: 'emerald' },
@@ -75,6 +142,7 @@ function PromptExamples() {
     { id: 'castle' as ExampleCategory, label: '성', icon: '🏰', color: 'red' },
     { id: 'background' as ExampleCategory, label: '배경', icon: '🖼️', color: 'purple' },
     { id: 'ui' as ExampleCategory, label: 'UI', icon: '⚙️', color: 'blue' },
+    { id: 'skillIcon' as ExampleCategory, label: '스킬 아이콘', icon: '🗡️', color: 'rose' },
     { id: 'npc' as ExampleCategory, label: 'NPC', icon: '🧑‍🍳', color: 'orange' },
   ]
 
@@ -96,6 +164,7 @@ function PromptExamples() {
 
   const currentExamples = PROMPT_EXAMPLES[selectedCategory]
   const currentExample = currentExamples.find(e => e.id === selectedExample) || currentExamples[0]
+  const referenceDocs = [...baseReferenceDocs, categoryBlueprintDocs[selectedCategory]]
 
   const handleCategoryChange = (category: ExampleCategory) => {
     setSelectedCategory(category)
@@ -118,6 +187,7 @@ function PromptExamples() {
       castle: PROMPT_EXAMPLES.castle.length,
       background: PROMPT_EXAMPLES.background.length,
       ui: PROMPT_EXAMPLES.ui.length,
+      skillIcon: PROMPT_EXAMPLES.skillIcon.length,
       npc: PROMPT_EXAMPLES.npc.length,
       total: Object.values(PROMPT_EXAMPLES).reduce((sum, arr) => sum + arr.length, 0)
     }
@@ -130,8 +200,27 @@ function PromptExamples() {
         게임의 모든 에셋에 대한 복사-붙여넣기 가능한 프롬프트입니다.
       </p>
       <p className="text-amber-400 text-xs mb-6">
-        프레임 {stats.frame}종 | 캐릭터 {stats.character}종 | 동료 {stats.companion}종 | 숲 {stats.forest}종 | 던전 {stats.dungeon}종 | 성 {stats.castle}종 | 배경 {stats.background}종 | UI {stats.ui}종 | NPC {stats.npc}종 = <strong>총 {stats.total}종</strong>
+        프레임 {stats.frame}종 | 캐릭터 {stats.character}종 | 동료 {stats.companion}종 | 숲 {stats.forest}종 | 던전 {stats.dungeon}종 | 성 {stats.castle}종 | 배경 {stats.background}종 | UI {stats.ui}종 | 스킬 아이콘 {stats.skillIcon}종 | NPC {stats.npc}종 = <strong>총 {stats.total}종</strong>
       </p>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-6">
+        {referenceDocs.map((doc) => (
+          <div key={doc.path} className="bg-slate-900/70 border border-slate-700 rounded-lg p-4">
+            <div className="flex items-start justify-between gap-3">
+              <div className="text-sm font-medium text-emerald-300">{doc.title}</div>
+              <button
+                type="button"
+                onClick={() => navigator.clipboard.writeText(doc.path)}
+                className="px-2 py-1 text-[11px] bg-slate-800 hover:bg-slate-700 text-slate-200 rounded border border-slate-600 transition-colors"
+              >
+                경로 복사
+              </button>
+            </div>
+            <div className="text-xs text-slate-400 mt-1">{doc.desc}</div>
+            <code className="block text-xs text-amber-300 mt-3 break-all">{doc.path}</code>
+          </div>
+        ))}
+      </div>
 
       {/* 카테고리 선택 */}
       <div className="flex flex-wrap gap-2 mb-4">
@@ -146,6 +235,7 @@ function PromptExamples() {
             red: 'bg-red-600 shadow-red-900/50',
             purple: 'bg-purple-600 shadow-purple-900/50',
             orange: 'bg-orange-600 shadow-orange-900/50',
+            rose: 'bg-rose-600 shadow-rose-900/50',
           }
           const activeClass = colorMap[cat.color] || 'bg-blue-600 shadow-blue-900/50'
           const count = PROMPT_EXAMPLES[cat.id].length

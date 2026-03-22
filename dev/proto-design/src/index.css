@@ -13,17 +13,27 @@
   --dark-graphite: #4A4A55;
   --dark-surface: #16161C;
 
-  --sepia-parchment: #F5E6D3;
-  --sepia-aged: #E8D5C4;
-  --coin-gold: #DAA520;
-  --coin-bronze: #CD7F32;
-  --sun-gold: #FFD700;
-  --moon-silver: #C0C0C0;
-  --ink-brown: #3D2914;
-  
-  /* ═══════════════════════════════════════════════════════════════
-   * 카드 비율 시스템 (2:3 = AI 생성 이미지 비율 512x768 기준)
-   * ═══════════════════════════════════════════════════════════════ */
+   --sepia-parchment: #F5E6D3;
+   --sepia-aged: #E8D5C4;
+   --coin-gold: #DAA520;
+   --coin-bronze: #CD7F32;
+   --sun-gold: #FFD700;
+   --moon-silver: #C0C0C0;
+   --ink-brown: #3D2914;
+   
+   /* v6.0 Lavender Mist */
+   --v6-lavender: #D8C8E8;
+   --v6-cream: #F0E8D8;
+   --v6-gold: #C9A86C;
+   --v6-text-primary: #3A3040;
+   --v6-text-secondary: #6A6070;
+   --v6-hp-rose: #E8B4B8;
+   --v6-hp-depleted: #A0A0A8;
+   --v6-defense: #A0B8D4;
+   
+   /* ═══════════════════════════════════════════════════════════════
+    * 카드 비율 시스템 (2:3 = AI 생성 이미지 비율 512x768 기준)
+    * ═══════════════════════════════════════════════════════════════ */
   --card-aspect-ratio: 2 / 3;
   
   /* 
@@ -162,8 +172,8 @@ body {
   }
 
   .hp-bar-container {
-    background: var(--dark-surface);
-    border: 2px solid var(--dark-graphite);
+    background: #A0A0A8;
+    border: 2px solid rgba(58,48,64,0.3);
     border-radius: 6px;
     overflow: hidden;
   }
@@ -262,14 +272,15 @@ body {
   }
 
   .skill-slot-coin {
-    background: linear-gradient(to bottom, var(--dark-charcoal), var(--dark-deep));
-    border: 2px solid var(--dark-graphite);
-    border-radius: 8px;
+    background: #F0E8D8;
+    border: 2px solid #D8C8E8;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(58,48,64,0.15);
   }
 
   .skill-slot-coin:hover {
-    border-color: rgba(255, 255, 255, 0.2);
-    box-shadow: 0 0 8px rgba(255, 255, 255, 0.1);
+    border-color: #C9A86C;
+    box-shadow: 0 0 12px rgba(201,168,108,0.3);
   }
 }
 

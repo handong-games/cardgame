@@ -35,6 +35,8 @@ import nodeRestIcon from '@assets/icons/node-rest.png';
 import nodeMonsterIcon from '@assets/icons/node-monster.png';
 import nodeBossIcon from '@assets/icons/node-boss.png';
 import companionFrameImg from '@assets/frames/frame-companion.png';
+import sunCoinImg from '@assets/coins/sun-coin.png';
+import moonCoinImg from '@assets/coins/moon-coin.png';
 import type { BgTheme } from '../../types';
 
 // 현재 숲 배경만 존재 — 성/던전 배경은 gamedesign에서 생성 후 추가 예정
@@ -980,11 +982,11 @@ export function BattleScreen() {
           top: `${offset.y}px`,
         }}
       >
-        <div className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: `url(${regionBg})` }}>
-          <div className="absolute inset-0 bg-black/20" />
+        <div className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: `url(${regionBg})`, filter: 'blur(3px) brightness(0.82) saturate(0.88)' }}>
+          <div className="absolute inset-0" style={{ background: 'linear-gradient(to bottom, rgba(58,48,64,0.20), rgba(58,48,64,0.28))' }} />
         </div>
 
-        <div className="absolute top-0 left-0 w-full h-[72px] z-20 bg-[#16161C]/90 border-b border-[#4A4A55]">
+        <div className="absolute top-0 left-0 w-full h-[72px] z-20" style={{ background: 'linear-gradient(to bottom, rgba(77,67,85,0.92), rgba(61,52,68,0.90))', borderBottom: '1px solid rgba(240,232,216,0.16)', boxShadow: '0 4px 16px rgba(18,14,24,0.28)' }}>
           <TopBar
             regionName={getRegion(run.regionId).name}
             souls={player.souls}
@@ -1040,15 +1042,14 @@ export function BattleScreen() {
                   </div>
                 )}
                 <div ref={playerZoneRef} className="flex flex-col items-center rounded-lg transition-all">
-                  <CharacterCard
-                    name={player.characterClass === 'paladin' ? '팔라딘' : '전사'}
-                    hp={player.hp}
-                    maxHp={player.maxHp}
-                    block={player.block}
-                    attack={6}
-                    emoji={player.characterClass === 'paladin' ? '⚔️' : '🧑‍⚔️'}
-                    isPlayer={true}
-                    isAttacking={battle.combatAnimation.playerAttacking}
+                    <CharacterCard
+                      name={player.characterClass === 'paladin' ? '팔라딘' : '전사'}
+                      hp={player.hp}
+                      maxHp={player.maxHp}
+                      block={player.block}
+                      attack={6}
+                      emoji={player.characterClass === 'paladin' ? '⚔️' : '🧑‍⚔️'}
+                      isAttacking={battle.combatAnimation.playerAttacking}
                     isHit={battle.combatAnimation.playerHit}
                     isShieldHit={battle.combatAnimation.shieldHit}
                     previewBlock={previewEffects?.block ?? 0}
@@ -1111,18 +1112,18 @@ export function BattleScreen() {
                     </div>
                     <div className={`flex flex-col items-center gap-1.5 px-4 py-2 rounded-xl border transition-opacity ${
                       battle.lastTossResults.length > 0
-                        ? 'bg-[#1E1E24] border-[#4A4A55] opacity-100'
+                        ? 'opacity-100'
                         : 'opacity-0 pointer-events-none'
-                    }`}>
+                    }`} style={battle.lastTossResults.length > 0 ? { backgroundColor: 'rgba(240,232,216,0.85)', borderColor: 'rgba(58,48,64,0.2)' } : undefined}>
                       <div className="flex items-center gap-3">
                         <div ref={sunCountRef} className="flex items-center gap-1.5">
-                          <span className="text-lg">☀️</span>
+                          <img src={sunCoinImg} alt="해 코인" className="w-5 h-5 object-contain" />
                           <span className="text-lg font-bold text-[#FFD700]">{headsValue}</span>
                         </div>
-                        <div className="w-px h-5 bg-[#4A4A55]" />
+                        <div className="w-px h-5" style={{ backgroundColor: 'rgba(58,48,64,0.2)' }} />
                         <div ref={moonCountRef} className="flex items-center gap-1.5">
-                          <span className="text-lg">🌙</span>
-                          <span className="text-lg font-bold text-[#C0C0C0]">{tailsValue}</span>
+                          <img src={moonCoinImg} alt="달 코인" className="w-5 h-5 object-contain" />
+                          <span className="text-lg font-bold text-[#6A5080]">{tailsValue}</span>
                         </div>
                       </div>
                     </div>
@@ -1488,7 +1489,6 @@ export function BattleScreen() {
                   >
                     <EnemyCard
                       enemy={displayEnemy}
-                      enemyName={displayEnemy.name}
                       isAttacking={battle.combatAnimation.enemyAttacking}
                       isHit={battle.combatAnimation.enemyHit}
                       previewDamage={previewEffects?.damage ?? 0}
@@ -1542,22 +1542,35 @@ export function BattleScreen() {
 
         <div
           className={`absolute bottom-0 left-0 w-full h-[160px] z-20 border-t ${isPlayerTurn ? 'border-amber-500/40' : 'border-red-500/30'}`}
-          style={{ background: 'linear-gradient(to bottom, #16161C, #1E1E24)' }}
+          style={{
+            background: 'transparent',
+            boxShadow: 'none',
+            backdropFilter: 'none',
+          }}
         >
           <div className="flex items-center justify-center h-full overflow-visible">
-            <SkillPanel
-              skills={player.skills}
-              skillStates={player.skillStates}
-              lastTossResults={battle.lastTossResults}
-              isPlayerTurn={isPlayerTurn}
-              player={player}
-              enemy={enemy}
-              hoveredSkill={hoveredSkill}
-              onUseSkill={useSkill}
-              onSkillHover={handleSkillHover}
-              onSkillDragStart={startSkillDrag}
-              draggingSkillId={skillDragState.skill?.id ?? null}
-            />
+            <div
+              className="inline-flex items-center justify-center rounded-[24px] border px-5 py-4"
+              style={{
+                background: 'linear-gradient(to bottom, rgba(77,67,85,0.92), rgba(61,52,68,0.90))',
+                borderColor: 'rgba(240,232,216,0.16)',
+                boxShadow: '0 8px 20px rgba(18,14,24,0.24)',
+              }}
+            >
+              <SkillPanel
+                skills={player.skills}
+                skillStates={player.skillStates}
+                lastTossResults={battle.lastTossResults}
+                isPlayerTurn={isPlayerTurn}
+                player={player}
+                enemy={enemy}
+                hoveredSkill={hoveredSkill}
+                onUseSkill={useSkill}
+                onSkillHover={handleSkillHover}
+                onSkillDragStart={startSkillDrag}
+                draggingSkillId={skillDragState.skill?.id ?? null}
+              />
+            </div>
           </div>
         </div>
 

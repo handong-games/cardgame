@@ -2,13 +2,15 @@ import { useState } from 'react'
 import BattleLayout from './BattleLayout'
 import ShopLayout from './ShopLayout'
 import EventLayout from './EventLayout'
+import CardFrameLayout from './CardFrameLayout'
 
 // --- 탭 정의 ---
 
-type LayoutTab = 'battle' | 'shop' | 'event'
+type LayoutTab = 'battle' | 'cardFrame' | 'shop' | 'event'
 
 const TABS: { id: LayoutTab; label: string; icon: string; description: string }[] = [
   { id: 'battle', label: '배틀씬', icon: '⚔️', description: '전투 화면 UI 레이아웃' },
+  { id: 'cardFrame', label: '카드 프레임', icon: '🪪', description: '캐릭터/몬스터 카드 UI 레이아웃' },
   { id: 'shop', label: '상점', icon: '🛒', description: '상점 화면 UI 레이아웃' },
   { id: 'event', label: '이벤트', icon: '❓', description: '이벤트 화면 UI 레이아웃' },
 ]
@@ -40,6 +42,7 @@ export default function Layouts() {
 
       {/* 탭 콘텐츠 */}
       {activeTab === 'battle' && <BattleLayout />}
+      {activeTab === 'cardFrame' && <CardFrameLayout />}
       {activeTab === 'shop' && <ShopLayout />}
       {activeTab === 'event' && <EventLayout />}
     </div>

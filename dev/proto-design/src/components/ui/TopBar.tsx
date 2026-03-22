@@ -38,11 +38,11 @@ export function TopBar({
   const renderCenter = () => {
     if (title) {
       return (
-        <div className="flex items-center gap-2.5 px-3.5 py-1 bg-dark-deep/60 rounded-full border border-dark-graphite/50">
+        <div className="flex items-center gap-2.5 px-3.5 py-1 rounded-full border" style={{ backgroundColor: 'rgba(216,200,232,0.4)', borderColor: 'rgba(58,48,64,0.15)' }}>
           {titleIcon && <span className="text-base">{titleIcon}</span>}
-          <span className="text-gray-200 font-medium text-base">{title}</span>
+          <span className="font-medium text-base" style={{ color: '#3A3040' }}>{title}</span>
           {subtitle && (
-            <span className="text-sm text-gray-400 border-l border-dark-graphite/50 pl-2">{subtitle}</span>
+            <span className="text-sm border-l pl-2" style={{ color: '#6A6070', borderColor: 'rgba(58,48,64,0.15)' }}>{subtitle}</span>
           )}
         </div>
       );
@@ -50,9 +50,9 @@ export function TopBar({
 
     if (mode === 'battle' && regionName) {
       return (
-        <div className="flex items-center gap-2 px-3.5 py-1 bg-dark-deep/60 rounded-full border border-dark-graphite/50">
+        <div className="flex items-center gap-2 px-3.5 py-1 rounded-full border" style={{ backgroundColor: 'rgba(216,200,232,0.4)', borderColor: 'rgba(58,48,64,0.15)' }}>
           <span className="text-base">🌲</span>
-          <span className="text-[#FFF5E6]/80 font-medium text-base">{regionName}</span>
+          <span className="font-medium text-base" style={{ color: '#3A3040' }}>{regionName}</span>
         </div>
       );
     }
@@ -69,19 +69,23 @@ export function TopBar({
   };
 
   return (
-    <div className="w-full h-full bg-gradient-to-r from-dark-surface/90 via-dark-charcoal/90 to-dark-surface/90 backdrop-blur-sm border-b border-dark-graphite/50 px-5 py-2 shadow-card-dark">
-      <div className="max-w-5xl mx-auto h-full flex items-center justify-between gap-4">
-        {/* 좌측 */}
-        {renderLeft()}
+    <div className="w-full h-full backdrop-blur-sm border-b px-5 py-2" style={{ background: 'linear-gradient(to bottom, rgba(77,67,85,0.92), rgba(61,52,68,0.90))', borderColor: 'rgba(240,232,216,0.16)', boxShadow: '0 4px 16px rgba(18,14,24,0.28)' }}>
+      <div className="relative h-full w-full flex items-center justify-between gap-4">
+        <div className="flex min-w-0 flex-1 items-center justify-start">
+          {renderLeft()}
+        </div>
 
-        {/* 중앙 */}
-        {renderCenter()}
+        <div className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
+          <div className="pointer-events-auto">
+            {renderCenter()}
+          </div>
+        </div>
 
-        {/* 우측: 영혼 + 오디오 + 설정 */}
-        <div className="flex items-center gap-2.5 flex-shrink-0">
+        <div className="flex min-w-0 flex-1 items-center justify-end gap-2.5">
           <motion.div
             ref={soulCounterRef}
-            className="flex items-center gap-2 px-3 py-1 bg-dark-deep/60 rounded-full border border-dark-graphite/50"
+            className="flex items-center gap-2 px-3 py-1 rounded-full border"
+            style={{ backgroundColor: 'rgba(216,200,232,0.4)', borderColor: 'rgba(58,48,64,0.15)' }}
             animate={soulPulse ? {
               scale: [1, 1.2, 1],
               boxShadow: ['0 0 0 rgba(192,192,192,0)', '0 0 20px rgba(192,192,192,0.5)', '0 0 0 rgba(192,192,192,0)'],
@@ -89,7 +93,7 @@ export function TopBar({
             } : {}}
           >
             <img src={soulIcon} alt="소울" className="w-5 h-5 object-contain" />
-            <span className="text-gray-200 font-bold text-base">{souls}</span>
+            <span className="font-bold text-base" style={{ color: '#3A3040' }}>{souls}</span>
           </motion.div>
           {onToggleMute && (
             <AudioControl isMuted={isMuted} onToggleMute={onToggleMute} />
@@ -98,7 +102,8 @@ export function TopBar({
             onClick={onOpenSettings}
             whileHover={{ scale: 1.15, rotate: 90 }}
             whileTap={{ scale: 0.9 }}
-            className="w-8 h-8 rounded-full bg-dark-deep/60 border border-dark-graphite/50 flex items-center justify-center cursor-pointer transition-colors hover:border-gray-400"
+            className="w-8 h-8 rounded-full flex items-center justify-center cursor-pointer transition-colors"
+            style={{ backgroundColor: 'rgba(216,200,232,0.4)', border: '1px solid rgba(58,48,64,0.15)' }}
             title="설정"
           >
             <img src={settingsIcon} alt="설정" className="w-5 h-5 object-contain opacity-80" />

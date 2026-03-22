@@ -1,10 +1,10 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { useEffect, useState, useMemo, useRef } from 'react';
 import type { CoinTossResult } from '../../types';
-import { COIN_TOSS_PHYSICS, getScaledCoinPhysics } from '../../animations/coinAnimations';
+import { COIN_TOSS_PHYSICS } from '../../animations/coinAnimations';
 import { useAnimSpeed } from '../../hooks/useAnimSpeed';
-import sunCoinImg from '@assets/coins/coin-heads.png';
-import moonCoinImg from '@assets/coins/coin-tails.png';
+import sunCoinImg from '@assets/coins/sun-coin.png';
+import moonCoinImg from '@assets/coins/moon-coin.png';
 
 interface CoinTossAnimationProps {
   results: CoinTossResult[];
@@ -189,11 +189,11 @@ export function CoinTossAnimation({
                 <motion.div
                   key={`moving-${index}`}
                   className="absolute w-8 h-8 rounded-full flex items-center justify-center overflow-hidden"
-                  style={{
-                    boxShadow: result.isHeads
-                      ? '0 0 12px rgba(255, 215, 0, 0.5)'
-                      : '0 0 8px rgba(192, 192, 192, 0.3)',
-                  }}
+                    style={{
+                      boxShadow: result.isHeads
+                        ? '0 0 12px rgba(255, 215, 0, 0.5)'
+                        : '0 0 10px rgba(106, 80, 128, 0.35)',
+                    }}
                   initial={{
                     x: coinState.currentX,
                     y: coinState.currentY,
