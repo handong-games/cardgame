@@ -7,6 +7,7 @@ import { calculateCoinValues } from '../../utils/coinToss';
 import frameSkillsImg from '@assets/frames/skill-frame.png';
 import attackFrameImg from '@assets/frames/skill-frame-attack.png';
 import defenseFrameImg from '@assets/frames/skill-frame-defense.png';
+import buffFrameImg from '@assets/frames/skill-frame-buff.png';
 import { SKILL_IMAGES } from '../../data/skillImages';
 
 function getSkillFrameImage(skill: Skill): string {
@@ -17,9 +18,11 @@ function getSkillFrameImage(skill: Skill): string {
 
   const hasDamage = allEffects.some((effect) => effect.type === 'damage');
   const hasBlock = allEffects.some((effect) => effect.type === 'block');
+  const hasBuffLikeEffect = allEffects.some((effect) => ['heal', 'draw', 'buff', 'debuff', 'coin_control'].includes(effect.type));
 
   if (hasDamage) return attackFrameImg;
   if (hasBlock) return defenseFrameImg;
+  if (hasBuffLikeEffect) return buffFrameImg;
   return frameSkillsImg;
 }
 
@@ -142,22 +145,10 @@ export function SkillSlot({
               alt={skill.name}
               className="absolute inset-0 w-3/4 h-3/4 m-auto object-contain"
             />
-            {/* 이미지 스킬 이름 라벨 */}
-            <div className="absolute bottom-1 left-0 right-0 text-center">
-              <span
-                className="text-[10px] px-1.5 py-0.5 rounded font-medium truncate inline-block max-w-full"
-                style={{ color: '#3A3040', backgroundColor: 'rgba(240,232,216,0.9)' }}
-              >
-                {skill.name}
-              </span>
-            </div>
           </div>
          ) : (
           <>
             <span className="text-4xl">{skill.icon}</span>
-            <span className="text-sm mt-1 truncate max-w-full px-1 font-medium" style={{ color: '#3A3040' }}>
-              {skill.name}
-            </span>
           </>
         )}
 
@@ -220,7 +211,7 @@ export function SkillSlot({
       </motion.button>
 
       <AnimatePresence>
-        {isHovered && canUse && (
+        {isHovered && (
           <SkillTooltip
             skill={skill}
             skillState={skillState}

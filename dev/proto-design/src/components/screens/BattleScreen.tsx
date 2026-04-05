@@ -24,7 +24,6 @@ import { getTavernCompanions } from '../../data/companions';
 import type { BloodAltarReward, CoinTossResult, Skill } from '../../types';
 import type { Enemy, DestinationOption, DestinationType, Accessory, Facility, Companion } from '../../types';
 import { calculatePreviewEffects } from '../../utils/skillSystem';
-import { calculateCoinValues } from '../../utils/coinToss';
 import { useSkillDrag } from '../../hooks/useSkillDrag';
 import { useAudio } from '../../hooks/useAudio';
 import forestBg from '@assets/backgrounds/sunny-forest-day.png';
@@ -37,6 +36,7 @@ import nodeBossIcon from '@assets/icons/node-boss.png';
 import companionFrameImg from '@assets/frames/frame-companion.png';
 import sunCoinImg from '@assets/coins/sun-coin.png';
 import moonCoinImg from '@assets/coins/moon-coin.png';
+import endTurnButtonImg from '@assets/buttons/btn-end-turn.png';
 import type { BgTheme } from '../../types';
 
 // 현재 숲 배경만 존재 — 성/던전 배경은 gamedesign에서 생성 후 추가 예정
@@ -625,7 +625,6 @@ export function BattleScreen() {
   // 스킬 호버 프리뷰 상태
   const [hoveredSkill, setHoveredSkill] = useState<Skill | null>(null);
   // 턴 배너 상태
-  const [showTurnBanner, setShowTurnBanner] = useState<'player' | 'enemy' | null>(null);
 
   // 스킬 드래그 (적 타겟 스킬용)
   const handleSkillDropOnEnemy = useCallback((skill: Skill) => {
@@ -640,9 +639,8 @@ export function BattleScreen() {
   const canAct = isPlayerTurn && !battle.combatAnimation?.playerAttacking && !battle.combatAnimation?.enemyAttacking;
 
   // 코인 가치 계산
-  const coinValues = calculateCoinValues(battle.lastTossResults);
-  const headsValue = coinValues.heads;
-  const tailsValue = coinValues.tails;
+  const sunResults = battle.lastTossResults.filter(result => result.isHeads);
+  const moonResults = battle.lastTossResults.filter(result => !result.isHeads);
 
   // 드롭 존 refs
   const enemyZoneRef = useRef<HTMLDivElement>(null);
@@ -775,20 +773,6 @@ export function BattleScreen() {
   useEffect(() => {
     registerEnemyZone(enemyZoneRef);
   }, [registerEnemyZone]);
-
-  // 턴 배너 표시
-  useEffect(() => {
-    const m = getCurrentSpeedMultiplier();
-    if (battle.phase === 'player_turn') {
-      setShowTurnBanner('player');
-      const timer = setTimeout(() => setShowTurnBanner(null), 1800 * m);
-      return () => clearTimeout(timer);
-    } else if (battle.phase === 'enemy_turn') {
-      setShowTurnBanner('enemy');
-      const timer = setTimeout(() => setShowTurnBanner(null), 1500 * m);
-      return () => clearTimeout(timer);
-    }
-  }, [battle.phase]);
 
   useEffect(() => {
     if (battle.phase === 'player_turn') {
@@ -982,11 +966,12 @@ export function BattleScreen() {
           top: `${offset.y}px`,
         }}
       >
-        <div className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: `url(${regionBg})`, filter: 'blur(3px) brightness(0.82) saturate(0.88)' }}>
-          <div className="absolute inset-0" style={{ background: 'linear-gradient(to bottom, rgba(58,48,64,0.20), rgba(58,48,64,0.28))' }} />
+        <div className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: `url(${regionBg})`, filter: 'blur(1.8px) brightness(0.88) saturate(0.94)' }}>
+          <div className="absolute inset-0" style={{ background: 'radial-gradient(circle at center, rgba(240,232,216,0.12) 0%, rgba(240,232,216,0.05) 26%, rgba(58,48,64,0.10) 52%, rgba(24,20,28,0.34) 100%)' }} />
+          <div className="absolute inset-0" style={{ background: 'linear-gradient(to bottom, rgba(58,48,64,0.12), rgba(58,48,64,0.18) 38%, rgba(24,20,28,0.28) 100%)' }} />
         </div>
 
-        <div className="absolute top-0 left-0 w-full h-[72px] z-20" style={{ background: 'linear-gradient(to bottom, rgba(77,67,85,0.92), rgba(61,52,68,0.90))', borderBottom: '1px solid rgba(240,232,216,0.16)', boxShadow: '0 4px 16px rgba(18,14,24,0.28)' }}>
+        <div className="absolute top-0 left-0 w-full h-[72px] z-20" style={{ background: 'linear-gradient(to bottom, rgba(103,82,92,0.94), rgba(82,64,75,0.92))', borderBottom: '1px solid rgba(246,231,214,0.22)', boxShadow: '0 4px 18px rgba(28,20,28,0.3)' }}>
           <TopBar
             regionName={getRegion(run.regionId).name}
             souls={player.souls}
@@ -1003,6 +988,15 @@ export function BattleScreen() {
           className="absolute top-[72px] left-0 w-full z-10"
           style={{ bottom: '160px' }}
         >
+          <div className="absolute inset-x-0 bottom-0 flex justify-center pointer-events-none z-0">
+            <div
+              className="h-[240px] w-[520px] rounded-full"
+              style={{
+                background: 'linear-gradient(to top, rgba(240,232,216,0.14), rgba(240,232,216,0.05) 36%, rgba(240,232,216,0))',
+                filter: 'blur(18px)',
+              }}
+            />
+          </div>
           <div className="absolute top-3 left-0 w-full flex justify-center z-20 pointer-events-none">
             <div className="flex items-center gap-1 px-4 py-1.5 rounded-full bg-[#16161C]/70 border border-[#4A4A55]/50 backdrop-blur-sm">
               {Array.from({ length: run.totalRounds }, (_, i) => i + 1).map((round) => {
@@ -1031,7 +1025,7 @@ export function BattleScreen() {
             </div>
           </div>
           <div className="w-full h-full flex items-center">
-            <div className="flex-1 flex justify-center">
+            <div className="flex-1 flex justify-end pr-12">
             <div className="flex flex-col items-center">
               <div className="relative">
                 {run.companions.length > 0 && (
@@ -1089,19 +1083,28 @@ export function BattleScreen() {
               </div>
             </div>
             </div>
-            <div className="w-[400px] shrink-0 self-stretch flex flex-col items-center">
+            <div className="relative w-[400px] shrink-0 self-stretch flex flex-col items-center">
               <div className="flex-[5]" />
               <AnimatePresence>
                 {isPlayerTurn && (
                   <motion.div
                     key="coin-actions"
-                    className="flex flex-col items-center gap-3"
+                    className="relative flex flex-col items-center gap-2.5"
                     initial={{ opacity: 0, y: 15 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: 15 }}
                     transition={{ duration: 0.25, ease: 'easeOut' }}
                   >
-                    <div className="scale-[2] mb-2">
+                    <div
+                      className="flex flex-col items-center justify-center gap-2 px-4 py-2.5 rounded-[24px] border"
+                      style={{
+                        background: 'linear-gradient(to bottom, rgba(240,232,216,0.72), rgba(232,220,210,0.56))',
+                        borderColor: 'rgba(106,80,128,0.14)',
+                        boxShadow: '0 12px 28px rgba(58,48,64,0.14)',
+                        backdropFilter: 'blur(6px)',
+                      }}
+                    >
+                    <div className="absolute left-1/2 top-[-156px] -translate-x-1/2 scale-[2]">
                       <AnimatePresence>
                         {!coinTossState.pouchHidden && (
                           <motion.div ref={coinPouchRef} initial={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.5 }} transition={{ duration: 0.3 }}>
@@ -1110,37 +1113,73 @@ export function BattleScreen() {
                         )}
                       </AnimatePresence>
                     </div>
-                    <div className={`flex flex-col items-center gap-1.5 px-4 py-2 rounded-xl border transition-opacity ${
-                      battle.lastTossResults.length > 0
-                        ? 'opacity-100'
-                        : 'opacity-0 pointer-events-none'
-                    }`} style={battle.lastTossResults.length > 0 ? { backgroundColor: 'rgba(240,232,216,0.85)', borderColor: 'rgba(58,48,64,0.2)' } : undefined}>
-                      <div className="flex items-center gap-3">
-                        <div ref={sunCountRef} className="flex items-center gap-1.5">
-                          <img src={sunCoinImg} alt="해 코인" className="w-5 h-5 object-contain" />
-                          <span className="text-lg font-bold text-[#FFD700]">{headsValue}</span>
-                        </div>
-                        <div className="w-px h-5" style={{ backgroundColor: 'rgba(58,48,64,0.2)' }} />
-                        <div ref={moonCountRef} className="flex items-center gap-1.5">
-                          <img src={moonCoinImg} alt="달 코인" className="w-5 h-5 object-contain" />
-                          <span className="text-lg font-bold text-[#6A5080]">{tailsValue}</span>
-                        </div>
-                      </div>
-                    </div>
-                    <GameButton
-                      variant="primary"
-                      size="sm"
-                      onClick={handleEndTurn}
-                      disabled={!canAct || !battle.hasTossedThisTurn}
+                    <motion.div
+                      initial={false}
+                      animate={{
+                        opacity: 1,
+                        y: 0,
+                        scale: battle.hasTossedThisTurn ? [1, 1.05, 1] : 1,
+                      }}
+                      transition={{ duration: 0.28, times: [0, 0.45, 1] }}
+                      className="flex items-center justify-center gap-6 px-1 py-0.5 min-h-[42px]"
+                      style={{
+                        pointerEvents: battle.hasTossedThisTurn ? 'auto' : 'none',
+                      }}
                     >
-                      ▶ 턴 종료
-                    </GameButton>
+                      <div ref={sunCountRef} className="flex items-center gap-2 justify-center min-w-[72px]">
+                        <img src={sunCoinImg} alt="해 코인" className="w-10 h-10 object-contain drop-shadow-[0_4px_10px_rgba(201,168,108,0.42)]" />
+                        <span className="min-w-[16px] text-center text-[20px] font-extrabold text-[#C9A86C] drop-shadow-[0_1px_2px_rgba(58,48,64,0.18)]">{sunResults.length}</span>
+                      </div>
+                      <div ref={moonCountRef} className="flex items-center gap-2 justify-center min-w-[72px]">
+                        <img src={moonCoinImg} alt="달 코인" className="w-10 h-10 object-contain drop-shadow-[0_4px_10px_rgba(106,80,128,0.34)]" />
+                        <span className="min-w-[16px] text-center text-[20px] font-extrabold text-[#6A5080] drop-shadow-[0_1px_2px_rgba(58,48,64,0.18)]">{moonResults.length}</span>
+                      </div>
+                    </motion.div>
+                    </div>
                   </motion.div>
                 )}
               </AnimatePresence>
               <div className="flex-1" />
+              <AnimatePresence>
+                {battle.hasTossedThisTurn && isPlayerTurn && (
+                  <motion.div
+                    className="absolute -right-[26rem] bottom-10 z-20"
+                    initial={{ opacity: 0, y: 14 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 14 }}
+                    transition={{ duration: 0.22, ease: 'easeOut' }}
+                    style={{
+                      transform: 'translateY(-6px)',
+                      filter: 'drop-shadow(0 12px 20px rgba(28,20,28,0.22))',
+                    }}
+                  >
+                    <GameButton
+                      variant="primary"
+                      size="md"
+                      onClick={handleEndTurn}
+                      disabled={!canAct || !battle.hasTossedThisTurn}
+                      className="min-w-[156px] rounded-full border px-7 py-3 text-[13px] font-semibold tracking-[0.01em]"
+                      style={{
+                        backgroundImage: `url(${endTurnButtonImg})`,
+                        backgroundSize: '100% 100%',
+                        backgroundRepeat: 'no-repeat',
+                        backgroundPosition: 'center',
+                        borderColor: 'transparent',
+                        color: !canAct || !battle.hasTossedThisTurn ? 'rgba(106,96,112,0.82)' : '#6B4E3D',
+                        boxShadow: !canAct || !battle.hasTossedThisTurn
+                          ? '0 10px 18px rgba(28,20,28,0.1), 0 1px 0 rgba(255,245,230,0.16) inset'
+                          : '0 12px 24px rgba(58,48,64,0.14), 0 1px 0 rgba(255,245,230,0.34) inset, 0 -1px 0 rgba(180,154,126,0.14) inset',
+                        filter: !canAct || !battle.hasTossedThisTurn ? 'saturate(0.86)' : 'brightness(1.01) saturate(0.94)',
+                        textShadow: '0 1px 1px rgba(255,245,230,0.18)',
+                      }}
+                    >
+                      턴 종료
+                    </GameButton>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
-            <div className="flex-1 flex items-center justify-center">
+            <div className="flex-1 flex items-center justify-start pl-12">
             <div
               ref={enemyZoneRef}
               className="flex flex-col items-center transition-all rounded-lg relative"
@@ -1519,44 +1558,35 @@ export function BattleScreen() {
             )}
           </AnimatePresence>
 
-          <AnimatePresence>
-            {showTurnBanner && (
-               <motion.div
-                className="absolute inset-0 z-50 flex items-center justify-center pointer-events-none"
-                initial={{ opacity: 0, scale: 0.8, y: -30 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 1.1, y: 10, transition: { duration: 0.25 } }}
-                transition={{ duration: 0.35, type: 'spring', stiffness: 200, damping: 20 }}
-              >
-                <div className={`px-16 py-5 rounded-2xl backdrop-blur-md border ${showTurnBanner === 'player' ? 'bg-amber-900/60 border-amber-500/50 shadow-[0_0_30px_rgba(245,158,11,0.3)]' : 'bg-red-900/60 border-red-500/50 shadow-[0_0_30px_rgba(239,68,68,0.3)]'}`}>
-                  <span className={`text-4xl font-black tracking-wider ${showTurnBanner === 'player' ? 'text-amber-400' : 'text-red-400'}`}>
-                    {showTurnBanner === 'player' ? '⚔️ 당신의 턴' : '💀 적의 턴'}
-                  </span>
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
+
 
 
         </div>
 
         <div
-          className={`absolute bottom-0 left-0 w-full h-[160px] z-20 border-t ${isPlayerTurn ? 'border-amber-500/40' : 'border-red-500/30'}`}
+          className="absolute bottom-0 left-0 w-full h-[160px] z-20"
           style={{
-            background: 'transparent',
-            boxShadow: 'none',
-            backdropFilter: 'none',
+            background: 'linear-gradient(to top, rgba(74,62,58,0.2), rgba(74,62,58,0.05) 42%, rgba(24,20,28,0))',
+            boxShadow: 'inset 0 16px 22px rgba(58,48,64,0.06)',
+            backdropFilter: 'blur(1px)',
           }}
         >
-          <div className="flex items-center justify-center h-full overflow-visible">
+          <div className="flex items-center justify-center h-full overflow-visible -translate-y-5">
             <div
-              className="inline-flex items-center justify-center rounded-[24px] border px-5 py-4"
+              className="relative inline-flex items-center justify-center rounded-[28px] border px-6 py-4"
               style={{
-                background: 'linear-gradient(to bottom, rgba(77,67,85,0.92), rgba(61,52,68,0.90))',
+                background: 'linear-gradient(to bottom, rgba(124,106,96,0.72), rgba(106,90,82,0.68))',
                 borderColor: 'rgba(240,232,216,0.16)',
-                boxShadow: '0 8px 20px rgba(18,14,24,0.24)',
+                boxShadow: '0 6px 16px rgba(28,20,28,0.14), 0 -1px 0 rgba(255,245,230,0.05) inset',
               }}
             >
+              <div
+                className="absolute -top-10 left-1/2 -translate-x-1/2 w-[360px] h-[60px] pointer-events-none"
+                style={{
+                  background: 'linear-gradient(to top, rgba(240,232,216,0.08), rgba(240,232,216,0))',
+                  filter: 'blur(14px)',
+                }}
+              />
               <SkillPanel
                 skills={player.skills}
                 skillStates={player.skillStates}

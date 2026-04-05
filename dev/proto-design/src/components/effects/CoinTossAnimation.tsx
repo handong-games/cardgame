@@ -203,12 +203,14 @@ export function CoinTossAnimation({
                   animate={{
                     x: counterPos.x,
                     y: counterPos.y,
-                    scale: 0.5,
-                    opacity: 0.8,
+                    scale: [1, 0.72, 0.22],
+                    opacity: [1, 0.92, 0.15],
+                    filter: ['blur(0px)', 'blur(0px)', 'blur(4px)'],
                   }}
                   transition={{
-                    duration: 0.4 * speedM,
+                    duration: 0.42 * speedM,
                     ease: [0.4, 0, 0.2, 1],
+                    times: [0, 0.72, 1],
                   }}
                   onAnimationComplete={() => {
                     handleCoinReachedCounter(index, result.isHeads, result.denomination);

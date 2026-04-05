@@ -33,7 +33,7 @@ export function CoinPouch({ onToss, disabled, isOpen }: CoinPouchProps) {
             ? { duration: 0.3 }
             : { y: { duration: 1.8, repeat: Infinity, ease: 'easeInOut' }, scale: { duration: 1.8, repeat: Infinity, ease: 'easeInOut' } }
       }
-      whileHover={disabled ? {} : { scale: 1.1, y: -3 }}
+      whileHover={disabled ? {} : { scale: 1.1, y: -5 }}
       whileTap={disabled ? {} : { scale: 0.95 }}
     >
       <motion.img
@@ -49,9 +49,6 @@ export function CoinPouch({ onToss, disabled, isOpen }: CoinPouchProps) {
 
       
 
-      {disabled && (
-        <div className="absolute inset-0 rounded-lg" style={{ backgroundColor: 'rgba(58, 48, 64, 0.2)' }} />
-      )}
     </motion.button>
   );
 }

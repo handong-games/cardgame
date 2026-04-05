@@ -11,6 +11,7 @@ import {
   getScaledCombatTiming,
 } from '../../animations';
 import characterFrame from '@assets/frames/frame-player.png';
+import cardNameplate from '@assets/frames/card-nameplate.png';
 import warriorCharacter from '@assets/characters/CLS_W_warrior.png';
 
 const CHARACTER_IMAGES: Record<string, { src: string; position: 'top' | 'center' | 'bottom' }> = {
@@ -138,8 +139,8 @@ export function CharacterCard({
           </motion.div>
         )}
       </AnimatePresence>
-      <div className="mb-2 px-1" style={{ width: 'var(--character-card-width)' }}>
-        <div className="flex items-center gap-2">
+      <div className="mb-0.5 px-1" style={{ width: 'var(--character-card-width)' }}>
+        <div className="flex items-center gap-2 px-2 py-1.5 rounded-xl border" style={{ background: 'linear-gradient(to bottom, rgba(240,232,216,0.94), rgba(232,220,210,0.82))', borderColor: 'rgba(106,80,128,0.16)', boxShadow: '0 8px 16px rgba(58,48,64,0.14)' }}>
           <motion.div
             className="relative flex-shrink-0"
             animate={shieldControls}
@@ -188,18 +189,21 @@ export function CharacterCard({
           </div>
         </div>
       </div>
-      <div className="character-card relative" style={{ filter: 'drop-shadow(0 4px 8px rgba(58,48,64,0.3))' }}>
+      <div className="character-card relative" style={{ filter: 'drop-shadow(0 4px 8px rgba(58,48,64,0.3))', marginTop: '-2px' }}>
         <img
           src={characterFrame}
           alt="카드 프레임"
           className="absolute inset-0 w-full h-full object-cover rounded-[inherit]"
         />
+        <div className="absolute bottom-[3.6%] left-1/2 z-10 w-[88%] -translate-x-1/2 pointer-events-none">
+          <img src={cardNameplate} alt="이름판" className="w-full h-auto object-contain drop-shadow-[0_3px_6px_rgba(88,64,52,0.2)]" />
+        </div>
         <div className="absolute inset-0 flex items-center justify-center">
           {characterImage && !imageError ? (
             <img
               src={characterImage}
               alt={name}
-              className="w-[72%] h-[62%] object-contain -translate-y-[6%]"
+              className="w-[72%] h-[58%] object-contain -translate-y-[2%]"
               onError={() => setImageError(true)}
             />
           ) : (
@@ -235,8 +239,8 @@ export function CharacterCard({
             />
           )}
         </AnimatePresence>
-        <div className="absolute left-1/2 -translate-x-1/2 flex items-center justify-center pointer-events-none z-10" style={{ bottom: '8%', width: '62%', height: '9%' }}>
-          <span className="block max-w-full truncate text-center text-[12px] font-semibold tracking-[0.04em]" style={{ color: '#3A3040', fontFamily: 'Georgia, "Times New Roman", serif' }}>{name}</span>
+        <div className="absolute bottom-[5.5%] left-1/2 flex h-[10%] w-[56%] -translate-x-1/2 items-center justify-center pointer-events-none z-20 px-[6%]">
+          <span className="block max-w-full truncate text-center text-[12px] font-semibold tracking-[0.04em]" style={{ color: '#6B4E3D', fontFamily: 'Georgia, "Times New Roman", serif' }}>{name}</span>
         </div>
       </div>
     </motion.div>

@@ -31,28 +31,27 @@ const COMPONENTS: LayoutComponent[] = [
   { id: 'a3', name: 'A-3 소울 카운터', zone: 'A', x: 1740, y: 24, w: 100, h: 24, description: '소울 재화 표시', color: '#D4A574', details: { '폰트': '20px Bold', '포맷': '"◆ 42"' } },
   { id: 'a4', name: 'A-4 메뉴 버튼', zone: 'A', x: 1868, y: 15, w: 42, h: 42, description: '설정 메뉴 열기', color: '#FFF5E6', details: { '크기': '36x36px (터치 48x48)', '아이콘': '톱니바퀴' } },
 
-  // Zone B — 화면 중앙(x:960) 기준 대칭 배치: B-1(좌, flex-1=760px) | B-3(중앙, 400px) | B-2(우, flex-1=760px)
-  { id: 'b3', name: 'B-3 전투 중앙', zone: 'B', x: 760, y: 72, w: 400, h: 848, description: '코인 조작 패널 + 이펙트 (화면 중앙 정렬)', color: '#4A4A55', details: { '범위': 'x:760~1160', '중심': 'x:960 (화면 중앙)', '용도': '코인 조작 패널, 스킬 이펙트, 턴 배너' } },
+  { id: 'b3', name: 'B-3 전투 중앙', zone: 'B', x: 760, y: 72, w: 400, h: 848, description: '중앙 코인 주머니/코인 현황/이펙트 영역', color: '#4A4A55', details: { '범위': 'x:760~1160', '중심': 'x:960 (화면 중앙)', '용도': '코인 주머니, 코인 흡수 애니메이션, 코인 현황' } },
 
-  { id: 'b1-def', name: 'B-1 방어도', zone: 'B', x: 236, y: 218, w: 40, h: 40, description: '플레이어 방어도 뱃지 (프레임 바로 위)', color: '#4A90C0', details: { '배경': '#2A4A6B', '테두리': '#4A90C0 2px', '숨김': '방어도 0이면 숨김' } },
-  { id: 'b1-hp', name: 'B-1 HP 바', zone: 'B', x: 280, y: 228, w: 170, h: 18, description: '플레이어 HP 표시 (프레임 바로 위)', color: '#C05050', details: { 'HP>50%': '#C05050', 'HP<=50%': '#CC3333', 'HP<=25%': '#FF2222 + 펄스', '텍스트': '45/70' } },
-  { id: 'b1-card', name: 'B-1 플레이어 카드 프레임', zone: 'B', x: 250, y: 262, w: 240, h: 360, description: '플레이어 카드 프레임 + bust portrait', color: '#E8B4B8', details: { '영역': 'x:0~760 (flex-1)', '비율': '2:3 세로형', '프레임 외곽선': '3~5px / 10px radius / #E8B4B8', '내부 캐릭터': '약 96x122, 우측 3/4 각도, 중앙 정렬' } },
-  { id: 'b1-name', name: 'B-1 플레이어명', zone: 'B', x: 270, y: 560, w: 200, h: 44, description: '플레이어 이름 리본 (카드 하단)', color: '#F0E8D8', details: { '텍스트': '전사', '규격': '200x44', '형태': '양피지 리본', '위치': '카드 하단 내부' } },
-  { id: 'b1-status', name: 'B-1 상태이상', zone: 'B', x: 270, y: 634, w: 264, h: 32, description: '상태 아이콘 행 (최대 8개)', color: '#6B4B8C', details: { '아이콘': '32x32px, 간격 4px', '종류': '독/포자/가시/경화/회피/취약/힘' } },
+  { id: 'b1-def', name: 'B-1 방어도', zone: 'B', x: 206, y: 218, w: 40, h: 40, description: '플레이어 방어도 뱃지 (프레임 바로 위)', color: '#4A90C0', details: { '배경': '#2A4A6B', '테두리': '#4A90C0 2px', '숨김': '방어도 0이면 숨김' } },
+  { id: 'b1-hp', name: 'B-1 HP 바', zone: 'B', x: 250, y: 228, w: 170, h: 18, description: '플레이어 HP 표시 (프레임 바로 위)', color: '#C05050', details: { 'HP>50%': '#C05050', 'HP<=50%': '#CC3333', 'HP<=25%': '#FF2222 + 펄스', '텍스트': '45/70' } },
+  { id: 'b1-card', name: 'B-1 플레이어 카드 프레임', zone: 'B', x: 220, y: 262, w: 240, h: 360, description: '플레이어 카드 프레임 + bust portrait', color: '#E8B4B8', details: { '영역': '좌측 외곽 정렬', '비율': '2:3 세로형', '프레임 외곽선': '3~5px / 10px radius / #E8B4B8', '내부 캐릭터': '약 96x122, 우측 3/4 각도, 중앙 정렬' } },
+  { id: 'b1-name', name: 'B-1 플레이어명', zone: 'B', x: 240, y: 555, w: 200, h: 44, description: '플레이어 이름 리본 (카드 하단)', color: '#F0E8D8', details: { '텍스트': '전사', '규격': '200x44', '형태': '양피지 리본', '위치': '카드 하단 내부, 약간 위' } },
+  { id: 'b1-status', name: 'B-1 상태이상', zone: 'B', x: 240, y: 634, w: 264, h: 32, description: '상태 아이콘 행 (최대 8개)', color: '#6B4B8C', details: { '아이콘': '32x32px, 간격 4px', '종류': '독/포자/가시/경화/회피/취약/힘' } },
 
-  { id: 'b2-def', name: 'B-2 몬스터 방어도', zone: 'B', x: 1326, y: 218, w: 40, h: 40, description: '몬스터 방어도 뱃지 (프레임 바로 위)', color: '#4A90C0', details: { '배경': '#2A4A6B', '테두리': '#4A90C0 2px', '숨김': '방어도 0이면 숨김' } },
-  { id: 'b2-hp', name: 'B-2 몬스터 HP', zone: 'B', x: 1370, y: 228, w: 170, h: 18, description: '몬스터 HP 바 (프레임 바로 위)', color: '#C05050', details: { '채움': '#C05050', '텍스트': '12/18', '킬 가능': 'KILL 텍스트 + 펄스' } },
-  { id: 'b2-intent', name: 'B-2 행동 예고', zone: 'B', x: 1390, y: 184, w: 160, h: 36, description: '몬스터 의도 아이콘 + 수치 (HP 위)', color: '#C05050', details: { '1차': '아이콘24x24 + 수치', '미공개': '❓ 회색 물음표', '호버': '확장 툴팁 250x160' } },
-  { id: 'b2-card', name: 'B-2 몬스터 카드 프레임', zone: 'B', x: 1360, y: 262, w: 240, h: 360, description: '몬스터 메인 카드 프레임 + bust portrait', color: '#C8B888', details: { '영역': 'x:1160~1920 (flex-1)', '메인 카드': '240x360', '프레임 외곽선': '3~5px / 10px radius / Tier 색상', '내부 몬스터': '약 92x118, 좌측 3/4 각도, 중앙 정렬' } },
-  { id: 'b2-name', name: 'B-2 몬스터명', zone: 'B', x: 1380, y: 560, w: 200, h: 44, description: '몬스터 이름 리본 (카드 하단)', color: '#F0E8D8', details: { '텍스트': '고블린', '규격': '200x44', '형태': '양피지 리본', '위치': '카드 하단 내부' } },
+  { id: 'b2-def', name: 'B-2 몬스터 방어도', zone: 'B', x: 1366, y: 218, w: 40, h: 40, description: '몬스터 방어도 뱃지 (프레임 바로 위)', color: '#4A90C0', details: { '배경': '#2A4A6B', '테두리': '#4A90C0 2px', '숨김': '방어도 0이면 숨김' } },
+  { id: 'b2-hp', name: 'B-2 몬스터 HP', zone: 'B', x: 1410, y: 228, w: 170, h: 18, description: '몬스터 HP 바 (프레임 바로 위)', color: '#C05050', details: { '채움': '#C05050', '텍스트': '12/18', '킬 가능': 'KILL 텍스트 + 펄스' } },
+  { id: 'b2-intent', name: 'B-2 행동 예고', zone: 'B', x: 1430, y: 184, w: 160, h: 36, description: '몬스터 의도 아이콘 + 수치 (HP 위)', color: '#C05050', details: { '1차': '아이콘24x24 + 수치', '미공개': '❓ 회색 물음표', '호버': '확장 툴팁 250x160' } },
+  { id: 'b2-card', name: 'B-2 몬스터 카드 프레임', zone: 'B', x: 1400, y: 262, w: 240, h: 360, description: '몬스터 메인 카드 프레임 + bust portrait', color: '#C8B888', details: { '영역': '우측 외곽 정렬', '메인 카드': '240x360', '프레임 외곽선': '3~5px / 10px radius / Tier 색상', '내부 몬스터': '약 92x118, 좌측 3/4 각도, 중앙 정렬' } },
+  { id: 'b2-name', name: 'B-2 몬스터명', zone: 'B', x: 1420, y: 555, w: 200, h: 44, description: '몬스터 이름 리본 (카드 하단)', color: '#F0E8D8', details: { '텍스트': '고블린', '규격': '200x44', '형태': '양피지 리본', '위치': '카드 하단 내부, 약간 위' } },
   { id: 'b2-sub', name: 'B-2 서브 몬스터 카드', zone: 'B', x: 1600, y: 367, w: 170, h: 255, description: '멀티 전투 시 메인 카드 하단 기준으로 맞춘 축소 서브 카드', color: '#B8B8C8', details: { '비율': '메인 대비 75%', '정렬': '메인 카드 하단선 기준', '네임플레이트': '축소형 142x36 리본', '내부 몬스터': '약 72x90' } },
   { id: 'b2-status', name: 'B-2 상태이상', zone: 'B', x: 1380, y: 634, w: 220, h: 32, description: '몬스터 상태 아이콘 행', color: '#6B4B8C', details: { '아이콘': '32x32px, 간격 4px', '예시': '경화2' } },
 
-  { id: 'b4', name: 'B-4 코인 플립', zone: 'B', x: 760, y: 312, w: 400, h: 300, description: '해/달 코인 플립 애니메이션 (B-3 내 상단)', color: '#FFD700', details: { '코인 크기': '80x80px', '최대': '10개 (2줄)', '중심': 'x:960' } },
+  { id: 'b4', name: 'B-4 코인 플립', zone: 'B', x: 760, y: 312, w: 400, h: 300, description: '해/달 코인 플립 및 코인 현황 흡수 애니메이션', color: '#FFD700', details: { '코인 크기': '80x80px', '효과': '코인 현황으로 흡수되듯 축소', '중심': 'x:960' } },
 
-  { id: 'b3-1a', name: 'B-3-1a 코인 주머니', zone: 'B', x: 904, y: 712, w: 112, h: 112, description: '코인 주머니 (탭하면 코인 플립)', color: '#FFD700', details: { '크기': '112×112px (56px × scale-2)', '상태': '흔들림 애니메이션 (플립 가능 시)' } },
-  { id: 'b3-1b', name: 'B-3-1b 코인 현황', zone: 'B', x: 860, y: 832, w: 200, h: 30, description: '해/달 코인 + 남은/전체', color: '#FFD700', details: { '해': '☀ #FFD700', '달': '🌙 #6A5080', '포맷': '남은: N/전체: M' } },
-  { id: 'b3-1c', name: 'B-3-1c 턴 종료', zone: 'B', x: 880, y: 872, w: 160, h: 44, description: '턴 종료 버튼 (코인 조작 패널 내 수직 배치)', color: '#4A90C0', details: { '활성': 'gradient blue', '비활성': '"대기 중" 회색', '모양': 'rounded-xl', '배치': '코인 패널 하단 중앙' } },
+  { id: 'b3-1a', name: 'B-3-1a 코인 주머니', zone: 'B', x: 904, y: 500, w: 112, h: 112, description: '코인 주머니 (카드 높이 중간선 부근)', color: '#FFD700', details: { '크기': '112×112px (56px × scale-2)', '상태': '흔들림 애니메이션 (플립 가능 시)' } },
+  { id: 'b3-1b', name: 'B-3-1b 코인 현황', zone: 'B', x: 888, y: 832, w: 144, h: 36, description: '해 0 / 달 0을 항상 표시하는 코인 현황', color: '#FFD700', details: { '해': '아이콘 + 0', '달': '아이콘 + 0', '포맷': '상시 표시, 토스 후 수치 업데이트' } },
+  { id: 'b3-1c', name: 'B-3-1c 턴 종료', zone: 'B', x: 1738, y: 834, w: 160, h: 44, description: '몬스터 카드보다 더 우측 하단에 배치된 턴 종료 버튼', color: '#4A90C0', details: { '활성': 'gradient blue', '비활성': '"대기 중" 회색', '모양': 'rounded-xl', '배치': 'Zone B 우측 하단 외곽' } },
   { id: 'b6', name: 'B-6 라운드 진행바', zone: 'B', x: 760, y: 77, w: 400, h: 8, description: '라운드 진행바 (Zone B 상단, pill shape)', color: '#D4A574', details: { '노드': '8개 (일반/보스)', '모양': 'pill, pointer-events-none', '상태': '완료/현재/미래' } },
 
   { id: 'c1-1', name: 'C-1 스킬 1', zone: 'C', x: 650, y: 930, w: 140, h: 140, description: '기본 공격 (☀×1, 데미지 3)', color: '#D4A574', details: { '크기': '140x140 (정사각형)', '코스트': '해 1', '횟수': '무제한' } },
@@ -243,21 +242,18 @@ function WireframePreview({
         {/* 장식 요소 — 코인 플립 */}
         <div
           className="absolute flex items-center gap-[0.5%] pointer-events-none"
-          style={{ left: toPercent(820, 1920), top: toPercent(682, 1080) }}
+          style={{ left: toPercent(904, 1920), top: toPercent(500, 1080) }}
         >
-          {['#FFD700', '#FFD700', '#FFD700', '#6A5080', '#6A5080'].map((fill, i) => (
-            <div
-              key={i}
-              className="rounded-full"
-              style={{ width: 14, height: 14, backgroundColor: fill, border: '1px solid #00000040' }}
-            />
-          ))}
+          <div
+            className="rounded-full"
+            style={{ width: 56, height: 56, backgroundColor: '#F0E8D8', border: '2px solid #C9A86C', boxShadow: '0 8px 18px rgba(58,48,64,0.18)' }}
+          />
         </div>
 
         <div
           className="absolute rounded-[12px] pointer-events-none"
           style={{
-            left: toPercent(250, 1920),
+            left: toPercent(220, 1920),
             top: toPercent(262, 1080),
             width: toPercent(240, 1920),
             height: toPercent(360, 1080),
@@ -269,7 +265,7 @@ function WireframePreview({
         <div
           className="absolute rounded-[8px] pointer-events-none"
           style={{
-            left: toPercent(262, 1920),
+            left: toPercent(232, 1920),
             top: toPercent(274, 1080),
             width: toPercent(216, 1920),
             height: toPercent(288, 1080),
@@ -278,19 +274,19 @@ function WireframePreview({
         />
         <div
           className="absolute rounded-full pointer-events-none"
-          style={{ left: toPercent(320, 1920), top: toPercent(318, 1080), width: toPercent(96, 1920), height: toPercent(122, 1080), backgroundColor: '#E8B4B855', border: '2px solid #3A304066' }}
+          style={{ left: toPercent(290, 1920), top: toPercent(318, 1080), width: toPercent(96, 1920), height: toPercent(122, 1080), backgroundColor: '#E8B4B855', border: '2px solid #3A304066' }}
         />
         <div
           className="absolute pointer-events-none"
-          style={{ left: toPercent(334, 1920), top: toPercent(400, 1080), width: toPercent(70, 1920), height: toPercent(96, 1080), backgroundColor: '#A96A72AA', borderRadius: '40px 40px 8px 8px' }}
+          style={{ left: toPercent(304, 1920), top: toPercent(400, 1080), width: toPercent(70, 1920), height: toPercent(96, 1080), backgroundColor: '#A96A72AA', borderRadius: '40px 40px 8px 8px' }}
         />
         <div
           className="absolute rounded-[10px] pointer-events-none"
-          style={{ left: toPercent(270, 1920), top: toPercent(560, 1080), width: toPercent(200, 1920), height: toPercent(44, 1080), backgroundColor: '#F0E8D8', border: '1px solid #d8cdb8' }}
+          style={{ left: toPercent(240, 1920), top: toPercent(555, 1080), width: toPercent(200, 1920), height: toPercent(44, 1080), backgroundColor: '#F0E8D8', border: '1px solid #d8cdb8' }}
         />
         <div
           className="absolute text-[9px] font-bold pointer-events-none select-none"
-          style={{ left: toPercent(350, 1920), top: toPercent(574, 1080), color: '#3A3040' }}
+          style={{ left: toPercent(320, 1920), top: toPercent(569, 1080), color: '#3A3040' }}
         >
           전사
         </div>
@@ -298,7 +294,7 @@ function WireframePreview({
         <div
           className="absolute rounded-sm pointer-events-none"
           style={{
-            left: toPercent(280, 1920),
+            left: toPercent(250, 1920),
             top: toPercent(228, 1080),
             width: toPercent(170, 1920),
             height: toPercent(16, 1080),
@@ -308,17 +304,17 @@ function WireframePreview({
         />
         <div
           className="absolute text-[7px] font-bold pointer-events-none select-none"
-          style={{ left: toPercent(355, 1920), top: toPercent(229, 1080), color: '#FFF5E6' }}
+          style={{ left: toPercent(325, 1920), top: toPercent(229, 1080), color: '#FFF5E6' }}
         >
           45/70
         </div>
         <div
           className="absolute rounded-full pointer-events-none"
-          style={{ left: toPercent(236, 1920), top: toPercent(218, 1080), width: toPercent(40, 1920), height: toPercent(40, 1080), backgroundColor: '#2A4A6B', border: '2px solid #4A90C0' }}
+          style={{ left: toPercent(206, 1920), top: toPercent(218, 1080), width: toPercent(40, 1920), height: toPercent(40, 1080), backgroundColor: '#2A4A6B', border: '2px solid #4A90C0' }}
         />
         <div
           className="absolute text-[8px] font-bold pointer-events-none select-none"
-          style={{ left: toPercent(250, 1920), top: toPercent(231, 1080), color: '#FFF5E6' }}
+          style={{ left: toPercent(220, 1920), top: toPercent(231, 1080), color: '#FFF5E6' }}
         >
           5
         </div>
@@ -326,7 +322,7 @@ function WireframePreview({
         <div
           className="absolute rounded-[12px] pointer-events-none"
           style={{
-            left: toPercent(1360, 1920),
+            left: toPercent(1400, 1920),
             top: toPercent(262, 1080),
             width: toPercent(240, 1920),
             height: toPercent(360, 1080),
@@ -338,7 +334,7 @@ function WireframePreview({
         <div
           className="absolute rounded-[8px] pointer-events-none"
           style={{
-            left: toPercent(1372, 1920),
+            left: toPercent(1412, 1920),
             top: toPercent(274, 1080),
             width: toPercent(216, 1920),
             height: toPercent(288, 1080),
@@ -347,19 +343,19 @@ function WireframePreview({
         />
         <div
           className="absolute rounded-full pointer-events-none"
-          style={{ left: toPercent(1430, 1920), top: toPercent(320, 1080), width: toPercent(92, 1920), height: toPercent(118, 1080), backgroundColor: '#8B8B7855', border: '2px solid #3A304055' }}
+          style={{ left: toPercent(1470, 1920), top: toPercent(320, 1080), width: toPercent(92, 1920), height: toPercent(118, 1080), backgroundColor: '#8B8B7855', border: '2px solid #3A304055' }}
         />
         <div
           className="absolute pointer-events-none"
-          style={{ left: toPercent(1442, 1920), top: toPercent(402, 1080), width: toPercent(74, 1920), height: toPercent(96, 1080), backgroundColor: '#76805FAA', borderRadius: '36px 36px 8px 8px' }}
+          style={{ left: toPercent(1482, 1920), top: toPercent(402, 1080), width: toPercent(74, 1920), height: toPercent(96, 1080), backgroundColor: '#76805FAA', borderRadius: '36px 36px 8px 8px' }}
         />
         <div
           className="absolute rounded-[10px] pointer-events-none"
-          style={{ left: toPercent(1380, 1920), top: toPercent(560, 1080), width: toPercent(200, 1920), height: toPercent(44, 1080), backgroundColor: '#F0E8D8', border: '1px solid #d8cdb8' }}
+          style={{ left: toPercent(1420, 1920), top: toPercent(555, 1080), width: toPercent(200, 1920), height: toPercent(44, 1080), backgroundColor: '#F0E8D8', border: '1px solid #d8cdb8' }}
         />
         <div
           className="absolute text-[9px] font-bold pointer-events-none select-none"
-          style={{ left: toPercent(1450, 1920), top: toPercent(574, 1080), color: '#3A3040' }}
+          style={{ left: toPercent(1490, 1920), top: toPercent(569, 1080), color: '#3A3040' }}
         >
           고블린
         </div>
@@ -383,7 +379,7 @@ function WireframePreview({
         <div
           className="absolute rounded-sm pointer-events-none"
           style={{
-            left: toPercent(1370, 1920),
+            left: toPercent(1410, 1920),
             top: toPercent(228, 1080),
             width: toPercent(170, 1920),
             height: toPercent(16, 1080),
@@ -393,27 +389,27 @@ function WireframePreview({
         />
         <div
           className="absolute text-[7px] font-bold pointer-events-none select-none"
-          style={{ left: toPercent(1444, 1920), top: toPercent(229, 1080), color: '#FFF5E6' }}
+          style={{ left: toPercent(1484, 1920), top: toPercent(229, 1080), color: '#FFF5E6' }}
         >
           12/18
         </div>
         <div
           className="absolute rounded-full pointer-events-none"
-          style={{ left: toPercent(1326, 1920), top: toPercent(218, 1080), width: toPercent(40, 1920), height: toPercent(40, 1080), backgroundColor: '#2A4A6B', border: '2px solid #4A90C0' }}
+          style={{ left: toPercent(1366, 1920), top: toPercent(218, 1080), width: toPercent(40, 1920), height: toPercent(40, 1080), backgroundColor: '#2A4A6B', border: '2px solid #4A90C0' }}
         />
         <div
           className="absolute text-[8px] font-bold pointer-events-none select-none"
-          style={{ left: toPercent(1340, 1920), top: toPercent(231, 1080), color: '#FFF5E6' }}
+          style={{ left: toPercent(1380, 1920), top: toPercent(231, 1080), color: '#FFF5E6' }}
         >
           3
         </div>
         <div
           className="absolute rounded-lg pointer-events-none"
-          style={{ left: toPercent(1390, 1920), top: toPercent(184, 1080), width: toPercent(160, 1920), height: toPercent(36, 1080), backgroundColor: '#16161CD9', border: '1px solid #4A4A55' }}
+          style={{ left: toPercent(1430, 1920), top: toPercent(184, 1080), width: toPercent(160, 1920), height: toPercent(36, 1080), backgroundColor: '#16161CD9', border: '1px solid #4A4A55' }}
         />
         <div
           className="absolute text-[8px] font-bold pointer-events-none select-none"
-          style={{ left: toPercent(1448, 1920), top: toPercent(196, 1080), color: '#FFF5E6' }}
+          style={{ left: toPercent(1488, 1920), top: toPercent(196, 1080), color: '#FFF5E6' }}
         >
           ⚔ 6
         </div>
@@ -421,16 +417,26 @@ function WireframePreview({
         {/* 장식 — 코인 현황 (Zone B 하단) */}
         <div
           className="absolute flex items-center justify-center gap-[0.8%] pointer-events-none"
-          style={{ left: toPercent(910, 1920), top: toPercent(842, 1080) }}
+          style={{ left: toPercent(888, 1920), top: toPercent(832, 1080) }}
         >
           <div className="flex items-center gap-1">
-            <div className="rounded-full" style={{ width: 8, height: 8, backgroundColor: '#FFD700' }} />
-            <span className="text-[8px] font-bold" style={{ color: '#FFD700' }}>3</span>
+            <div className="rounded-full" style={{ width: 10, height: 10, backgroundColor: '#FFD700' }} />
+            <span className="text-[8px] font-bold" style={{ color: '#FFD700' }}>0</span>
           </div>
           <div className="flex items-center gap-1">
-            <div className="rounded-full" style={{ width: 8, height: 8, backgroundColor: '#6A5080' }} />
-            <span className="text-[8px] font-bold" style={{ color: '#6A5080' }}>2</span>
+            <div className="rounded-full" style={{ width: 10, height: 10, backgroundColor: '#6A5080' }} />
+            <span className="text-[8px] font-bold" style={{ color: '#6A5080' }}>0</span>
           </div>
+        </div>
+        <div
+          className="absolute rounded-xl pointer-events-none"
+          style={{ left: toPercent(1738, 1920), top: toPercent(834, 1080), width: toPercent(160, 1920), height: toPercent(44, 1080), backgroundColor: '#4A90C0', border: '1px solid #FFF5E633', boxShadow: '0 10px 22px rgba(201,168,108,0.2)' }}
+        />
+        <div
+          className="absolute text-[9px] font-bold pointer-events-none select-none"
+          style={{ left: toPercent(1788, 1920), top: toPercent(848, 1080), color: '#FFF5E6' }}
+        >
+          ▶ 턴 종료
         </div>
       </div>
     </div>

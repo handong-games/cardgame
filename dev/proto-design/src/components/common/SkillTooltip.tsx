@@ -1,6 +1,8 @@
 import { motion } from 'framer-motion';
 import type { Skill, SkillState, PreviewEffects } from '../../types';
 import { getSkillCosts } from '../../utils/skillSystem';
+import sunCoinImg from '@assets/coins/sun-coin.png';
+import moonCoinImg from '@assets/coins/moon-coin.png';
 
 interface SkillTooltipProps {
   skill: Skill;
@@ -24,14 +26,13 @@ export function SkillTooltip({
   skillState,
   previewEffects,
 }: SkillTooltipProps) {
-  // 스킬 비용 계산
   const costs = getSkillCosts(skill);
-
-  // 쿨다운 상태
   const isOnCooldown = skillState && skillState.cooldownRemaining > 0;
-
-  // 조건 충족 여부
   const hasConditionsMet = previewEffects && previewEffects.conditionsMet.length > 0;
+  const costEntries = [
+    costs.heads > 0 ? { key: 'heads', amount: costs.heads, label: '해 코인', icon: sunCoinImg, textColor: '#C9A86C', bgColor: 'rgba(255,245,214,0.92)', borderColor: 'rgba(201,168,108,0.28)' } : null,
+    costs.tails > 0 ? { key: 'tails', amount: costs.tails, label: '달 코인', icon: moonCoinImg, textColor: '#6A5080', bgColor: 'rgba(225,220,245,0.92)', borderColor: 'rgba(106,80,128,0.28)' } : null,
+  ].filter(Boolean) as Array<{ key: string; amount: number; label: string; icon: string; textColor: string; bgColor: string; borderColor: string }>;
 
   return (
     <motion.div
@@ -49,16 +50,21 @@ export function SkillTooltip({
             <span className="text-white font-bold">{skill.name}</span>
           </div>
           <div className="flex items-center gap-2">
-            {costs.heads > 0 && (
-              <div className="px-2 py-0.5 rounded text-sm font-bold bg-amber-500 text-black">
-                ↑ {costs.heads}
+            {costEntries.map((cost) => (
+              <div
+                key={cost.key}
+                className="flex items-center gap-1.5 px-2 py-1 rounded-full text-sm font-bold border"
+                style={{
+                  backgroundColor: cost.bgColor,
+                  borderColor: cost.borderColor,
+                  color: cost.textColor,
+                }}
+                title={cost.label}
+              >
+                <img src={cost.icon} alt={cost.label} className="w-4 h-4 object-contain" />
+                <span>{cost.amount}</span>
               </div>
-            )}
-            {costs.tails > 0 && (
-              <div className="px-2 py-0.5 rounded text-sm font-bold bg-blue-500 text-white">
-                ↓ {costs.tails}
-              </div>
-            )}
+            ))}
           </div>
         </div>
 

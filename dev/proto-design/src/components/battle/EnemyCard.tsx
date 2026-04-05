@@ -18,6 +18,7 @@ import monsterGolem from '@assets/monsters/MON_F05_golem.png';
 import monsterWolfPack from '@assets/monsters/MON_F06_wolf-pack.png';
 import monsterRottenTree from '@assets/monsters/MON_F07_rotten-tree.png';
 import bossAncientGroveLord from '@assets/monsters/BOSS_F01_ancient-grove-lord.png';
+import cardNameplate from '@assets/frames/card-nameplate.png';
 import monsterFrameT1 from '@assets/frames/frame-t1.png';
 import monsterFrameT2 from '@assets/frames/frame-t2.png';
 import monsterFrameT3 from '@assets/frames/frame-t3.png';
@@ -193,7 +194,8 @@ export function EnemyCard({
         )}
       </AnimatePresence>
       <motion.div
-        className={`mb-2 px-3 py-1.5 rounded-lg text-xs border ${currentIntent.bg} ${currentIntent.border}`}
+        className={`mb-0 inline-flex items-center self-center px-2.5 py-1 rounded-lg text-xs border whitespace-nowrap ${currentIntent.bg} ${currentIntent.border}`}
+        style={{ width: 'auto', boxShadow: '0 4px 10px rgba(58,48,64,0.12)' }}
         animate={enemy.intent.type === 'attack' ? {
           scale: [1, 1.05, 1],
           boxShadow: ['0 0 0px rgba(239,68,68,0)', '0 0 8px rgba(239,68,68,0.4)', '0 0 0px rgba(239,68,68,0)'],
@@ -209,8 +211,8 @@ export function EnemyCard({
         <span className={`ml-1 font-bold ${currentIntent.text}`}>{enemy.intent.value}</span>
       </motion.div>
 
-      <div className="mb-2 px-1" style={{ width: 'var(--enemy-card-width)' }}>
-        <div className="flex items-center gap-1.5">
+      <div className="mb-0.5 px-1" style={{ width: 'var(--enemy-card-width)' }}>
+        <div className="flex items-center gap-1.5 px-2 py-1.5 rounded-xl border" style={{ background: 'linear-gradient(to bottom, rgba(240,232,216,0.94), rgba(232,220,210,0.82))', borderColor: 'rgba(106,80,128,0.16)', boxShadow: '0 8px 16px rgba(58,48,64,0.14)' }}>
           <motion.div
             className="relative flex-shrink-0"
             animate={shieldControls}
@@ -244,7 +246,7 @@ export function EnemyCard({
 
       <motion.div
         className="enemy-card relative transition-shadow duration-200"
-        style={{ filter: 'drop-shadow(0 4px 8px rgba(58,48,64,0.3))' }}
+        style={{ filter: 'drop-shadow(0 4px 8px rgba(58,48,64,0.3))', marginTop: '-2px' }}
         animate={{
           scale: isTargeted ? 1.05 : 1,
           boxShadow: isTargeted
@@ -261,8 +263,11 @@ export function EnemyCard({
           alt={monsterData?.frame ? '정예 프레임' : '몬스터 프레임'}
           className="absolute inset-0 w-full h-full object-cover rounded-[inherit]"
         />
+        <div className="absolute bottom-[3.6%] left-1/2 z-10 w-[88%] -translate-x-1/2 pointer-events-none">
+          <img src={cardNameplate} alt="이름판" className="w-full h-auto object-contain drop-shadow-[0_3px_6px_rgba(88,64,52,0.2)]" />
+        </div>
         {(isBoss || isElite) && (
-          <div className="absolute top-1.5 left-1/2 -translate-x-1/2 z-10">
+          <div className="absolute top-[13%] right-[6%] z-20">
             <div
               className={`px-2.5 py-0.5 rounded text-[10px] font-bold tracking-wider uppercase border shadow-lg ${
                 isBoss
@@ -279,7 +284,7 @@ export function EnemyCard({
             <img
               src={monsterImage}
               alt={enemy.name}
-              className="w-[72%] h-[62%] object-contain -translate-y-[6%]"
+              className="w-[72%] h-[58%] object-contain -translate-y-[2%]"
               onError={() => setImageError(true)}
             />
           ) : (
@@ -297,13 +302,13 @@ export function EnemyCard({
             />
           )}
         </AnimatePresence>
-        <div className="absolute left-1/2 -translate-x-1/2 flex items-center justify-center pointer-events-none z-10" style={{ bottom: '8%', width: '62%', height: '9%' }}>
-          <span className="block max-w-full truncate text-center text-[12px] font-semibold tracking-[0.04em]" style={{ color: '#3A3040', fontFamily: 'Georgia, "Times New Roman", serif' }}>{baseName}</span>
+        <div className="absolute bottom-[5.5%] left-1/2 flex h-[10%] w-[56%] -translate-x-1/2 items-center justify-center pointer-events-none z-20 px-[6%]">
+          <span className="block max-w-full truncate text-center text-[12px] font-semibold tracking-[0.04em]" style={{ color: '#6B4E3D', fontFamily: 'Georgia, "Times New Roman", serif' }}>{baseName}</span>
         </div>
       </motion.div>
 
       {enemy.activeDebuffs && enemy.activeDebuffs.length > 0 && (
-        <div className="mt-2 flex gap-1 flex-wrap justify-center">
+        <div className="mt-1 flex gap-1.5 flex-wrap justify-center px-3 py-2 rounded-xl border" style={{ background: 'linear-gradient(to bottom, rgba(240,232,216,0.88), rgba(232,220,210,0.72))', borderColor: 'rgba(106,80,128,0.16)', boxShadow: '0 6px 14px rgba(58,48,64,0.12)' }}>
           {enemy.activeDebuffs.map((debuff, index) => {
             const debuffDef = getBuffDefinition(debuff.debuffId);
             if (!debuffDef) return null;
@@ -315,9 +320,9 @@ export function EnemyCard({
                 onMouseEnter={() => setHoveredDebuff(debuff.debuffId)}
                 onMouseLeave={() => setHoveredDebuff(null)}
               >
-                <div className="w-10 h-10 rounded-full bg-effect-debuff/80 border-2 border-effect-debuff flex items-center justify-center cursor-help">
+                <div className="w-9 h-9 rounded-full bg-effect-debuff/80 border-2 border-effect-debuff flex items-center justify-center cursor-help shadow-sm">
                   {debuffIconImages[debuff.debuffId] ? (
-                    <img src={debuffIconImages[debuff.debuffId]} alt={debuffDef.name} className="w-6 h-6 object-contain" />
+                    <img src={debuffIconImages[debuff.debuffId]} alt={debuffDef.name} className="w-5 h-5 object-contain" />
                   ) : (
                     <span className="text-lg">{debuffIcons[debuff.debuffId] || '💀'}</span>
                   )}
