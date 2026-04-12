@@ -13,6 +13,7 @@ import {
 import characterFrame from '@assets/frames/frame-player.png';
 import cardNameplate from '@assets/frames/card-nameplate.png';
 import warriorCharacter from '@assets/characters/CLS_W_warrior.png';
+import shieldIcon from '@assets/icons/shield-icon.png';
 
 const CHARACTER_IMAGES: Record<string, { src: string; position: 'top' | 'center' | 'bottom' }> = {
   '전사': { src: warriorCharacter, position: 'top' },
@@ -173,7 +174,7 @@ export function CharacterCard({
                   {previewBlock > 0 ? block + previewBlock : block}
                 </motion.span>
               ) : (
-                <span>🛡️</span>
+                <img src={shieldIcon} alt="방어" className="w-3.5 h-3.5 object-contain" />
               )}
             </motion.div>
           </motion.div>

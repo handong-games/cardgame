@@ -69,7 +69,7 @@ soft diffused edges between color zones`
 
 export const MONSTER_NEGATIVE = `realistic, photorealistic, 3D render, CGI,
 anime manga style,
-pure black, pure white background, neon colors, high saturation above 60 percent,
+pure black background, neon colors, high saturation above 60 percent,
 gore, blood, horror, grotesque, scary, dark atmosphere,
 tonal layering, soft shading, gradient shading, cel-shading,
 visible brushwork, brush strokes, paint texture, paper grain, gouache texture,
@@ -77,7 +77,7 @@ detailed eyes with highlights and reflections, large expressive eyes,
 visible pupils, visible irises, realistic eyeballs, glossy eye reflections,
 complex accessories, ornate decoration, intricate patterns,
 lavender tint, purple ambient light, cool color cast on skin,
-complex detailed background, white background,
+complex detailed background,
 facing right, looking right,
 full body, legs, feet, ground, floor,
 cute mascot comedy tone, slapstick expression,
@@ -119,6 +119,25 @@ blurry low quality, noisy, grainy,
 multiple objects, cluttered composition,
 neon glow, overly bright, saturated neon colors,
 text, letters, numbers, watermark`
+
+export const BRANDING_NEGATIVE = `character illustration, person, creature, monster, animal,
+3D render, photorealistic, hyper detailed, CGI,
+anime style, cartoon style, manga,
+watercolor bleeding, paint splatters, heavy texture,
+complex ornate decorations, baroque style,
+dark horror scary gothic,
+blurry low quality, noisy, grainy,
+multiple emblems, cluttered composition,
+neon glow, overly bright, saturated neon colors,
+illegible typography, distorted letters, warped wordmark, watermark`
+
+const SKILL_ICON_NEGATIVE = `${UI_NEGATIVE},
+background badge, circular background, emblem ring, border frame,
+multiple symbols, extra prop, secondary icon,
+motion trail, slash effect, spark particles, energy burst, glow aura,
+gradient fill, multicolor split, metallic shine, glossy highlight,
+perspective angle, tilted icon, isometric view,
+tiny decorative details, texture overlay`
 
 export const NPC_NEGATIVE = `realistic, photorealistic, 3D render, CGI,
 anime manga style,
@@ -346,7 +365,7 @@ function createMonsterPrompt(region: RegionKey, tierLine: string, ...details: st
     'silhouette-driven monster design recognizable from shape alone',
     'tiny simplified eyes with no visible pupils or irises, paired with short simple line eyebrows',
     'cute and charming monster design that is not scary or threatening',
-    'solid cream parchment background #F0E8D8',
+    'isolated on pure solid white background for easy background removal and cutout workflow',
     'no border no frame',
     'vertical portrait 2:3 aspect ratio',
     'strictly flat color fills with hard boundaries between each color region',
@@ -362,16 +381,18 @@ function createMonsterPrompt(region: RegionKey, tierLine: string, ...details: st
 
 function createBackgroundPrompt(...details: string[]) {
   return joinPrompt(
-    'hand-painted storybook watercolor illustration background',
-    'dreamy muted pastel environment with soft visible brushwork',
-    'warm natural color tones without any color tint or cast',
-    'gentle blur effect 60 to 70 percent for depth of field',
-    'atmospheric fantasy landscape',
+    'simple stylized fantasy background illustration for card battle UI',
+    'very large simple shape language with extremely minimal detail',
+    'flat matte color blocks with only slight soft separation between layers',
+    'noticeably darker muted pastel environment with clear foreground, midground, and background separation',
+    'no watercolor look, no painterly brushwork, no visible brush texture, no washed pigment blending',
+    'clean readable layered scenery designed more like simplified game background art than painted illustration',
+    'background should stay visually behind characters, monsters, cards, and skill effects at all times',
     'no characters no creatures no cards',
-    'soft warm diffused lighting',
+    'subdued warm diffused lighting with clearly lowered overall brightness and restrained highlights',
     'wide landscape 16:9 aspect ratio',
-    'cozy fairy tale mood with gentle storybook atmosphere',
-    'center area intentionally kept open for cards and UI',
+    'cozy but darker fantasy mood optimized for gameplay readability and foreground contrast',
+    'center area intentionally kept open, darker, and visually quiet for cards and UI',
     ...details,
   )
 }
@@ -379,14 +400,28 @@ function createBackgroundPrompt(...details: string[]) {
 // UI 에셋 공통 스타일 베이스 (내부 사용)
 const UI_ICON_STYLE = joinPrompt(
   'game UI icon for v6.0 Lavender Mist pastel fantasy card game',
-  'clean digital illustration symbol design with colored outlines',
-  'muted pastel color palette with soft value separation',
+  'ultra-simple skill icon symbol design with one centered motif only',
+  'single muted hue with near-monotone value range and no palette variation',
+  'flat matte vector-like silhouette with very limited internal cuts only when essential',
   'single centered symbol, square 1:1 composition',
   'clean minimal design readable at very small size',
-  'no parchment texture, no paper grain, no beige backdrop',
+  'consistent visual language across all skill icons with the same simplicity level',
+  'no parchment texture, no paper grain, no beige backdrop, no badge background',
   'isolated on pure solid white background',
   'output 256x256 pixels',
 )
+
+function createSkillIconPrompt(colorLine: string, symbolLine: string, detailLine: string) {
+  return joinPrompt(
+    UI_ICON_STYLE,
+    colorLine,
+    symbolLine,
+    'single bold silhouette or emblem shape',
+    'extremely restrained geometry with no extra decorative strokes',
+    'keep the icon visually calm, plain, and consistent with other skill icons',
+    detailLine,
+  )
+}
 
 const UI_COIN_STYLE = joinPrompt(
   'fantasy card game gemstone coin asset for v6.0 Lavender Mist',
@@ -427,197 +462,168 @@ const SKILL_ICON_PROMPTS: PromptExample[] = [
     name: '기본 공격',
     nameEn: 'Basic Strike',
     group: '스킬 아이콘',
-    prompt: `${UI_ICON_STYLE},
-
-single straight sword pointing upward,
-warm muted silver color #9898A8,
-simple clean blade silhouette,
-minimal no-frills weapon,
-pastel fantasy skill icon`,
-    negative: UI_NEGATIVE
+    prompt: createSkillIconPrompt(
+      'single muted steel-gray tone #9898A8',
+      'single straight sword silhouette pointing upward',
+      'plain starter attack emblem with no flourish',
+    ),
+    negative: SKILL_ICON_NEGATIVE
   },
   {
     id: 'icon-skill-defense',
     name: '방어',
     nameEn: 'Defense',
     group: '스킬 아이콘',
-    prompt: `${UI_ICON_STYLE},
-
-round shield with horizontal bar across center,
- muted steel-blue color #A0B8D4,
-sturdy solid shield silhouette,
-protective blocking stance,
-pastel fantasy skill icon`,
-    negative: UI_NEGATIVE
+    prompt: createSkillIconPrompt(
+      'single muted steel-blue tone #A0B8D4',
+      'single round shield silhouette with one simple center bar cut',
+      'plain defensive emblem with stable symmetry',
+    ),
+    negative: SKILL_ICON_NEGATIVE
   },
   {
     id: 'icon-skill-fighting-spirit',
     name: '투지',
     nameEn: 'Fighting Spirit',
     group: '스킬 아이콘',
-    prompt: `${UI_ICON_STYLE},
-
-single clenched fist symbol,
-warm muted rose-brown color #C78F86,
-simple solid silhouette with minimal detail,
-basic warrior starter skill icon feel,
-quiet determination rather than explosive energy,
-pastel fantasy skill icon`,
-    negative: UI_NEGATIVE
+    prompt: createSkillIconPrompt(
+      'single muted rose-brown tone #C78F86',
+      'single clenched fist silhouette',
+      'quiet determined buff emblem with no explosive energy cues',
+    ),
+    negative: SKILL_ICON_NEGATIVE
   },
   {
     id: 'icon-skill-combo-strike',
     name: '연속 베기',
     nameEn: 'Combo Strike',
     group: '스킬 아이콘',
-    prompt: `${UI_ICON_STYLE},
-
-two crossed daggers with motion slash lines,
-pastel rose color #D4A0A0,
-dual blade cross pattern,
-swift consecutive attack feel,
-pastel fantasy skill icon`,
-    negative: UI_NEGATIVE
+    prompt: createSkillIconPrompt(
+      'single pastel rose tone #D4A0A0',
+      'two short parallel blades forming one compact emblem',
+      'double-hit attack icon with no motion trails',
+    ),
+    negative: SKILL_ICON_NEGATIVE
   },
   {
     id: 'icon-skill-cleave',
     name: '분산 공격',
     nameEn: 'Cleave',
     group: '스킬 아이콘',
-    prompt: `${UI_ICON_STYLE},
-
-wide horizontal slash arc with radiating impact,
-muted sky blue color #78A8C0,
-broad sweeping blade trail,
-area attack wide spread feel,
-pastel fantasy skill icon`,
-    negative: UI_NEGATIVE
+    prompt: createSkillIconPrompt(
+      'single muted sky-blue tone #78A8C0',
+      'single broad crescent slash silhouette spanning left to right',
+      'wide area attack emblem without sparks or radiating effects',
+    ),
+    negative: SKILL_ICON_NEGATIVE
   },
   {
     id: 'icon-skill-weakening-strike',
     name: '약화 공격',
     nameEn: 'Weakening Strike',
     group: '스킬 아이콘',
-    prompt: `${UI_ICON_STYLE},
-
-sword with cracked zigzag impact lines,
-muted amethyst color #9A80B8,
-blade with fracture marks radiating,
-weakening debilitating strike,
-pastel fantasy skill icon`,
-    negative: UI_NEGATIVE
+    prompt: createSkillIconPrompt(
+      'single muted amethyst tone #9A80B8',
+      'single sword silhouette with one small crack cut near the tip',
+      'debuff attack emblem with a restrained broken accent only',
+    ),
+    negative: SKILL_ICON_NEGATIVE
   },
   {
     id: 'icon-skill-weakening-blow',
     name: '약화의 일격',
     nameEn: 'Weakening Blow',
     group: '스킬 아이콘',
-    prompt: `${UI_ICON_STYLE},
-
-hammer with shockwave ripples expanding outward,
-muted amethyst color #9A80B8,
-heavy impact with concentric rings,
-area weakening crushing blow,
-pastel fantasy skill icon`,
-    negative: UI_NEGATIVE
+    prompt: createSkillIconPrompt(
+      'single muted amethyst tone #9A80B8',
+      'single hammer silhouette with one shallow notch mark below the head',
+      'heavy weakening strike emblem kept blunt and simple',
+    ),
+    negative: SKILL_ICON_NEGATIVE
   },
   {
     id: 'icon-skill-charge',
     name: '차지',
     nameEn: 'Charge Attack',
     group: '스킬 아이콘',
-    prompt: `${UI_ICON_STYLE},
-
-lightning bolt striking downward with energy sparks,
-electric gold color #C9A86C,
-jagged bolt with small spark particles,
-charged power accumulation,
-pastel fantasy skill icon`,
-    negative: UI_NEGATIVE
+    prompt: createSkillIconPrompt(
+      'single muted gold tone #C9A86C',
+      'single bold lightning bolt silhouette',
+      'charged attack emblem with no sparks or aura',
+    ),
+    negative: SKILL_ICON_NEGATIVE
   },
   {
     id: 'icon-skill-vulnerable-strike',
     name: '취약 공격',
     nameEn: 'Vulnerable Strike',
     group: '스킬 아이콘',
-    prompt: `${UI_ICON_STYLE},
-
-crosshair target reticle with crack lines through center,
-muted wine color #B868A0,
-precise targeting with shatter marks,
-vulnerability exploiting strike,
-pastel fantasy skill icon`,
-    negative: UI_NEGATIVE
+    prompt: createSkillIconPrompt(
+      'single muted wine tone #B868A0',
+      'single target circle silhouette with one vertical crack through center',
+      'precision debuff emblem using one broken target shape only',
+    ),
+    negative: SKILL_ICON_NEGATIVE
   },
   {
     id: 'icon-skill-desperate-strike',
     name: '절망의 일격',
     nameEn: 'Desperate Strike',
     group: '스킬 아이콘',
-    prompt: `${UI_ICON_STYLE},
-
-skull with single large sword piercing through top,
-muted rose-crimson color #C07878,
-jagged desperate energy radiating,
-last resort all-or-nothing attack,
-pastel fantasy skill icon`,
-    negative: UI_NEGATIVE
+    prompt: createSkillIconPrompt(
+      'single muted rose-crimson tone #C07878',
+      'single skull silhouette pierced by one straight sword',
+      'last-resort attack emblem kept stark and minimal',
+    ),
+    negative: SKILL_ICON_NEGATIVE
   },
   {
     id: 'icon-skill-focus',
     name: '집중',
     nameEn: 'Focus',
     group: '스킬 아이콘',
-    prompt: `${UI_ICON_STYLE},
-
-single eye symbol with radiating focus lines,
-warm gold color #C9A86C,
-concentrated gaze with thin rays,
-mental focus precision aura,
-pastel fantasy skill icon`,
-    negative: UI_NEGATIVE
+    prompt: createSkillIconPrompt(
+      'single muted gold tone #C9A86C',
+      'single eye silhouette with one small center pupil cut',
+      'concentration emblem with no rays or aura',
+    ),
+    negative: SKILL_ICON_NEGATIVE
   },
   {
     id: 'icon-skill-regenerative-defense',
     name: '재생 방어',
     nameEn: 'Regenerative Defense',
     group: '스킬 아이콘',
-    prompt: `${UI_ICON_STYLE},
-
-shield with small leaf sprouting from center,
-teal green color #7AB88A,
-protective shield with organic growth,
-healing defensive nature power,
-pastel fantasy skill icon`,
-    negative: UI_NEGATIVE
+    prompt: createSkillIconPrompt(
+      'single muted teal-green tone #7AB88A',
+      'single shield silhouette with one small leaf cut or leaf attachment at center',
+      'healing defense emblem with one restrained organic accent',
+    ),
+    negative: SKILL_ICON_NEGATIVE
   },
   {
     id: 'icon-skill-weakening-defense',
     name: '약화 방어',
     nameEn: 'Weakening Defense',
     group: '스킬 아이콘',
-    prompt: `${UI_ICON_STYLE},
-
-shield with downward arrow overlay,
-muted blue-purple color #A0B8D4,
-defensive shield with weakening mark,
-protection with counter-debuff,
-pastel fantasy skill icon`,
-    negative: UI_NEGATIVE
+    prompt: createSkillIconPrompt(
+      'single muted blue-lavender tone #A0B8D4',
+      'single shield silhouette with one small downward notch mark',
+      'defensive debuff emblem with a plain downward cue only',
+    ),
+    negative: SKILL_ICON_NEGATIVE
   },
   {
     id: 'icon-skill-desperate-shield',
     name: '절망의 방패',
     nameEn: 'Desperate Shield',
     group: '스킬 아이콘',
-    prompt: `${UI_ICON_STYLE},
-
-cracked shield with dark energy swirling around,
-muted rose-crimson color #C07878,
-broken shield fragments held by dark force,
-last resort desperate defense,
-pastel fantasy skill icon`,
-    negative: UI_NEGATIVE
+    prompt: createSkillIconPrompt(
+      'single muted rose-crimson tone #C07878',
+      'single shield silhouette with one bold crack through the center',
+      'last-resort defense emblem without swirl or extra fragments',
+    ),
+    negative: SKILL_ICON_NEGATIVE
   },
 ]
 
@@ -943,7 +949,7 @@ scary dark menacing`
         'forest',
         'common enemy creature',
         'small goblin with moss-green skin (#7AB88A) and slightly darker ear and cheek accents for silhouette separation',
-        'pointy ears and one small rusty knife held close to the body',
+        'pointy ears and one tiny worn wooden dagger held close to the body as a secondary prop only',
         'hunched sneaky silhouette with oversized head and shoulders for strong small-card readability',
       ),
       negative: MONSTER_NEGATIVE
@@ -959,8 +965,8 @@ scary dark menacing`
         'forest',
         'common enemy creature',
         'round poison spider with brown body and purple markings (#9A80B8)',
-        'multiple small dot eyes and small fangs',
-        'compact lurking silhouette',
+        'tiny simplified face with a few small dot eyes and barely visible cute fangs',
+        'compact rounded silhouette that feels readable and more curious than scary',
       ),
       negative: MONSTER_NEGATIVE
     },
@@ -1039,8 +1045,8 @@ scary dark menacing`
         'forest',
         'elite enemy creature',
         'rotting tree creature in muted brown (#C8B888)',
-        'hollow eye sockets and branch arms',
-        'imposing trunk silhouette',
+        'sleepy dark eye hollows and branch arms',
+        'broad trunk silhouette with calm heavy presence',
       ),
       negative: MONSTER_NEGATIVE
     },
@@ -1055,8 +1061,8 @@ scary dark menacing`
         'forest',
         'legendary boss creature, imposing presence',
         'humanoid tree guardian in muted brown bark (#C8B888)',
-        'moss and vines (#7AB88A) on shoulders, gold glowing eyes (#C9A86C)',
-        'tall dignified silhouette',
+        'moss and vines (#7AB88A) on shoulders, soft gold eyes (#C9A86C)',
+        'tall dignified silhouette with calm ancient authority',
       ),
       negative: MONSTER_NEGATIVE
     },
@@ -1070,9 +1076,9 @@ scary dark menacing`
       prompt: createMonsterPrompt(
         'forest',
         'legendary boss creature, imposing presence',
-        'awakened tree creature with cracked bark revealing gold glow (#C9A86C)',
-        'intensely glowing gold eyes (#C9A86C) and spreading branches',
-        'expanded powerful silhouette larger than phase 1',
+        'awakened tree creature with gently opened bark seams revealing muted gold glow (#C9A86C)',
+        'clear gold eyes (#C9A86C) and spreading branches with readable layered shapes',
+        'expanded powerful silhouette larger than phase 1 while staying cozy-fantasy readable',
       ),
       negative: MONSTER_NEGATIVE
     }
@@ -1170,11 +1176,11 @@ scary dark menacing`
       group: '숲',
       prompt: createBackgroundPrompt(
         'forest region tier 1 navigation and battle background',
-        'soft mint and lavender palette with restrained haze, while midground and far background must separate clearly in value and edge softness',
-        'warm diffused daylight opening into a quiet forest clearing with a brighter center lane reserved for combat silhouettes and UI readability',
-        'gentle tree masses and soft foliage shapes with minimal detail, but left and right foreground trunks should frame the scene clearly and midground tree groups should read as distinct layered shapes',
-        'mint, sage green, cream, and lavender atmosphere blend with slightly darker edge vignettes, cleaner center contrast, and a more readable distance falloff from foreground to background',
-        'cozy welcoming woodland mood with beautiful stillness, optimized for card battle UI readability rather than full-scene blur, avoiding muddy AI watercolor blending',
+        'deeper mint, sage green, muted cream, and dim lavender palette in darker broad flat masses',
+        'quiet forest clearing with a dim open center lane reserved for combat silhouettes and UI readability',
+        'left and right foreground trunks should frame the scene as simple solid silhouettes',
+        'midground tree groups and distant background should stay clearly separated with simple layer steps and almost no leaf detail',
+        'calm shadowed woodland mood with clean understated scenery and no painted atmosphere',
       ),
       negative: BG_NEGATIVE
     },
@@ -1185,10 +1191,10 @@ scary dark menacing`
       group: '숲',
       prompt: createBackgroundPrompt(
         'forest region tier 1 navigation background at dusk',
-        'darker muted mint-olive and smoke-lavender dusk palette with restrained amber glow (#C9A86C)',
-        'layered tree silhouettes with deeper shadow separation and heavier vignette around the edges',
-        'low evening mist, longer shadows, and a cooler undercurrent without becoming horror-dark',
-        'calm but uneasy twilight atmosphere with quiet danger in the forgotten forest',
+        'dark muted mint-olive, dusty lavender, and restrained amber palette in simple flat groups',
+        'layered tree silhouettes with clean readable shapes and minimal branch detail',
+        'longer dusk shadows and only a very light atmospheric fade, not a painted haze',
+        'calm twilight atmosphere with quiet tension, darker overall value balance, and simple scene structure',
       ),
       negative: BG_NEGATIVE
     },
@@ -1199,10 +1205,10 @@ scary dark menacing`
       group: '던전',
       prompt: createBackgroundPrompt(
         'dungeon region tier 1 treasure chamber background',
-        'sky blue and lavender palette with soft cool ambience',
-        'arched stone forms and treasure hints suggested with gentle simplified shapes',
-        'subtle warm gold glow (#C9A86C) around the center for discovery mood',
-        'sense of discovery and old hidden wealth, inviting and mystical',
+        'dark slate blue, silver-lavender, and muted gold palette in restrained flat areas',
+        'arched stone forms and treasure silhouettes suggested with very large simple shapes only',
+        'small dim warm gold accent near the center for discovery mood without glow-heavy effects or bright hotspots',
+        'old hidden chamber feeling that stays clean, sparse, readable, understated, and slightly darker overall',
       ),
       negative: BG_NEGATIVE
     },
@@ -1213,10 +1219,10 @@ scary dark menacing`
       group: '성',
       prompt: createBackgroundPrompt(
         'castle region tier 1 garden background',
-        'rose and lavender palette with soft warm cream highlights',
-        'elegant hedges, terrace forms, and architectural hints in simplified painterly shapes',
-        'muted dusty rose, lavender, and soft gold accents in a cozy royal palette',
-        'royal but welcoming atmosphere, serene and dreamy with gentle tension',
+        'dusty rose, muted lavender, aged cream, and soft gold palette in darker restrained flat blocks of color',
+        'elegant hedges, terrace lines, and distant architecture hinted with very simple clean forms',
+        'royal but welcoming atmosphere with minimal detail, sparse composition, and a darker quiet open center',
+        'serene garden mood with gentle tension, reduced brightness, and no painterly texture emphasis',
       ),
       negative: BG_NEGATIVE
     }
@@ -1225,6 +1231,48 @@ scary dark menacing`
   'skillIcon': SKILL_ICON_PROMPTS,
 
   'ui': [
+    {
+      id: 'brand-logo-duskfold',
+      name: '게임 로고 - 더스크폴드',
+      nameEn: 'Game Logo - Duskfold',
+      group: '브랜딩',
+      prompt: `symbolic game logo mark for a cozy dark fantasy deckbuilder,
+
+minimal emblem only with no text and no letters,
+use the exact same central motif language as the card deck back design,
+main symbol should be the deck back center emblem itself adapted into a standalone logo mark,
+one bold sun disk and one clear crescent moon combined inside a very simple circular frame,
+the emblem should feel like it was directly lifted from the center of the card back with no extra ornament added,
+avoid vague celestial abstraction and avoid any shape that breaks consistency with the card back motif,
+subtle folded-card geometry may remain only if it matches the existing card back center emblem,
+extremely restrained composition with large negative space,
+muted pastel palette using dark lavender, muted cream, moon-purple, and dusty rose only,
+flat matte graphic design, plain vector-like silhouette, no shine, no gloss, no gemstone feeling,
+should feel elegant, calm, simple, iconic, and fully consistent with the card deck back identity,
+must sit naturally over the current dark battle background without overpowering characters, monsters, cards, or skill effects,
+high legibility at small size`,
+      negative: BRANDING_NEGATIVE
+    },
+    {
+      id: 'brand-card-back-duskfold',
+      name: '카드덱 뒷면 - 더스크폴드',
+      nameEn: 'Card Back - Duskfold',
+      group: '브랜딩',
+      prompt: `card deck back design for a cozy dark fantasy deckbuilder,
+
+vertical 2:3 fantasy card back designed to match the current dark battle scene,
+perfectly symmetrical centered composition,
+main motif should clearly represent the sun and moon together,
+center emblem combines a sun disk and crescent moon with a very simple circular frame,
+minimal border system, tiny corner accents, very large calm negative space, and no text,
+dark muted lavender base with muted cream linework, moon-purple support tones, and dusty rose support tones,
+flat matte ornamental graphic, plain and clean with no scene illustration, no shine, no gemstone feeling,
+should feel modern, minimal, mystical, and visually quiet behind gameplay elements,
+strong central readability, balanced geometry, no clutter,
+made to harmonize with parchment cards, dark overlays, and the minimal combat UI`,
+      negative: UI_NEGATIVE
+    },
+
     // ---- 코인 (4종) ----
     {
       id: 'coin-heads',
@@ -1309,11 +1357,18 @@ output 256x256 pixels`,
       group: '버튼',
       prompt: `${UI_BUTTON_STYLE},
 
-cream parchment background #F0E8D8 with rose accent #D4A0A0,
-semi-transparent crossed sword icon centered,
-wide horizontal button shape,
-subtle inner shadow for depth,
-muted rose tone evoking finality`,
+ultra-minimal end-turn action button with immediate readability,
+shape-first design that communicates forward completion even with no text,
+compact horizontal capsule merged with a clear right-pointing wedge silhouette,
+cream parchment base #F0E8D8 with soft lavender-gray tint #B7ABC8 and quiet plum edge #5C5268,
+one small centered chevron cut or embossed forward mark only,
+large clean negative space and almost no interior detail,
+no decorative inset frame and no ornamental texture emphasis,
+restrained soft lower shadow only for separation,
+subtle inner glow or focus emphasis around the forward mark so the button soul reads clearly on screen,
+the core action identity should feel unmistakable, centered, and emotionally present even at a glance,
+designed to feel simple, intuitive, calm, and decisive at a glance,
+small-size readable tactical UI asset for card battle screen`,
       negative: UI_NEGATIVE
     },
     {

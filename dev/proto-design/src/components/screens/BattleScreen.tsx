@@ -1128,7 +1128,7 @@ export function BattleScreen() {
                     >
                       <div ref={sunCountRef} className="flex items-center gap-2 justify-center min-w-[72px]">
                         <img src={sunCoinImg} alt="해 코인" className="w-10 h-10 object-contain drop-shadow-[0_4px_10px_rgba(201,168,108,0.42)]" />
-                        <span className="min-w-[16px] text-center text-[20px] font-extrabold text-[#C9A86C] drop-shadow-[0_1px_2px_rgba(58,48,64,0.18)]">{sunResults.length}</span>
+                        <span className="min-w-[16px] text-center text-[20px] font-extrabold text-[#7A5610] drop-shadow-[0_1px_2px_rgba(255,248,220,0.4)]">{sunResults.length}</span>
                       </div>
                       <div ref={moonCountRef} className="flex items-center gap-2 justify-center min-w-[72px]">
                         <img src={moonCoinImg} alt="달 코인" className="w-10 h-10 object-contain drop-shadow-[0_4px_10px_rgba(106,80,128,0.34)]" />

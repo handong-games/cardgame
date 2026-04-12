@@ -8,6 +8,8 @@ import frameSkillsImg from '@assets/frames/skill-frame.png';
 import attackFrameImg from '@assets/frames/skill-frame-attack.png';
 import defenseFrameImg from '@assets/frames/skill-frame-defense.png';
 import buffFrameImg from '@assets/frames/skill-frame-buff.png';
+import sunCoinImg from '@assets/coins/sun-coin.png';
+import moonCoinImg from '@assets/coins/moon-coin.png';
 import { SKILL_IMAGES } from '../../data/skillImages';
 
 function getSkillFrameImage(skill: Skill): string {
@@ -24,6 +26,29 @@ function getSkillFrameImage(skill: Skill): string {
   if (hasBlock) return defenseFrameImg;
   if (hasBuffLikeEffect) return buffFrameImg;
   return frameSkillsImg;
+}
+
+function formatConditionBadge(skill: Skill) {
+  const conditionEntry = skill.conditionalEffects?.[0];
+
+  if (!conditionEntry) return null;
+
+  switch (conditionEntry.condition) {
+    case 'last_attacked_target':
+      return '연계';
+    case 'all_tails':
+      return '달 전용';
+    case 'coins_above':
+      return `해 ${conditionEntry.conditionValue}+`;
+    case 'hp_below':
+      return `HP ${conditionEntry.conditionValue}%↓`;
+    case 'enemy_hp_below':
+      return `적 HP ${conditionEntry.conditionValue}%↓`;
+    case 'buff_active':
+      return '버프 필요';
+    default:
+      return '조건부';
+  }
 }
 
 interface SkillSlotProps {
@@ -62,6 +87,8 @@ export function SkillSlot({
   const isOnCooldown = skillState && skillState.cooldownRemaining > 0;
   const isMaxUsed = skill.maxUsePerTurn > 0 && skillState && skillState.usedThisTurn >= skill.maxUsePerTurn;
   const canUse = isPlayerTurn && canAfford && !isOnCooldown && !isMaxUsed;
+  const conditionBadge = formatConditionBadge(skill);
+  const isConditionActive = !!previewEffects && previewEffects.conditionsMet.length > 0;
 
   const usageText = skill.maxUsePerTurn > 0
     ? `${skillState?.usedThisTurn ?? 0}/${skill.maxUsePerTurn}`
@@ -152,33 +179,64 @@ export function SkillSlot({
           </>
         )}
 
-        {(costs.heads > 0 || costs.tails > 0) && (
-          <div className="absolute -top-2 -right-2 flex flex-col gap-0.5 items-end z-10">
+        {(conditionBadge || costs.heads > 0 || costs.tails > 0) && (
+          <div className="absolute -top-2.5 -right-2.5 flex flex-col gap-1 items-end z-10">
+            {conditionBadge && (
+              <div
+                className="px-2 py-[3px] rounded-full text-[10px] font-bold tracking-[0.01em] border shadow-sm leading-none"
+                style={{
+                  background: isConditionActive
+                    ? 'linear-gradient(180deg, rgba(216,200,232,0.96), rgba(232,208,216,0.96))'
+                    : 'linear-gradient(180deg, rgba(240,232,216,0.96), rgba(228,218,204,0.94))',
+                  color: isConditionActive ? '#3A3040' : '#6A6070',
+                  borderColor: isConditionActive ? 'rgba(184,160,208,0.9)' : 'rgba(166,150,132,0.72)',
+                  boxShadow: isConditionActive
+                    ? '0 4px 10px rgba(184,160,208,0.2)'
+                    : '0 4px 10px rgba(58,48,64,0.12)',
+                }}
+              >
+                {conditionBadge}
+              </div>
+            )}
             {costs.heads > 0 && (
-              <div className={`
-                flex items-center gap-0.5
-                pl-1 pr-1.5 py-0.5 rounded-full
-                text-xs font-extrabold border-2
-                shadow-coin leading-none
-                ${canAffordHeads
-                  ? 'bg-gradient-to-br from-sun-gold to-sun-orange text-ink-brown border-sun-bright'
-                  : 'bg-effect-attack text-white border-red-300'}
-              `}>
-                <span className="text-sm">☀</span>
+              <div
+                className="flex items-center gap-1 pl-1 pr-1.5 py-0.5 rounded-full text-xs font-extrabold border leading-none"
+                style={canAffordHeads
+                  ? {
+                      background: 'linear-gradient(180deg, rgba(255,246,214,0.98), rgba(243,221,156,0.94))',
+                      color: '#7A5610',
+                      borderColor: 'rgba(201,168,108,0.92)',
+                      boxShadow: '0 4px 10px rgba(201,168,108,0.24)',
+                    }
+                  : {
+                      background: 'linear-gradient(180deg, rgba(177,92,92,0.96), rgba(144,67,67,0.96))',
+                      color: '#FFF5EE',
+                      borderColor: 'rgba(255,214,214,0.56)',
+                      boxShadow: '0 4px 10px rgba(120,42,42,0.2)',
+                    }}
+              >
+                <img src={sunCoinImg} alt="해 코인" className="w-3.5 h-3.5 object-contain" />
                 <span>{costs.heads}</span>
               </div>
             )}
             {costs.tails > 0 && (
-              <div className={`
-                flex items-center gap-0.5
-                pl-1 pr-1.5 py-0.5 rounded-full
-                text-xs font-extrabold border-2
-                shadow-coin leading-none
-                ${canAffordTails
-                  ? 'bg-gradient-to-br from-moon-silver to-moon-twilight text-white border-moon-light'
-                  : 'bg-effect-attack text-white border-red-300'}
-              `}>
-                <span className="text-sm">🌙</span>
+              <div
+                className="flex items-center gap-1 pl-1 pr-1.5 py-0.5 rounded-full text-xs font-extrabold border leading-none"
+                style={canAffordTails
+                  ? {
+                      background: 'linear-gradient(180deg, rgba(234,229,245,0.98), rgba(186,178,214,0.95))',
+                      color: '#4F4369',
+                      borderColor: 'rgba(106,80,128,0.48)',
+                      boxShadow: '0 4px 10px rgba(106,80,128,0.18)',
+                    }
+                  : {
+                      background: 'linear-gradient(180deg, rgba(177,92,92,0.96), rgba(144,67,67,0.96))',
+                      color: '#FFF5EE',
+                      borderColor: 'rgba(255,214,214,0.56)',
+                      boxShadow: '0 4px 10px rgba(120,42,42,0.2)',
+                    }}
+              >
+                <img src={moonCoinImg} alt="달 코인" className="w-3.5 h-3.5 object-contain" />
                 <span>{costs.tails}</span>
               </div>
             )}

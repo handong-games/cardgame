@@ -58,27 +58,30 @@ complex detailed design
 
 ### Skill 아이콘 (스킬)
 
+> 스킬 아이콘은 다른 UI 아이콘보다 더 절제된 규칙을 사용합니다.  
+> **단일 심볼 / 단색 계열 / 장식 없는 실루엣 / 배경 없는 정사각 구도**를 기본으로 합니다.
+
 ```
 [SKILL ICON PROMPT v3.0]
-stylized storybook illustration,
-hand-drawn outlines with soft watercolor texture,
+game UI skill icon for v6.0 Lavender Mist pastel fantasy card game,
+ultra-simple skill icon symbol design with one centered motif only,
+single muted hue with near-monotone value range and no palette variation,
+flat matte vector-like silhouette with very limited internal cuts only when essential,
 
-cute skill icon design,
-simple magic sparkle or swirl symbol,
-royal blue color #4169E1,
-mystical friendly look,
+single simple symbol only,
+no background badge no circular ring no extra prop,
+extremely restrained geometry and no decorative strokes,
+clean minimal design readable at very small size,
 
-circular icon background,
-dark charcoal outline,
-watercolor paper texture,
-
-isolated on transparent background,
-1:1 square format 64x64px
+isolated on pure solid white background,
+1:1 square format 256x256px
 
 --negative
-photorealistic, 3D render,
-cold harsh blue, dark scary,
-complex detailed design
+photorealistic, 3D render, CGI,
+multiple symbols, extra prop, background badge, circular background,
+motion trail, slash effect, spark particles, energy burst, glow aura,
+gradient fill, multicolor split, metallic shine,
+complex detailed design, text, watermark
 ```
 
 ### Power 아이콘 (파워)

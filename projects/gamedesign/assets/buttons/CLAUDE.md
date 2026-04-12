@@ -179,46 +179,50 @@ text words letters
 
 ### 디자인 컨셉
 - **용도**: 플레이어 턴 종료
-- **느낌**: 확정적, 신뢰감
-- **특징**: 체크마크 또는 화살표 아이콘
+- **느낌**: 직관적, 미니멀, 즉시 이해 가능
+- **특징**: 텍스트 없이도 읽히는 우향(wedge) 실루엣 + 작은 chevron 포인트
 
 ### 색상 팔레트
 
 | 요소 | 색상명 | HEX | 용도 |
 |------|--------|-----|------|
-| 배경 | Forest Green | `#228B22` | 버튼 배경 |
-| 하이라이트 | Light Green | `#90EE90` | 상단 반사 |
-| 테두리 | Dark Green | `#006400` | 외곽선 |
-| 아이콘 | Cream White | `#FFF5E6` | 체크마크 |
+| 배경 | Parchment Cream | `#F0E8D8` | 버튼 본체 |
+| 악센트 | Lavender Gray | `#B7ABC8` | 내부 톤/포인트 |
+| 테두리 | Deep Plum | `#5C5268` | 외곽선 |
+| 아이콘 | Soft Plum | `#4E4658` | chevron 아이콘 |
 
 ### 프롬프트
 
 ```
-[END TURN BUTTON PROMPT v3.0]
-stylized storybook illustration,
-hand-drawn outlines with soft watercolor texture,
-flat color base with subtle warm gradients,
+[END TURN BUTTON PROMPT v6.0]
+game UI button for v6.0 Lavender Mist pastel fantasy card game,
+single-surface parchment interface element with calm matte finish,
+ultra-minimal end-turn action button with immediate readability,
 
-turn end action button,
-warm forest green #228B22 background,
-simple cute checkmark icon center,
-cream white icon color,
+shape-first design that communicates forward completion even with no text,
+compact horizontal capsule merged with a clear right-pointing wedge silhouette,
+cream parchment base #F0E8D8,
+soft lavender-gray tint #B7ABC8,
+quiet plum edge #5C5268,
+one small centered chevron cut or embossed forward mark only,
+large clean negative space,
+almost no interior detail,
+no decorative inset frame,
+restrained lower shadow for subtle elevation,
+subtle inner glow or focus emphasis around the forward mark so the button soul reads clearly on screen,
+the core action identity should feel unmistakable, centered, and emotionally present even at a glance,
 
-rounded rectangle shape,
-dark green pencil outline,
-rounded corners 12px radius,
-soft drop shadow,
+simple intuitive calm decisive feeling,
+clean readability at small size,
 
-watercolor paper texture,
-confident reassuring design,
-
-isolated on transparent background,
-horizontal format 160x50px
+isolated on solid white background,
+output 512x192 pixels
 
 --negative
-photorealistic, 3D render,
-modern UI, cold colors,
-dark scary,
+photorealistic, 3D render, glossy,
+aggressive warning styling,
+weapon icon, crossed swords,
+neon glow, saturated colors,
 text words letters
 ```
 

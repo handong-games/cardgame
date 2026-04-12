@@ -9,7 +9,7 @@ import { useAudio } from '../../hooks/useAudio';
 import type { EventChoice, EventCategory } from '../../types';
 import soulIcon from '@assets/icons/icon-soul.png';
 import forestBg from '@assets/backgrounds/sunny-forest-day.png';
-import cardFrame from '@assets/frames/character-card-frame.png';
+import cardFrame from '@assets/frames/frame-player.png';
 import sunCoinImg from '@assets/coins/coin-heads.png';
 import skillFrameImg from '@assets/frames/skill-frame.png';
 import { SKILL_IMAGES } from '../../data/skillImages';

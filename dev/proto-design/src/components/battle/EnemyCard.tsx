@@ -15,7 +15,7 @@ import monsterPoisonSpider from '@assets/monsters/MON_F02_poison-spider.png';
 import monsterSporeParasite from '@assets/monsters/MON_F03_spore-parasite.png';
 import monsterThornVine from '@assets/monsters/MON_F04_thorn-vine.png';
 import monsterGolem from '@assets/monsters/MON_F05_golem.png';
-import monsterWolfPack from '@assets/monsters/MON_F06_wolf-pack.png';
+import monsterWolf from '@assets/monsters/MON_F06_wolf.png';
 import monsterRottenTree from '@assets/monsters/MON_F07_rotten-tree.png';
 import bossAncientGroveLord from '@assets/monsters/BOSS_F01_ancient-grove-lord.png';
 import cardNameplate from '@assets/frames/card-nameplate.png';
@@ -27,6 +27,7 @@ import intentDefenseIcon from '@assets/icons/intent-defense.png';
 import intentBuffIcon from '@assets/icons/intent-buff.png';
 import statusVulnerableIcon from '@assets/icons/status-vulnerable.png';
 import statusStrengthIcon from '@assets/icons/status-strength.png';
+import shieldIcon from '@assets/icons/shield-icon.png';
 
 // gameplan 8체 매핑 (MON_F01~F07 + BOSS_F01)
 // 프레임 티어: R1~3 T1(기본), R4~5 T2(정예), R6~7 T3(후반), R8 T3(보스)
@@ -36,8 +37,8 @@ const MONSTER_IMAGES: Record<string, { src: string; frame?: string }> = {
   '버섯 기생체': { src: monsterSporeParasite },                                       // MON_F03 R2-3 T1
   '가시 덩굴': { src: monsterThornVine, frame: monsterFrameT2 },                     // MON_F04 R4-5 T2
   '골렘': { src: monsterGolem, frame: monsterFrameT2 },                              // MON_F05 R4-5 T2
-  '늑대': { src: monsterWolfPack, frame: monsterFrameT3 },                           // MON_F06 R6-7 T3
-  '썩은 나무': { src: monsterRottenTree, frame: monsterFrameT3 },                      // MON_F07 R6-7 T3
+  '늑대': { src: monsterWolf, frame: monsterFrameT2 },                               // MON_F06 R6-7 T2
+  '썩은 나무': { src: monsterRottenTree, frame: monsterFrameT3 },                    // MON_F07 R6-7 T3
   '고대 수목군주': { src: bossAncientGroveLord, frame: monsterFrameT3 },              // BOSS_F01 R8 T3
 };
 
@@ -228,7 +229,7 @@ export function EnemyCard({
               {enemy.block > 0 ? (
                 <motion.span animate={blockNumberControls}>{enemy.block}</motion.span>
               ) : (
-                <span className="text-xs">🛡️</span>
+                <img src={shieldIcon} alt="방어" className="w-3.5 h-3.5 object-contain" />
               )}
             </div>
           </motion.div>

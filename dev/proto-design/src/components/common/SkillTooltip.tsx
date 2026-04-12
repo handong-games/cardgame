@@ -30,7 +30,7 @@ export function SkillTooltip({
   const isOnCooldown = skillState && skillState.cooldownRemaining > 0;
   const hasConditionsMet = previewEffects && previewEffects.conditionsMet.length > 0;
   const costEntries = [
-    costs.heads > 0 ? { key: 'heads', amount: costs.heads, label: '해 코인', icon: sunCoinImg, textColor: '#C9A86C', bgColor: 'rgba(255,245,214,0.92)', borderColor: 'rgba(201,168,108,0.28)' } : null,
+    costs.heads > 0 ? { key: 'heads', amount: costs.heads, label: '해 코인', icon: sunCoinImg, textColor: '#7A5610', bgColor: 'rgba(255,246,214,0.96)', borderColor: 'rgba(201,168,108,0.56)' } : null,
     costs.tails > 0 ? { key: 'tails', amount: costs.tails, label: '달 코인', icon: moonCoinImg, textColor: '#6A5080', bgColor: 'rgba(225,220,245,0.92)', borderColor: 'rgba(106,80,128,0.28)' } : null,
   ].filter(Boolean) as Array<{ key: string; amount: number; label: string; icon: string; textColor: string; bgColor: string; borderColor: string }>;
 
@@ -58,6 +58,7 @@ export function SkillTooltip({
                   backgroundColor: cost.bgColor,
                   borderColor: cost.borderColor,
                   color: cost.textColor,
+                  boxShadow: cost.key === 'heads' ? '0 4px 10px rgba(201,168,108,0.16)' : '0 4px 10px rgba(106,80,128,0.14)',
                 }}
                 title={cost.label}
               >

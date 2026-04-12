@@ -2,7 +2,7 @@ import { motion } from 'framer-motion';
 import { GameButton } from '../ui/GameButton';
 import type { ShopItem } from '../../types';
 import soulIcon from '@assets/icons/icon-soul.png';
-import cardFrame from '@assets/frames/character-card-frame.png';
+import cardFrame from '@assets/frames/frame-player.png';
 
 interface ShopConfirmModalProps {
   item: ShopItem;

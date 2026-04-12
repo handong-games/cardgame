@@ -65,6 +65,7 @@ zero gradients zero shading zero tonal layering within any shape
 ### 몬스터 마스터 스타일
 
 > 캐릭터와 같은 플랫 컬러 일러스트 결을 유지하면서, 몬스터는 지역별 컬러 아웃라인 언더톤과 좌측 방향으로 구분합니다.
+> 운영 예외: 실제 생성본은 누끼 작업 효율을 위해 **pure solid white background**를 사용합니다. 최상위 컨셉 문서의 크림 양피지 배경 규칙은 인게임 표현 기준으로 유지합니다.
 
 ```
 simple flat color illustration with clean solid fills and no gradients,
@@ -80,7 +81,7 @@ silhouette-driven monster design recognizable from shape alone,
 tiny simplified eyes with no visible pupils or irises, paired with short simple line eyebrows,
 cute and charming monster design that is not scary or threatening,
 body facing left at three-quarter angle opposing the hero,
-solid cream parchment background #F0E8D8,
+isolated on pure solid white background for easy background removal and cutout workflow,
 no border no frame,
 vertical portrait 2:3 aspect ratio,
 strictly flat color fills with hard boundaries between each color region,
@@ -300,6 +301,11 @@ center area intentionally kept open for cards and UI
 ### 스킬 아이콘 (14종)
 
 > 전체 프롬프트는 `promptExamples.ts`의 `skillIcon` 섹션 참조
+
+- 단일 심볼만 사용하고, 배경 배지·원형 링·보조 오브젝트는 넣지 않는다.
+- 아이콘마다 **단색에 가까운 단조로운 1색 계열**만 사용한다.
+- 모션 라인, 파티클, 광휘, 에너지 오라 대신 **굵고 단순한 실루엣**으로 의미를 구분한다.
+- 모든 스킬 아이콘은 같은 단순도와 같은 시각 언어를 유지한다.
 
 ---
 
