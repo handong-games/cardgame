@@ -1,8 +1,8 @@
-import { useEffect, useRef, useCallback, useState, type ReactNode } from 'react';
+import { useEffect, useRef, useCallback, useState, type ReactNode, type RefObject } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useGameStore } from '../../stores/gameStore';
 import { CharacterCard } from '../battle/CharacterCard';
-import { EnemyCard } from '../battle/EnemyCard';
+import { EnemyCard, MonsterCardFace } from '../battle/EnemyCard';
 import { PlayerBuffs } from '../battle/PlayerBuffs';
 import { SkillPanel } from '../battle/SkillPanel';
 import { DragOverlay } from '../battle/DragOverlay';
@@ -17,6 +17,7 @@ import { SoulDrop } from '../effects/SoulDrop';
 import { CoinTossAnimation } from '../effects/CoinTossAnimation';
 import { DEATH_ANIMATION_DURATION, getCurrentSpeedMultiplier } from '../../animations';
 import { getRegion } from '../../data/regions';
+import { ENEMY_DEFINITIONS } from '../../data/enemies';
 import { getRegionAccessories, getAccessoryById } from '../../data/accessories';
 import { getRegionFacilities, getBloodAltarRewards, BLOOD_ALTAR_HIDDEN_REWARD } from '../../data/facilities';
 import { CARD_DEFINITIONS } from '../../data/cards';
@@ -37,6 +38,9 @@ import companionFrameImg from '@assets/frames/frame-companion.png';
 import sunCoinImg from '@assets/coins/sun-coin.png';
 import moonCoinImg from '@assets/coins/moon-coin.png';
 import endTurnButtonImg from '@assets/buttons/btn-end-turn.png';
+import companionFairyImg from '@assets/companions/moss-fairy.png';
+import companionOwlImg from '@assets/companions/forest-owl.png';
+import destinationDeckBackImg from '@assets/branding/card-back-duskfold.png';
 import type { BgTheme } from '../../types';
 
 // 현재 숲 배경만 존재 — 성/던전 배경은 gamedesign에서 생성 후 추가 예정
@@ -45,8 +49,10 @@ const BG_IMAGES: Record<BgTheme, string> = {
   castle: forestBg,   // TODO: 성 배경 에셋 추가 시 교체
   dungeon: forestBg,  // TODO: 던전 배경 에셋 추가 시 교체
 };
-import companionFairyImg from '@assets/companions/moss-fairy.png';
-import companionOwlImg from '@assets/companions/forest-owl.png';
+
+const DESTINATION_DECK_BACK_SRC = destinationDeckBackImg;
+const DESTINATION_CARD_WIDTH = 190;
+const DESTINATION_CARD_HEIGHT = 285;
 
 const COMPANION_IMAGES: Record<string, string> = {
   moss_fairy: companionFairyImg,
@@ -56,44 +62,235 @@ const COMPANION_IMAGES: Record<string, string> = {
 const COMPANION_FRAME: string | null = companionFrameImg;
 
 // 행선지 타입별 정보
-const DESTINATION_INFO: Record<DestinationType, { emoji: string; iconImg?: string; label: string; color: string; border: string }> = {
-  normal: { emoji: '👹', iconImg: nodeMonsterIcon, label: '몬스터', color: 'text-gray-300', border: 'border-gray-500' },
-  elite: { emoji: '💀', iconImg: nodeEliteIcon, label: '엘리트', color: 'text-yellow-400', border: 'border-yellow-500' },
-  boss: { emoji: '👑', iconImg: nodeBossIcon, label: '보스', color: 'text-red-400', border: 'border-red-500' },
-  rest: { emoji: '🏕️', iconImg: nodeRestIcon, label: '휴식', color: 'text-green-400', border: 'border-green-500' },
-  shop: { emoji: '🛒', iconImg: nodeShopIcon, label: '상점', color: 'text-blue-400', border: 'border-blue-500' },
-  event: { emoji: '❓', iconImg: nodeEventIcon, label: '이벤트', color: 'text-purple-400', border: 'border-purple-500' },
-  village: { emoji: '🏘️', label: '마을', color: 'text-amber-400', border: 'border-amber-500' },
+const DESTINATION_INFO: Record<DestinationType, {
+  emoji: string;
+  iconImg?: string;
+  label: string;
+  color: string;
+  border: string;
+  accent: string;
+  glow: string;
+  description: string;
+}> = {
+  normal: { emoji: '👹', iconImg: nodeMonsterIcon, label: '몬스터', color: 'text-gray-200', border: 'border-stone-500/80', accent: '#C8BAA7', glow: 'rgba(200,186,167,0.34)', description: '일반 적과 맞서 다음 길을 연다' },
+  elite: { emoji: '💀', iconImg: nodeEliteIcon, label: '엘리트', color: 'text-yellow-200', border: 'border-yellow-500/80', accent: '#E3B45A', glow: 'rgba(227,180,90,0.38)', description: '강적과 싸워 더 큰 보상을 노린다' },
+  boss: { emoji: '👑', iconImg: nodeBossIcon, label: '보스', color: 'text-red-200', border: 'border-red-500/80', accent: '#D96C63', glow: 'rgba(217,108,99,0.36)', description: '지역의 지배자와 결전을 치른다' },
+  rest: { emoji: '🏕️', iconImg: nodeRestIcon, label: '휴식', color: 'text-green-200', border: 'border-emerald-500/80', accent: '#73B899', glow: 'rgba(115,184,153,0.35)', description: '잠시 숨을 고르며 체력을 회복한다' },
+  shop: { emoji: '🛒', iconImg: nodeShopIcon, label: '상점', color: 'text-sky-200', border: 'border-sky-500/80', accent: '#74A9D8', glow: 'rgba(116,169,216,0.34)', description: '소울을 써서 다음 전투를 준비한다' },
+  event: { emoji: '❓', iconImg: nodeEventIcon, label: '이벤트', color: 'text-fuchsia-200', border: 'border-fuchsia-500/80', accent: '#AD7AC6', glow: 'rgba(173,122,198,0.34)', description: '예상치 못한 사건이 여정을 흔든다' },
+  village: { emoji: '🏘️', label: '마을', color: 'text-amber-200', border: 'border-amber-500/80', accent: '#D5A259', glow: 'rgba(213,162,89,0.34)', description: '정비와 휴식이 가능한 거점에 들른다' },
 };
 
-// 행선지 카드 컴포넌트 (캐릭터 카드와 동일한 높이)
-function DestinationCard({ destination, index, onSelect }: { destination: DestinationOption; index: number; onSelect: () => void }) {
-  const info = DESTINATION_INFO[destination.type];
+function DestinationCardBack({ className = '', stacked = false }: { className?: string; stacked?: boolean }) {
+  const [imageError, setImageError] = useState(false);
+
+  if (!imageError) {
+    return (
+      <div
+        className={`overflow-hidden rounded-[18px] border border-[#E9D7B5]/20 bg-[#2A1E20] ${className}`}
+        style={{ boxShadow: stacked ? '0 12px 28px rgba(20,14,18,0.28)' : '0 18px 30px rgba(20,14,18,0.34)' }}
+      >
+        <img
+          src={DESTINATION_DECK_BACK_SRC}
+          alt="행선지 카드 덱"
+          className="h-full w-full object-contain"
+          onError={() => setImageError(true)}
+        />
+      </div>
+    );
+  }
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20, scale: 0.9 }}
-      animate={{ opacity: 1, y: 0, scale: 1 }}
-      whileHover={{ scale: 1.05, transition: { duration: 0.05 } }}
-      transition={{ delay: index * 0.1, duration: 0.3 }}
-      className={`
-        w-32 rounded-lg border-2 cursor-pointer bg-gray-800 overflow-hidden
-        ${info.border}
-      `}
-      onClick={onSelect}
+    <div
+      className={`overflow-hidden rounded-[18px] border border-[#E9D7B5]/20 bg-[#2F2326] ${className}`}
+      style={{
+        backgroundImage: 'radial-gradient(circle at 50% 30%, rgba(238,223,191,0.18), transparent 52%), linear-gradient(180deg, rgba(92,58,67,0.96), rgba(44,31,38,0.98))',
+        boxShadow: stacked ? '0 12px 28px rgba(20,14,18,0.28)' : '0 18px 30px rgba(20,14,18,0.34)',
+      }}
     >
-      {/* 라벨 (캐릭터 카드 이름 영역과 동일) */}
-      <div className={`py-2 text-center font-bold border-b border-gray-700 bg-gray-750 ${info.color}`}>
-        {info.label}
+      <div className="relative flex h-full w-full items-center justify-center overflow-hidden">
+        <div className="absolute inset-[8%] rounded-[14px] border border-[#E8DAB5]/20" />
+        <div className="absolute inset-[16%] rounded-[12px] border border-[#E8DAB5]/14" />
+        <div className="absolute h-16 w-16 rounded-full border border-[#F1E4C4]/24 bg-[#E7D8B0]/10 blur-[1px]" />
+        <span className="relative text-[34px] text-[#F2E5C7]/70">✦</span>
       </div>
-      {/* 이미지/이모지 영역 (캐릭터 카드 이미지 영역과 동일) */}
-      <div className="flex items-center justify-center py-10 bg-gray-850">
-        {info.iconImg ? (
-          <img src={info.iconImg} alt={info.label} className="w-16 h-16 object-contain" />
+    </div>
+  );
+}
+
+function DestinationDeckMarker({ deckRef, isActive }: { deckRef: RefObject<HTMLDivElement | null>; isActive: boolean }) {
+  return (
+    <motion.div
+      ref={deckRef}
+      initial={false}
+      animate={isActive ? { y: [0, -3, 0], rotate: [0, -1, 0.8, 0] } : { y: 0, rotate: 0 }}
+      transition={isActive ? { duration: 1.6, repeat: Infinity, ease: 'easeInOut' } : { duration: 0.2 }}
+      className="pointer-events-none absolute right-56 top-4 z-20 h-[96px] w-[64px]"
+      style={{ filter: isActive ? 'drop-shadow(0 10px 18px rgba(38,20,34,0.24))' : 'drop-shadow(0 8px 14px rgba(38,20,34,0.18))' }}
+    >
+      <div className="absolute left-3 top-2 h-full w-full rounded-[18px] bg-[#261A1F]/35" />
+      <div className="absolute left-1.5 top-1 h-full w-full rounded-[18px] bg-[#312127]/50" />
+      <DestinationCardBack className="relative h-full w-full" stacked />
+    </motion.div>
+  );
+}
+
+function DestinationCard({
+  destination,
+  index,
+  cardCount,
+  origin,
+  canInteract,
+  isSelected,
+  isLocked,
+  isFlipped,
+  revealMonsterFace,
+  showScratchReveal,
+  onSelect,
+}: {
+  destination: DestinationOption;
+  index: number;
+  cardCount: number;
+  origin: { x: number; y: number; scale: number };
+  canInteract: boolean;
+  isSelected: boolean;
+  isLocked: boolean;
+  isFlipped: boolean;
+  revealMonsterFace: boolean;
+  showScratchReveal: boolean;
+  onSelect: () => void;
+}) {
+  const info = DESTINATION_INFO[destination.type];
+  const destinationTitle = destination.enemyKey
+    ? ENEMY_DEFINITIONS[destination.enemyKey]?.name ?? info.label
+    : info.label;
+  const destinationDescription = destination.type === 'rest'
+    ? `체력 ${destination.healPercent ?? 30}% 회복`
+    : info.description;
+  const isMonsterDestination = Boolean(destination.enemyKey);
+  const nodeTitle = isMonsterDestination ? '몬스터' : destinationTitle;
+  const nodeSubtitle = isMonsterDestination ? null : info.label;
+  const nodeDescription = isMonsterDestination ? '정체를 확인하려면 선택하세요' : destinationDescription;
+  const baseRotation = cardCount === 2
+    ? (index === 0 ? -4 : 4)
+    : index === 0
+      ? -8
+      : index === cardCount - 1
+        ? 8
+        : 0;
+  return (
+    <motion.div
+      initial={{
+        opacity: 0.96,
+        x: origin.x,
+        y: origin.y,
+        rotate: 0,
+        scale: origin.scale,
+      }}
+      animate={{
+        opacity: isLocked && !isSelected ? 0.54 : 1,
+        x: 0,
+        y: 0,
+        rotate: isSelected ? 0 : baseRotation,
+        scale: isSelected ? 1.04 : 1,
+        filter: isSelected ? `drop-shadow(0 20px 34px ${info.glow})` : 'drop-shadow(0 12px 20px rgba(20,14,18,0.24))',
+      }}
+      whileHover={canInteract ? { y: -8, scale: 1.03, rotate: 0, transition: { duration: 0.16 } } : undefined}
+      transition={{ delay: 0.16 + index * 0.18, duration: 0.58, ease: [0.22, 0.61, 0.36, 1] }}
+      className="relative"
+      style={{ width: DESTINATION_CARD_WIDTH, height: DESTINATION_CARD_HEIGHT, perspective: 1200, zIndex: isSelected ? 20 : 10 + index }}
+      onClick={canInteract ? onSelect : undefined}
+    >
+      <motion.div
+        animate={{ rotateY: isFlipped ? 180 : 0 }}
+        transition={{ duration: 0.72, ease: [0.22, 0.61, 0.36, 1] }}
+        className="relative h-full w-full"
+        style={{ transformStyle: 'preserve-3d' }}
+      >
+        <div className="absolute inset-0" style={{ backfaceVisibility: 'hidden' }}>
+          <DestinationCardBack className="h-full w-full" />
+        </div>
+
+        {isMonsterDestination && revealMonsterFace ? (
+          <div
+            className="absolute inset-0"
+            style={{
+              backfaceVisibility: 'hidden',
+              transform: 'rotateY(180deg)',
+            }}
+          >
+            <MonsterCardFace
+              enemyName={destinationTitle}
+              isElite={destination.type === 'elite'}
+              isBoss={destination.type === 'boss'}
+            />
+            <AnimatePresence>
+              {showScratchReveal && (
+                <motion.div
+                  initial={{ opacity: 0.95 }}
+                  animate={{ opacity: 0 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.32, ease: 'easeOut' }}
+                  className="pointer-events-none absolute inset-0 overflow-hidden rounded-[18px]"
+                  style={{ background: 'rgba(18,14,20,0.18)' }}
+                >
+                  {[0, 1, 2, 3].map((line) => (
+                    <motion.div
+                      key={line}
+                      initial={{ x: '-120%', opacity: 0 }}
+                      animate={{ x: '140%', opacity: [0, 0.95, 0] }}
+                      transition={{ delay: line * 0.05, duration: 0.28, ease: 'easeOut' }}
+                      className="absolute h-[18%] w-[180%]"
+                      style={{
+                        top: `${18 + line * 18}%`,
+                        left: '-30%',
+                        transform: 'rotate(-18deg)',
+                        background: 'linear-gradient(90deg, rgba(255,255,255,0), rgba(245,235,220,0.85), rgba(255,255,255,0))',
+                        mixBlendMode: 'screen',
+                      }}
+                    />
+                  ))}
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
         ) : (
-          <span className="text-6xl">{info.emoji}</span>
+          <div
+            className={`absolute inset-0 overflow-hidden rounded-[18px] border ${info.border}`}
+            style={{
+              backfaceVisibility: 'hidden',
+              transform: 'rotateY(180deg)',
+              background: `linear-gradient(180deg, rgba(28,24,30,0.98), rgba(17,14,19,0.98)), radial-gradient(circle at 50% 0%, ${info.glow}, transparent 50%)`,
+              boxShadow: `inset 0 1px 0 rgba(255,245,230,0.08), 0 20px 36px rgba(14,10,16,0.34), 0 0 24px ${info.glow}`,
+            }}
+          >
+            <div className="absolute inset-0 opacity-60" style={{ background: `radial-gradient(circle at 50% 15%, ${info.glow}, transparent 48%)` }} />
+            <div className="relative flex h-full flex-col">
+              <div className="flex items-center justify-between border-b border-white/10 px-4 py-3">
+                <span className={`text-[11px] font-semibold tracking-[0.24em] uppercase ${info.color}`}>Destination</span>
+                <span className="text-[10px] tracking-[0.16em] text-[#CBBDA7]/72">#{index + 1}</span>
+              </div>
+              <div className="flex flex-1 flex-col items-center justify-center px-4 text-center">
+                <div className="mb-4 flex h-[86px] w-[86px] items-center justify-center rounded-full border border-white/10" style={{ background: `radial-gradient(circle, ${info.glow}, rgba(16,12,18,0.12) 68%, transparent 72%)` }}>
+                  {info.iconImg ? (
+                    <img src={info.iconImg} alt={info.label} className="h-12 w-12 object-contain drop-shadow-[0_4px_14px_rgba(255,245,230,0.14)]" />
+                  ) : (
+                    <span className="text-5xl">{info.emoji}</span>
+                  )}
+                </div>
+                <div className={`mb-1 text-2xl font-bold ${info.color}`}>{nodeTitle}</div>
+                {nodeSubtitle && (
+                  <div className="mb-2 text-[11px] tracking-[0.22em] text-[#CBBDA7]/64 uppercase">{nodeSubtitle}</div>
+                )}
+                <div className="text-[13px] leading-5 text-[#E7DCCD]/78">{nodeDescription}</div>
+              </div>
+              <div className="border-t border-white/10 px-4 py-3 text-center text-[11px] tracking-[0.18em] text-[#CBBDA7]/70 uppercase">
+                여정을 계속합니다
+              </div>
+            </div>
+          </div>
         )}
-      </div>
+      </motion.div>
     </motion.div>
   );
 }
@@ -646,8 +843,17 @@ export function BattleScreen() {
   const enemyZoneRef = useRef<HTMLDivElement>(null);
   const battlefieldRef = useRef<HTMLDivElement>(null);
   const playerZoneRef = useRef<HTMLDivElement>(null);
+  const destinationDeckRef = useRef<HTMLDivElement>(null);
   const [scale, setScale] = useState(1);
   const [offset, setOffset] = useState({ x: 0, y: 0 });
+  const destinationFlipTimeoutRef = useRef<number | null>(null);
+  const destinationCommitTimeoutRef = useRef<number | null>(null);
+  const [selectedDestinationId, setSelectedDestinationId] = useState<string | null>(null);
+  const [destinationCardsFaceUp, setDestinationCardsFaceUp] = useState(false);
+  const [revealedMonsterDestinationId, setRevealedMonsterDestinationId] = useState<string | null>(null);
+  const [scratchRevealDestinationId, setScratchRevealDestinationId] = useState<string | null>(null);
+  const [destinationFanOrigin, setDestinationFanOrigin] = useState({ x: 180, y: -120, scale: 0.42 });
+  const [destinationFanReady, setDestinationFanReady] = useState(false);
 
   const handleCoinToss = useCallback(() => {
     if (battle.hasTossedThisTurn || coinTossState.isActive) return;
@@ -789,6 +995,98 @@ export function BattleScreen() {
       });
     }
   }, [battle.phase]);
+
+  useEffect(() => {
+    if (destinationFlipTimeoutRef.current !== null) {
+      window.clearTimeout(destinationFlipTimeoutRef.current);
+      destinationFlipTimeoutRef.current = null;
+    }
+    if (destinationCommitTimeoutRef.current !== null) {
+      window.clearTimeout(destinationCommitTimeoutRef.current);
+      destinationCommitTimeoutRef.current = null;
+    }
+
+    if (battle.phase !== 'destination_selection') {
+      setSelectedDestinationId(null);
+      setDestinationCardsFaceUp(false);
+      setRevealedMonsterDestinationId(null);
+      setScratchRevealDestinationId(null);
+      setDestinationFanReady(false);
+      return;
+    }
+
+    setSelectedDestinationId(null);
+    setDestinationCardsFaceUp(false);
+    setRevealedMonsterDestinationId(null);
+    setScratchRevealDestinationId(null);
+    setDestinationFanReady(false);
+
+    const frameId = window.requestAnimationFrame(() => {
+      if (!destinationDeckRef.current || !enemyZoneRef.current) {
+        setDestinationFanReady(true);
+        return;
+      }
+
+      const deckRect = destinationDeckRef.current.getBoundingClientRect();
+      const enemyRect = enemyZoneRef.current.getBoundingClientRect();
+      const invScale = 1 / scale;
+
+      setDestinationFanOrigin({
+        x: (deckRect.left + deckRect.width / 2 - (enemyRect.left + enemyRect.width / 2)) * invScale,
+        y: (deckRect.top + deckRect.height / 2 - (enemyRect.top + enemyRect.height / 2)) * invScale,
+        scale: Math.min((deckRect.width / DESTINATION_CARD_WIDTH) * 0.94, 0.5),
+      });
+      setDestinationFanReady(true);
+      destinationFlipTimeoutRef.current = window.setTimeout(() => {
+        setDestinationCardsFaceUp(true);
+        destinationFlipTimeoutRef.current = null;
+      }, 920 * getCurrentSpeedMultiplier());
+    });
+
+    return () => window.cancelAnimationFrame(frameId);
+  }, [battle.phase, destinationOptions.length, scale]);
+
+  useEffect(() => {
+    return () => {
+      if (destinationFlipTimeoutRef.current !== null) {
+        window.clearTimeout(destinationFlipTimeoutRef.current);
+      }
+      if (destinationCommitTimeoutRef.current !== null) {
+        window.clearTimeout(destinationCommitTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  const handleDestinationCardSelect = useCallback((destinationId: string) => {
+    if (battle.phase !== 'destination_selection' || selectedDestinationId !== null || !destinationCardsFaceUp) return;
+
+    const destination = destinationOptions.find((option) => option.id === destinationId);
+    if (!destination) return;
+
+    setSelectedDestinationId(destinationId);
+
+    if (destination.enemyKey) {
+      setRevealedMonsterDestinationId(destinationId);
+      setScratchRevealDestinationId(destinationId);
+      destinationFlipTimeoutRef.current = window.setTimeout(() => {
+        setScratchRevealDestinationId(null);
+        destinationFlipTimeoutRef.current = null;
+      }, 260 * getCurrentSpeedMultiplier());
+
+      const commitDelay = 980 * getCurrentSpeedMultiplier();
+      destinationCommitTimeoutRef.current = window.setTimeout(() => {
+        selectDestination(destinationId);
+        destinationCommitTimeoutRef.current = null;
+      }, commitDelay);
+      return;
+    }
+
+    const commitDelay = 720 * getCurrentSpeedMultiplier();
+    destinationCommitTimeoutRef.current = window.setTimeout(() => {
+      selectDestination(destinationId);
+      destinationCommitTimeoutRef.current = null;
+    }, commitDelay);
+  }, [battle.phase, destinationCardsFaceUp, destinationOptions, selectDestination, selectedDestinationId]);
 
   // 소울 드롭 타이머: dyingEnemy 세팅 후 사망 애니메이션 70% 지점에서 좌표 계산 + 시작
   useEffect(() => {
@@ -966,9 +1264,9 @@ export function BattleScreen() {
           top: `${offset.y}px`,
         }}
       >
-        <div className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: `url(${regionBg})`, filter: 'blur(1.8px) brightness(0.88) saturate(0.94)' }}>
-          <div className="absolute inset-0" style={{ background: 'radial-gradient(circle at center, rgba(240,232,216,0.12) 0%, rgba(240,232,216,0.05) 26%, rgba(58,48,64,0.10) 52%, rgba(24,20,28,0.34) 100%)' }} />
-          <div className="absolute inset-0" style={{ background: 'linear-gradient(to bottom, rgba(58,48,64,0.12), rgba(58,48,64,0.18) 38%, rgba(24,20,28,0.28) 100%)' }} />
+        <div className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: `url(${regionBg})`, filter: 'blur(2.2px) brightness(0.76) contrast(0.9) saturate(0.82)' }}>
+          <div className="absolute inset-0" style={{ background: 'radial-gradient(circle at center, rgba(240,232,216,0.10) 0%, rgba(240,232,216,0.04) 24%, rgba(58,48,64,0.18) 50%, rgba(24,20,28,0.46) 100%)' }} />
+          <div className="absolute inset-0" style={{ background: 'linear-gradient(to bottom, rgba(58,48,64,0.2), rgba(58,48,64,0.28) 38%, rgba(24,20,28,0.42) 100%)' }} />
         </div>
 
         <div className="absolute top-0 left-0 w-full h-[72px] z-20" style={{ background: 'linear-gradient(to bottom, rgba(103,82,92,0.94), rgba(82,64,75,0.92))', borderBottom: '1px solid rgba(246,231,214,0.22)', boxShadow: '0 4px 18px rgba(28,20,28,0.3)' }}>
@@ -988,6 +1286,10 @@ export function BattleScreen() {
           className="absolute top-[72px] left-0 w-full z-10"
           style={{ bottom: '160px' }}
         >
+          <DestinationDeckMarker
+            deckRef={destinationDeckRef}
+            isActive={battle.phase === 'destination_selection' && destinationOptions.length > 0 && selectedDestinationId === null && !destinationCardsFaceUp}
+          />
           <div className="absolute inset-x-0 bottom-0 flex justify-center pointer-events-none z-0">
             <div
               className="h-[240px] w-[520px] rounded-full"
@@ -1186,30 +1488,47 @@ export function BattleScreen() {
             >
           {/* 행선지 선택 모드 */}
           {battle.phase === 'destination_selection' && destinationOptions.length > 0 ? (
-            <div className="flex flex-col">
-              {/* 캐릭터 카드의 스페이서와 동일 */}
-              <div className="h-8 mb-2" />
-              {/* 캐릭터 카드의 방패+HP바 영역과 동일한 높이 */}
-              <div className="flex items-center justify-center gap-2 mb-1 h-12">
+            <div className="relative flex min-h-[360px] flex-col items-center justify-center">
+              <motion.div
+                initial={false}
+                animate={{ opacity: 1, y: 0 }}
+                className="mb-4 flex h-12 items-center justify-center gap-2"
+              >
                 <motion.span
                   initial={{ opacity: 0, y: -10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="text-white font-bold text-lg"
+                  transition={{ delay: 0.18, duration: 0.28 }}
+                  className="text-lg font-bold text-[#F4E8D2]"
+                  style={{ textShadow: '0 2px 10px rgba(20,14,18,0.3)' }}
                 >
                   다음 행선지 선택
                 </motion.span>
-              </div>
-              {/* 카드들 (캐릭터 카드 본체와 정렬) */}
-              <div className="flex gap-4">
-                {destinationOptions.map((destination, index) => (
-                  <DestinationCard
-                    key={destination.id}
-                    destination={destination}
-                    index={index}
-                    onSelect={() => selectDestination(destination.id)}
-                  />
-                ))}
-              </div>
+              </motion.div>
+
+              {destinationFanReady && (
+                <div
+                  key={destinationOptions.map(option => option.id).join('-')}
+                  className={`relative flex ${destinationOptions.length === 2 ? 'gap-6' : 'gap-5'} items-center justify-center`}
+                  style={{ transformOrigin: 'center center' }}
+                >
+                  {destinationOptions.map((destination, index) => (
+                    <DestinationCard
+                      key={destination.id}
+                      destination={destination}
+                      index={index}
+                      cardCount={destinationOptions.length}
+                      origin={destinationFanOrigin}
+                      canInteract={destinationCardsFaceUp && selectedDestinationId === null}
+                      isSelected={selectedDestinationId === destination.id}
+                      isLocked={selectedDestinationId !== null}
+                      isFlipped={destinationCardsFaceUp}
+                      revealMonsterFace={revealedMonsterDestinationId === destination.id}
+                      showScratchReveal={scratchRevealDestinationId === destination.id}
+                      onSelect={() => handleDestinationCardSelect(destination.id)}
+                    />
+                  ))}
+                </div>
+              )}
             </div>
           ) : battle.phase === 'village_facility' ? (
             /* 시설 선택 모드 */

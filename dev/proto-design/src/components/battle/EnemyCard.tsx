@@ -51,6 +51,69 @@ interface EnemyCardProps {
   isBoss?: boolean;
 }
 
+interface MonsterCardFaceProps {
+  enemyName: string;
+  isElite?: boolean;
+  isBoss?: boolean;
+  className?: string;
+  nameClassName?: string;
+}
+
+export function MonsterCardFace({
+  enemyName,
+  isElite = false,
+  isBoss = false,
+  className = '',
+  nameClassName = '',
+}: MonsterCardFaceProps) {
+  const [imageError, setImageError] = useState(false);
+  const baseName = enemyName.replace(/ \(엘리트\)$/, '');
+  const monsterData = MONSTER_IMAGES[baseName] ?? MONSTER_IMAGES[enemyName];
+  const monsterImage = monsterData?.src;
+  const monsterFrame = monsterData?.frame ?? monsterFrameT1;
+
+  return (
+    <div className={`enemy-card relative h-full w-full transition-shadow duration-200 ${className}`} style={{ filter: 'drop-shadow(0 4px 8px rgba(58,48,64,0.3))', marginTop: '-2px' }}>
+      <img
+        src={monsterFrame}
+        alt={monsterData?.frame ? '정예 프레임' : '몬스터 프레임'}
+        className="absolute inset-0 h-full w-full object-cover rounded-[inherit]"
+      />
+      <div className="absolute bottom-[3.6%] left-1/2 z-10 w-[88%] -translate-x-1/2 pointer-events-none">
+        <img src={cardNameplate} alt="이름판" className="w-full h-auto object-contain drop-shadow-[0_3px_6px_rgba(88,64,52,0.2)]" />
+      </div>
+      {(isBoss || isElite) && (
+        <div className="absolute top-[13%] right-[6%] z-20">
+          <div
+            className={`px-2.5 py-0.5 rounded text-[10px] font-bold tracking-wider uppercase border shadow-lg ${
+              isBoss
+                ? 'bg-gradient-to-r from-red-900/90 to-red-800/90 border-red-500/70 text-red-200'
+                : 'bg-gradient-to-r from-amber-900/90 to-amber-800/90 border-amber-500/70 text-amber-200'
+            }`}
+          >
+            {isBoss ? '보스' : '엘리트'}
+          </div>
+        </div>
+      )}
+      <div className="absolute inset-0 flex items-center justify-center">
+        {monsterImage && !imageError ? (
+          <img
+            src={monsterImage}
+            alt={enemyName}
+            className="h-[58%] w-[72%] object-contain -translate-y-[2%]"
+            onError={() => setImageError(true)}
+          />
+        ) : (
+          <span className="card-emoji">👾</span>
+        )}
+      </div>
+      <div className={`absolute bottom-[5.5%] left-1/2 z-20 flex h-[10%] w-[56%] -translate-x-1/2 items-center justify-center pointer-events-none px-[6%] ${nameClassName}`}>
+        <span className="block max-w-full truncate text-center text-[12px] font-semibold tracking-[0.04em]" style={{ color: '#6B4E3D', fontFamily: 'Georgia, "Times New Roman", serif' }}>{baseName}</span>
+      </div>
+    </div>
+  );
+}
+
 export function EnemyCard({
   enemy,
   isAttacking = false,
@@ -64,14 +127,10 @@ export function EnemyCard({
   const blockNumberControls = useAnimationControls();
   const prevBlock = useRef(enemy.block);
   const [hoveredDebuff, setHoveredDebuff] = useState<string | null>(null);
-  const [imageError, setImageError] = useState(false);
   const [isCardHovered, setIsCardHovered] = useState(false);
 
   const isElite = enemy.name.includes('(엘리트)');
   const baseName = enemy.name.replace(/ \(엘리트\)$/, '');
-  const monsterData = MONSTER_IMAGES[baseName] ?? MONSTER_IMAGES[enemy.name];
-  const monsterImage = monsterData?.src;
-  const monsterFrame = monsterData?.frame ?? monsterFrameT1;
 
   const intentConfig: Record<string, { icon: string; iconImg?: string; label: string; bg: string; border: string; text: string }> = {
     attack: { icon: '⚔️', iconImg: intentAttackIcon, label: '공격', bg: 'bg-red-900/60', border: 'border-red-500/50', text: 'text-red-400' },
@@ -247,7 +306,6 @@ export function EnemyCard({
 
       <motion.div
         className="enemy-card relative transition-shadow duration-200"
-        style={{ filter: 'drop-shadow(0 4px 8px rgba(58,48,64,0.3))', marginTop: '-2px' }}
         animate={{
           scale: isTargeted ? 1.05 : 1,
           boxShadow: isTargeted
@@ -259,39 +317,7 @@ export function EnemyCard({
         {isTargeted && (
           <div className="absolute inset-0 rounded-[inherit] border-2 border-red-400/70 z-10 pointer-events-none" />
         )}
-        <img
-          src={monsterFrame}
-          alt={monsterData?.frame ? '정예 프레임' : '몬스터 프레임'}
-          className="absolute inset-0 w-full h-full object-cover rounded-[inherit]"
-        />
-        <div className="absolute bottom-[3.6%] left-1/2 z-10 w-[88%] -translate-x-1/2 pointer-events-none">
-          <img src={cardNameplate} alt="이름판" className="w-full h-auto object-contain drop-shadow-[0_3px_6px_rgba(88,64,52,0.2)]" />
-        </div>
-        {(isBoss || isElite) && (
-          <div className="absolute top-[13%] right-[6%] z-20">
-            <div
-              className={`px-2.5 py-0.5 rounded text-[10px] font-bold tracking-wider uppercase border shadow-lg ${
-                isBoss
-                  ? 'bg-gradient-to-r from-red-900/90 to-red-800/90 border-red-500/70 text-red-200'
-                  : 'bg-gradient-to-r from-amber-900/90 to-amber-800/90 border-amber-500/70 text-amber-200'
-              }`}
-            >
-              {isBoss ? '보스' : '엘리트'}
-            </div>
-          </div>
-        )}
-        <div className="absolute inset-0 flex items-center justify-center">
-          {monsterImage && !imageError ? (
-            <img
-              src={monsterImage}
-              alt={enemy.name}
-              className="w-[72%] h-[58%] object-contain -translate-y-[2%]"
-              onError={() => setImageError(true)}
-            />
-          ) : (
-            <span className="card-emoji">👾</span>
-          )}
-        </div>
+        <MonsterCardFace enemyName={enemy.name} isElite={isElite} isBoss={isBoss} />
         <AnimatePresence>
           {isHit && (
             <motion.div
@@ -303,9 +329,6 @@ export function EnemyCard({
             />
           )}
         </AnimatePresence>
-        <div className="absolute bottom-[5.5%] left-1/2 flex h-[10%] w-[56%] -translate-x-1/2 items-center justify-center pointer-events-none z-20 px-[6%]">
-          <span className="block max-w-full truncate text-center text-[12px] font-semibold tracking-[0.04em]" style={{ color: '#6B4E3D', fontFamily: 'Georgia, "Times New Roman", serif' }}>{baseName}</span>
-        </div>
       </motion.div>
 
       {enemy.activeDebuffs && enemy.activeDebuffs.length > 0 && (

@@ -14,6 +14,33 @@ export interface PromptExample {
 const joinPrompt = (...lines: Array<string | false | null | undefined>) =>
   lines.filter(Boolean).join(',\n')
 
+const PROMPT_WATERMARK_SAFE_MARGIN = 'keep the lower-right area around 10 percent of the canvas naturally simple, open, and low-detail within the same overall background so any Gemini watermark area does not overlap important subject matter, but do not create any separate empty square, blank box, pale panel, placeholder rectangle, framed patch, or isolated background block there'
+
+const PROMPT_NO_BOX_ARTIFACTS = 'no empty square, no blank box, no placeholder panel, no inset rectangle, no isolated lower-right block, no framed patch, no UI-like box artifact'
+
+const applyPromptWatermarkSafeMargin = (prompt: string) => joinPrompt(
+  prompt,
+  PROMPT_WATERMARK_SAFE_MARGIN,
+  PROMPT_NO_BOX_ARTIFACTS,
+)
+
+const applyNegativeNoBoxArtifacts = (negative: string) => `${negative},
+empty square, blank box, placeholder panel, inset rectangle, isolated lower-right block, framed patch, UI box artifact`
+
+const mapPromptExamplesWithSafeMargin = (source: Record<ExampleCategory, PromptExample[]>): Record<ExampleCategory, PromptExample[]> => {
+  const result = {} as Record<ExampleCategory, PromptExample[]>
+
+  for (const category of Object.keys(source) as ExampleCategory[]) {
+    result[category] = source[category].map((example) => ({
+      ...example,
+      prompt: applyPromptWatermarkSafeMargin(example.prompt),
+      negative: applyNegativeNoBoxArtifacts(example.negative),
+    }))
+  }
+
+  return result
+}
+
 type RegionKey = 'forest' | 'dungeon' | 'castle'
 
 export const FRAME_NEGATIVE = `character illustration, person, creature, monster,
@@ -631,7 +658,7 @@ const SKILL_ICON_PROMPTS: PromptExample[] = [
 // ========================================
 // PROMPT_EXAMPLES - 새 구조 (6개 카테고리)
 // ========================================
-export const PROMPT_EXAMPLES: Record<ExampleCategory, PromptExample[]> = {
+const BASE_PROMPT_EXAMPLES: Record<ExampleCategory, PromptExample[]> = {
   // ========================================
   // ========================================
   'frame': [
@@ -1260,16 +1287,26 @@ high legibility at small size`,
       group: '브랜딩',
       prompt: `card deck back design for a cozy dark fantasy deckbuilder,
 
-vertical 2:3 fantasy card back designed to match the current dark battle scene,
-perfectly symmetrical centered composition,
-main motif should clearly represent the sun and moon together,
-center emblem combines a sun disk and crescent moon with a very simple circular frame,
-minimal border system, tiny corner accents, very large calm negative space, and no text,
-dark muted lavender base with muted cream linework, moon-purple support tones, and dusty rose support tones,
-flat matte ornamental graphic, plain and clean with no scene illustration, no shine, no gemstone feeling,
-should feel modern, minimal, mystical, and visually quiet behind gameplay elements,
-strong central readability, balanced geometry, no clutter,
-made to harmonize with parchment cards, dark overlays, and the minimal combat UI`,
+      vertical 2:3 fantasy card back designed to match the current dark battle scene,
+      perfectly symmetrical centered composition,
+      extremely simple and premium card back silhouette,
+      one strong unmistakable center logo that instantly reads at small size,
+      center emblem should clearly represent the sun and moon together using one fused minimal symbol,
+      center logo should feel more trendy, contemporary, and premium while still minimal,
+      center logo combines a bold sun disk and crescent moon inside one very clean circular mark,
+      logo should read like a modern game brand mark rather than a fantasy ornament,
+      logo should be larger, clearer, and more visually dominant than any border or corner detail,
+      minimal border system, very large calm negative space, and no text,
+      remove all corner icons and corner motifs,
+      all four corners should remain empty and quiet with no symbols or decorative marks,
+      no empty square, no pale lavender blank box, no placeholder panel, and no isolated rectangular block anywhere, especially in the lower-right area,
+      dusty rose border line should run as one continuous unbroken perimeter accent around the card with no gaps, detached segments, or broken corner interruptions,
+      no ornate flourishes, no filigree, no dense decoration, no busy patterning,
+      dark muted lavender base with muted cream linework, moon-purple support tones, and dusty rose support tones,
+      flat matte ornamental graphic, plain and clean with no scene illustration, no shine, no gemstone feeling,
+      should feel modern, minimal, mystical, and visually quiet behind gameplay elements,
+      strong central readability, balanced geometry, extremely low clutter,
+      made to harmonize with parchment cards, dark overlays, and the minimal combat UI`,
       negative: UI_NEGATIVE
     },
 
@@ -1281,17 +1318,19 @@ made to harmonize with parchment cards, dark overlays, and the minimal combat UI
       group: '코인',
       prompt: `${UI_COIN_STYLE},
 
-front face of a fantasy coin themed around the sun,
-simple flat fantasy coin face,
-very large centered sun emblem occupying most of the coin face,
-sun emblem must read instantly at small UI size,
-single bold sun disk icon with only a few very short rays,
-minimal ornamentation, no extra symbols, no decorative details,
-soft matte gold base color #C9A86C,
-flat surface with no gemstone, no translucency, no refraction,
-very subtle simple highlight only,
-clean circular rim with muted gold tint,
-premium readable game coin silhouette with clear sun identity`,
+ front face of a fantasy coin themed around the sun,
+ simple flat fantasy coin face,
+ very large centered sun emblem occupying most of the coin face,
+ sun emblem must read instantly at small UI size,
+ single bold sun disk icon with only a few very short rays,
+ minimal ornamentation, no extra symbols, no decorative details,
+ warm antique gold coin base color #C9A86C,
+ sun emblem in a distinctly lighter pale gold ivory tone with clear natural contrast against the base,
+ background slightly deeper and more muted than the sun emblem so the symbol remains immediately visible,
+ flat surface with no gemstone, no translucency, no refraction,
+ very subtle simple highlight only,
+ clean circular rim with muted darker gold tint,
+ premium readable game coin silhouette with clear sun identity`,
       negative: UI_NEGATIVE
     },
     {
@@ -1357,18 +1396,18 @@ output 256x256 pixels`,
       group: '버튼',
       prompt: `${UI_BUTTON_STYLE},
 
-ultra-minimal end-turn action button with immediate readability,
-shape-first design that communicates forward completion even with no text,
-compact horizontal capsule merged with a clear right-pointing wedge silhouette,
-cream parchment base #F0E8D8 with soft lavender-gray tint #B7ABC8 and quiet plum edge #5C5268,
-one small centered chevron cut or embossed forward mark only,
-large clean negative space and almost no interior detail,
-no decorative inset frame and no ornamental texture emphasis,
-restrained soft lower shadow only for separation,
-subtle inner glow or focus emphasis around the forward mark so the button soul reads clearly on screen,
-the core action identity should feel unmistakable, centered, and emotionally present even at a glance,
-designed to feel simple, intuitive, calm, and decisive at a glance,
-small-size readable tactical UI asset for card battle screen`,
+ ultra-minimal end-turn action button with immediate readability,
+ shape-first design that communicates decisive forward completion even with no text,
+ compact horizontal capsule merged with a clear right-pointing wedge silhouette,
+ muted crimson parchment base around #A56A72 with dusty rose highlight and restrained wine-red edge,
+ one small centered chevron cut or embossed forward mark only,
+ large clean negative space and almost no interior detail,
+ no decorative inset frame and no ornamental texture emphasis,
+ restrained soft lower shadow only for separation,
+ subtle inner glow or focus emphasis around the forward mark so the button soul reads clearly on screen,
+ the core action identity should feel unmistakable, centered, and emotionally present even at a glance,
+ designed to feel urgent but controlled, somber, tactical, and naturally blended into the dark fantasy battle scene,
+ small-size readable tactical UI asset for card battle screen`,
       negative: UI_NEGATIVE
     },
     {
@@ -1578,10 +1617,11 @@ pastel fantasy resource icon`,
       group: '리소스 아이콘',
       prompt: `${UI_ICON_STYLE},
 
-ghostly wisp soul flame floating upward,
-ethereal cyan-white color #A0D8E8,
-translucent spirit silhouette with soft glow trail,
-mysterious otherworldly luminescence,
+ghostly soul flame with a denser and more spiritual presence,
+outer flame silhouette in a darker deep blue-cyan tone around #6FA8C4 while keeping a ghostly flame shape,
+inside the soul shape, a small white ghostly figure should feel subtly formed and inhabited,
+clear spirit silhouette with thicker inner mass and a richer upward wisp shape,
+mysterious sacred afterlife atmosphere with stronger soul intensity,
 pastel fantasy resource icon`,
       negative: UI_NEGATIVE
     },
@@ -1880,3 +1920,5 @@ pastel fantasy defense badge icon`,
     }
   ]
 }
+
+export const PROMPT_EXAMPLES: Record<ExampleCategory, PromptExample[]> = mapPromptExamplesWithSafeMargin(BASE_PROMPT_EXAMPLES)
