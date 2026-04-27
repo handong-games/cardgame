@@ -173,6 +173,15 @@ export function generateShopItems(
     sold: false,
   });
 
+  items.push({
+    id: `shop_${shopItemIdCounter++}`,
+    type: 'coin',
+    price: randomizePrice(18),
+    sold: false,
+    coinId: 'copper_coin',
+    coinCount: 1,
+  });
+
   return items;
 }
 

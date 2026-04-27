@@ -401,6 +401,8 @@ export interface RunState {
   monsterBuffPercent: number;     // 몬스터 강화 비율 (레거시, 미사용)
   monsterHpBuffPercent: number;   // 몬스터 HP 강화 비율 (0.2 = 20%)
   monsterAttackBuffPercent: number; // 몬스터 공격력 강화 비율
+  shopStockByRound: Record<number, ShopItem[]>; // 라운드별 상점 고정 상품
+  scoutedEnemyKey?: string;        // 이벤트 정보 구매로 확인한 다음 몬스터 키
 }
 
 // ===== 이벤트 시스템 =====
@@ -463,7 +465,7 @@ export interface EventState {
 
 // ===== 상점 시스템 =====
 
-export type ShopItemType = 'skill' | 'loot' | 'slot_expansion';
+export type ShopItemType = 'skill' | 'loot' | 'slot_expansion' | 'coin';
 
 export interface LootItem {
   id: string;
@@ -482,6 +484,8 @@ export interface ShopItem {
   sold: boolean;
   skill?: Skill;
   loot?: LootItem;
+  coinId?: string;
+  coinCount?: number;
 }
 
 export interface ShopState {

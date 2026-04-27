@@ -11,7 +11,6 @@ import { useAudio } from '../../hooks/useAudio';
 import type { ShopItem } from '../../types';
 import soulIcon from '@assets/icons/icon-soul.png';
 import forestBg from '@assets/backgrounds/sunny-forest-day.png';
-import companionFrame from '@assets/frames/frame-companion.png';
 import skillFrameImg from '@assets/frames/skill-frame.png';
 import merchantImg from '@assets/npcs/npc_wandering-merchant.png';
 import { SKILL_IMAGES } from '../../data/skillImages';
@@ -21,6 +20,7 @@ const TYPE_BADGE: Record<string, { label: string; color: string }> = {
   skill: { label: '스킬', color: 'bg-[#D4A574]/20 text-[#D4A574]' },
   loot: { label: '전리품', color: 'bg-[#6B4B8C]/20 text-purple-400' },
   slot_expansion: { label: '확장', color: 'bg-blue-500/20 text-blue-400' },
+  coin: { label: '코인', color: 'bg-amber-500/20 text-amber-300' },
 };
 
 function ShopItemCard({
@@ -44,16 +44,19 @@ function ShopItemCard({
   const icon =
     item.type === 'skill' && item.skill ? item.skill.icon :
     item.type === 'loot' && item.loot ? item.loot.emoji :
+    item.type === 'coin' ? '🪙' :
     '📦';
 
   const name =
     item.type === 'skill' && item.skill ? item.skill.name :
     item.type === 'loot' && item.loot ? item.loot.name :
+    item.type === 'coin' ? `코인 +${item.coinCount ?? 1}` :
     '슬롯 확장';
 
   const description =
     item.type === 'skill' && item.skill ? item.skill.description :
     item.type === 'loot' && item.loot ? item.loot.description :
+    item.type === 'coin' ? '다음 전투부터 토스할 코인 +1' :
     '스킬 슬롯 +1';
 
   const isRare = item.type === 'loot' && item.loot?.rarity === 'rare';
@@ -139,11 +142,14 @@ export function ShopScreen() {
 
   const skillItems = shop.items.filter(i => i.type === 'skill');
   const lootItems = shop.items.filter(i => i.type === 'loot');
+  const coinItems = shop.items.filter(i => i.type === 'coin');
   const slotItem = shop.items.find(i => i.type === 'slot_expansion');
+  const otherItems = [...coinItems, ...(slotItem ? [slotItem] : [])];
 
   const pendingItem = shop.pendingPurchaseItemId
     ? shop.items.find(i => i.id === shop.pendingPurchaseItemId)
     : null;
+  const totalCoinCount = player.coinInventory.reduce((sum, coin) => sum + coin.count, 0);
 
   const handleSelectItem = (item: ShopItem) => {
     if (item.sold) return;
@@ -197,6 +203,7 @@ export function ShopScreen() {
           title="떠돌이 상점"
           titleIcon="🛒"
           souls={player.souls}
+          coinCount={totalCoinCount}
           isMuted={isMuted}
           onToggleMute={toggleMute}
           onOpenSettings={useSettingsStore.getState().open}
@@ -212,14 +219,14 @@ export function ShopScreen() {
         <motion.div
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
-          className="w-1/6 min-w-[160px] h-full flex flex-col items-center justify-center gap-4 bg-[#16161C]/40 border-r border-[#4A4A55]/30 px-3"
+          className="relative w-1/6 min-w-[220px] h-full flex flex-col items-center justify-center bg-[#16161C]/40 border-r border-[#4A4A55]/30 px-3"
         >
           {/* 말풍선 */}
           <motion.div
             key={merchantText}
             initial={{ opacity: 0, y: -8 }}
             animate={{ opacity: 1, y: 0 }}
-            className="relative w-full bg-gradient-to-b from-[#2A2218] to-[#1E1E24] border border-[#D4A574]/40 rounded-xl px-3 py-2.5"
+            className="relative mb-4 w-[210px] bg-gradient-to-b from-[#2A2218] to-[#1E1E24] border border-[#D4A574]/40 rounded-xl px-3 py-2.5 text-center"
           >
             <span className="text-[#FFF5E6]/80 text-sm italic leading-snug">&ldquo;{merchantText}&rdquo;</span>
             <div
@@ -230,12 +237,12 @@ export function ShopScreen() {
 
           {/* 상인 이미지 */}
           <motion.div
-            className="relative w-28 h-36 shrink-0"
+            className="relative w-56 h-80 shrink-0"
             whileHover={{ rotate: [-2, 2, -2, 0] }}
             transition={{ duration: 0.5 }}
           >
             <img src={merchantImg} alt="떠돌이 상인" className="w-full h-full object-contain drop-shadow-lg" />
-            <div className="absolute inset-0 rounded-full pointer-events-none" style={{ boxShadow: '0 0 24px rgba(212,165,116,0.3)' }} />
+            <div className="absolute inset-0 rounded-full pointer-events-none" style={{ boxShadow: '0 0 48px rgba(212,165,116,0.36)' }} />
           </motion.div>
         </motion.div>
 
@@ -263,32 +270,47 @@ export function ShopScreen() {
               </div>
             )}
 
-            <div className="mb-6 w-full">
+            {lootItems.length > 0 && (
+              <div className="mb-6 w-full">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="flex-1 h-px bg-gradient-to-r from-transparent to-purple-400/40" />
+                  <h2 className="text-sm font-bold text-purple-400/80 uppercase tracking-wider">🎒 전리품</h2>
+                  <div className="flex-1 h-px bg-gradient-to-l from-transparent to-purple-400/40" />
+                </div>
+                <div className="flex flex-wrap gap-4 justify-center">
+                  {lootItems.map((item, idx) => (
+                    <ShopItemCard
+                      key={item.id}
+                      item={item}
+                      playerSouls={player.souls}
+                      index={skillItems.length + idx}
+                      onSelect={handleSelectItem}
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {otherItems.length > 0 && (
+              <div className="mb-6 w-full">
               <div className="flex items-center gap-3 mb-4">
-                <div className="flex-1 h-px bg-gradient-to-r from-transparent to-purple-400/40" />
-                <h2 className="text-sm font-bold text-purple-400/80 uppercase tracking-wider">🎒 전리품 &amp; 기타</h2>
-                <div className="flex-1 h-px bg-gradient-to-l from-transparent to-purple-400/40" />
+                <div className="flex-1 h-px bg-gradient-to-r from-transparent to-blue-400/40" />
+                <h2 className="text-sm font-bold text-blue-400/80 uppercase tracking-wider">➕ 기타</h2>
+                <div className="flex-1 h-px bg-gradient-to-l from-transparent to-blue-400/40" />
               </div>
               <div className="flex flex-wrap gap-4 justify-center">
-                {lootItems.map((item, idx) => (
+                {otherItems.map((item, idx) => (
                   <ShopItemCard
                     key={item.id}
                     item={item}
                     playerSouls={player.souls}
-                    index={skillItems.length + idx}
+                    index={skillItems.length + lootItems.length + idx}
                     onSelect={handleSelectItem}
                   />
                 ))}
-                {slotItem && (
-                  <ShopItemCard
-                    item={slotItem}
-                    playerSouls={player.souls}
-                    index={skillItems.length + lootItems.length}
-                    onSelect={handleSelectItem}
-                  />
-                )}
               </div>
             </div>
+            )}
           </div>
         </div>
       </div>

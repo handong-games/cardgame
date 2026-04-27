@@ -17,16 +17,19 @@ export function ShopConfirmModal({ item, playerSouls, onConfirm, onCancel }: Sho
   const itemName =
     item.type === 'skill' && item.skill ? item.skill.name :
     item.type === 'loot' && item.loot ? item.loot.name :
+    item.type === 'coin' ? `코인 +${item.coinCount ?? 1}` :
     '스킬 슬롯 확장';
 
   const itemIcon =
     item.type === 'skill' && item.skill ? item.skill.icon :
     item.type === 'loot' && item.loot ? item.loot.emoji :
+    item.type === 'coin' ? '🪙' :
     '📦';
 
   const itemDesc =
     item.type === 'skill' && item.skill ? item.skill.description :
     item.type === 'loot' && item.loot ? item.loot.effectDescription :
+    item.type === 'coin' ? '다음 전투부터 토스할 코인을 1개 추가합니다.' :
     '스킬 슬롯을 1칸 확장합니다 (최대 6칸)';
 
   return (
