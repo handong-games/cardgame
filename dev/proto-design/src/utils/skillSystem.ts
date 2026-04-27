@@ -171,7 +171,7 @@ function checkCondition(
   switch (condition) {
     case 'coins_above':
       if (typeof value !== 'number') return false;
-      const headsCount = player.lastTossResults.filter(r => r.isHeads).length;
+      const headsCount = battleState?.lastTossResults.filter(r => r.isHeads).length ?? 0;
       return headsCount >= value;
     case 'hp_below':
       // HP를 퍼센트로 체크

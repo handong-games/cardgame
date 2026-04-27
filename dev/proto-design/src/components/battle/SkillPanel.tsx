@@ -1,5 +1,5 @@
 import { SkillSlot } from '../common/SkillSlot';
-import type { Skill, SkillState, Player, Enemy, PreviewEffects, CoinTossResult } from '../../types';
+import type { Skill, SkillState, Player, Enemy, PreviewEffects, CoinTossResult, LootItem, BattleState } from '../../types';
 import { calculatePreviewEffects } from '../../utils/skillSystem';
 
 interface SkillPanelProps {
@@ -10,6 +10,8 @@ interface SkillPanelProps {
   player: Player;
   enemy?: Enemy | null;
   hoveredSkill: Skill | null;
+  loots?: LootItem[];
+  battleState?: BattleState;
   onUseSkill: (skillId: string) => void;
   onSkillHover: (skill: Skill | null) => void;
   // 드래그 관련 props
@@ -25,6 +27,8 @@ export function SkillPanel({
   player,
   enemy,
   hoveredSkill,
+  loots = [],
+  battleState,
   onUseSkill,
   onSkillHover,
   onSkillDragStart,
@@ -33,7 +37,7 @@ export function SkillPanel({
   // 호버된 스킬의 프리뷰 효과 계산
   const getPreviewEffects = (skill: Skill): PreviewEffects | undefined => {
     if (hoveredSkill?.id !== skill.id) return undefined;
-    return calculatePreviewEffects(player, skill, enemy);
+    return calculatePreviewEffects(player, skill, enemy, battleState);
   };
 
   return (
@@ -41,6 +45,7 @@ export function SkillPanel({
       {skills.map((skill) => {
         const skillState = skillStates.find(s => s.skillId === skill.id);
         const isHovered = hoveredSkill?.id === skill.id;
+        const costReduction = loots.some((loot) => loot.lootKey === 'swift_boots') && (skillState?.usedThisTurn ?? 0) === 0 ? 1 : 0;
 
         return (
           <div
@@ -60,6 +65,7 @@ export function SkillPanel({
               onHover={onSkillHover}
               onDragStart={onSkillDragStart}
               isDragging={draggingSkillId === skill.id}
+              costReduction={costReduction}
             />
           </div>
         );

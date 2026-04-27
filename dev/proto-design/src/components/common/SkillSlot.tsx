@@ -61,6 +61,7 @@ interface SkillSlotProps {
   onHover?: (skill: Skill | null) => void;
   onDragStart?: (skill: Skill, e: React.MouseEvent, rect: DOMRect) => void;
   isDragging?: boolean;
+  costReduction?: number;
 }
 
 export function SkillSlot({
@@ -73,11 +74,18 @@ export function SkillSlot({
   onHover,
   onDragStart,
   isDragging,
+  costReduction = 0,
 }: SkillSlotProps) {
   const [isHovered, setIsHovered] = useState(false);
   const slotRef = useRef<HTMLButtonElement>(null);
 
-  const costs = getSkillCosts(skill);
+  const baseCosts = getSkillCosts(skill);
+  const costs = costReduction > 0
+    ? {
+        heads: baseCosts.heads > 0 ? Math.max(0, baseCosts.heads - costReduction) : baseCosts.heads,
+        tails: baseCosts.heads > 0 ? baseCosts.tails : Math.max(0, baseCosts.tails - costReduction),
+      }
+    : baseCosts;
   const available = calculateCoinValues(lastTossResults);
 
   const hasTossed = lastTossResults.length > 0;
@@ -139,7 +147,7 @@ export function SkillSlot({
         disabled={!canUse}
         className={`
           relative flex flex-col items-center justify-center
-          w-28 h-32 rounded-xl
+          w-32 h-36 rounded-2xl
           transition-all duration-150
           ${hasImage
             ? `border-0 bg-transparent ${canUse ? (isEnemyTarget ? 'cursor-grab' : 'cursor-pointer') : 'cursor-not-allowed opacity-60'}`
@@ -148,6 +156,7 @@ export function SkillSlot({
                 : 'bg-dark-deep/50 border-dark-graphite/50 cursor-not-allowed opacity-60'
               }`
           }
+          ${canUse ? 'drop-shadow-[0_10px_18px_rgba(240,232,216,0.16)]' : ''}
           ${isDragging ? 'opacity-50 ring-2 ring-amber-400/60 shadow-[0_0_12px_rgba(251,191,36,0.4)]' : ''}
         `}
         animate={{
@@ -243,8 +252,12 @@ export function SkillSlot({
           </div>
         )}
 
+        {!canUse && !isOnCooldown && !isMaxUsed && (
+          <div className="pointer-events-none absolute inset-2 rounded-xl border border-[#6A6070]/20 bg-[#16161C]/18" />
+        )}
+
         {isOnCooldown && (
-          <div className="absolute inset-0 rounded-lg flex flex-col items-center justify-center gap-0.5" style={{ backgroundColor: 'rgba(240,232,216,0.9)' }}>
+          <div className="absolute inset-0 rounded-2xl flex flex-col items-center justify-center gap-0.5" style={{ backgroundColor: 'rgba(240,232,216,0.9)' }}>
             <span className="text-lg">🕐</span>
             <span className="text-sm font-bold" style={{ color: '#3A3040' }}>
               {skillState!.cooldownRemaining}턴
@@ -253,7 +266,7 @@ export function SkillSlot({
         )}
 
         {isMaxUsed && !isOnCooldown && (
-          <div className="absolute inset-0 rounded-lg flex items-center justify-center" style={{ backgroundColor: 'rgba(240,232,216,0.85)' }}>
+          <div className="absolute inset-0 rounded-2xl flex items-center justify-center" style={{ backgroundColor: 'rgba(240,232,216,0.85)' }}>
             <span className="text-xs font-bold" style={{ color: '#6A6070' }}>사용 완료</span>
           </div>
         )}
