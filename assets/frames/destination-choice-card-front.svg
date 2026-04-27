@@ -1,0 +1,24 @@
+<svg width="512" height="768" viewBox="0 0 512 768" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect x="8" y="8" width="496" height="752" rx="28" fill="#8B8198"/>
+  <rect x="18" y="18" width="476" height="732" rx="22" fill="#EFE7D2" stroke="#5F5368" stroke-width="4"/>
+  <rect x="30" y="30" width="452" height="708" rx="14" fill="#F3EBD6" stroke="#6B5E72" stroke-width="3"/>
+
+  <path d="M256 32 C248 96 250 150 256 206 C262 274 258 338 251 404 C242 495 255 579 256 736" stroke="#CDBFB5" stroke-width="8" stroke-linecap="round" opacity="0.45"/>
+  <path d="M32 138 C92 158 126 190 178 246" stroke="#C9BAB0" stroke-width="4" stroke-linecap="round" opacity="0.48"/>
+  <path d="M480 138 C420 158 386 190 334 246" stroke="#C9BAB0" stroke-width="4" stroke-linecap="round" opacity="0.48"/>
+  <path d="M38 288 C103 300 136 334 179 389" stroke="#C9BAB0" stroke-width="4" stroke-linecap="round" opacity="0.42"/>
+  <path d="M474 288 C409 300 376 334 333 389" stroke="#C9BAB0" stroke-width="4" stroke-linecap="round" opacity="0.42"/>
+  <path d="M70 64 C116 130 95 169 165 207" stroke="#C9BAB0" stroke-width="3" stroke-linecap="round" opacity="0.34"/>
+  <path d="M442 64 C396 130 417 169 347 207" stroke="#C9BAB0" stroke-width="3" stroke-linecap="round" opacity="0.34"/>
+
+  <circle cx="256" cy="190" r="128" fill="#F5EDDA" stroke="#675A68" stroke-width="5"/>
+  <circle cx="256" cy="190" r="116" stroke="#C4A36B" stroke-width="8"/>
+  <circle cx="256" cy="190" r="108" stroke="#6A5D6B" stroke-width="2" opacity="0.7"/>
+
+  <path d="M116 380 C116 373 119 368 126 368 H342 C348 368 354 368 360 374 C364 368 368 368 374 368 H394 C400 368 404 370 403 376 L397 409 C402 414 402 420 397 425 L403 456 C404 462 400 464 394 464 H374 C368 464 364 464 360 458 C354 464 348 464 342 464 H126 C119 464 116 459 116 452 L121 424 C116 419 116 414 121 409 L116 380Z" fill="#F7EFDC" stroke="#655766" stroke-width="3"/>
+
+  <path d="M58 496 C58 488 62 484 70 484 H84 C92 484 96 484 101 491 C106 484 110 484 118 484 H442 C450 484 454 488 454 496 V644 C454 652 450 656 442 656 H374 C366 656 362 656 357 650 C352 656 348 656 340 656 H70 C62 656 58 652 58 644 L62 584 C56 578 56 571 62 565 L58 496Z" fill="#F7EFDC" stroke="#655766" stroke-width="3"/>
+
+  <rect x="8" y="8" width="496" height="752" rx="28" stroke="#3F3444" stroke-width="6" opacity="0.75"/>
+  <rect x="30" y="30" width="452" height="708" rx="14" stroke="#F7EFDC" stroke-width="2" opacity="0.4"/>
+</svg>
