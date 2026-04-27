@@ -48,9 +48,9 @@
   --card-base-vh: calc(48vh * 0.667);      /* 화면 높이의 48% → 2:3 변환 */
   
    /* 캐릭터 카드: 플레이어 영역 (100%) */
-   --character-card-width: clamp(190px, min(var(--card-base-vw), var(--card-base-vh)), 275px);
+   --character-card-width: clamp(205px, min(calc(var(--card-base-vw) * 1.08), var(--card-base-vh)), 295px);
    /* 몬스터 카드: 적 영역 (100% - 캐릭터와 동일) */
-   --enemy-card-width: clamp(190px, min(var(--card-base-vw), var(--card-base-vh)), 275px);
+   --enemy-card-width: clamp(205px, min(calc(var(--card-base-vw) * 1.08), var(--card-base-vh)), 295px);
   
   /* ═══════════════════════════════════════════════════════════════
    * 카드 내부 요소 - 카드 크기 비례 스케일링

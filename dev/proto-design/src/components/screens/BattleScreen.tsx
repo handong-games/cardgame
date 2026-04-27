@@ -35,12 +35,19 @@ import nodeRestIcon from '@assets/icons/node-rest.png';
 import nodeMonsterIcon from '@assets/icons/node-monster.png';
 import nodeBossIcon from '@assets/icons/node-boss.png';
 import companionFrameImg from '@assets/frames/frame-companion.png';
+import destinationChoiceCardFrontImg from '@assets/frames/destination-choice-card-front.svg';
 import sunCoinImg from '@assets/coins/sun-coin.png';
 import moonCoinImg from '@assets/coins/moon-coin.png';
 import endTurnButtonImg from '@assets/buttons/btn-end-turn.png';
 import companionFairyImg from '@assets/companions/moss-fairy.png';
 import companionOwlImg from '@assets/companions/forest-owl.png';
 import destinationDeckBackImg from '@assets/branding/card-back-duskfold.png';
+import progressRoundNodeImg from '@assets/progress/progress-round-node.png';
+import progressCurrentNodeImg from '@assets/progress/progress-current-node.png';
+import progressConnectorImg from '@assets/progress/progress-connector.png';
+import progressVillageNodeImg from '@assets/progress/progress-village-node.png';
+import progressBossNodeImg from '@assets/progress/progress-boss-node.png';
+import progressClearedNodeImg from '@assets/progress/progress-cleared-node.png';
 import type { BgTheme } from '../../types';
 
 // 현재 숲 배경만 존재 — 성/던전 배경은 gamedesign에서 생성 후 추가 예정
@@ -146,6 +153,7 @@ function DestinationCard({
   isFlipped,
   revealMonsterFace,
   showScratchReveal,
+  scoutedEnemyKey,
   onSelect,
 }: {
   destination: DestinationOption;
@@ -158,6 +166,7 @@ function DestinationCard({
   isFlipped: boolean;
   revealMonsterFace: boolean;
   showScratchReveal: boolean;
+  scoutedEnemyKey?: string;
   onSelect: () => void;
 }) {
   const info = DESTINATION_INFO[destination.type];
@@ -168,9 +177,13 @@ function DestinationCard({
     ? `체력 ${destination.healPercent ?? 30}% 회복`
     : info.description;
   const isMonsterDestination = Boolean(destination.enemyKey);
+  const isScoutedMonster = Boolean(destination.enemyKey && destination.enemyKey === scoutedEnemyKey);
   const nodeTitle = isMonsterDestination ? '몬스터' : destinationTitle;
-  const nodeSubtitle = isMonsterDestination ? null : info.label;
-  const nodeDescription = isMonsterDestination ? '정체를 확인하려면 선택하세요' : destinationDescription;
+  const nodeDescription = isMonsterDestination
+    ? isScoutedMonster
+      ? `정보: ${destinationTitle} 출현 예상`
+      : '정체를 확인하려면 선택하세요'
+    : destinationDescription;
   const baseRotation = cardCount === 2
     ? (index === 0 ? -4 : 4)
     : index === 0
@@ -201,6 +214,24 @@ function DestinationCard({
       style={{ width: DESTINATION_CARD_WIDTH, height: DESTINATION_CARD_HEIGHT, perspective: 1200, zIndex: isSelected ? 20 : 10 + index }}
       onClick={canInteract ? onSelect : undefined}
     >
+      <motion.div
+        className="pointer-events-none absolute -inset-4 rounded-[34px]"
+        initial={false}
+        animate={isFlipped ? { opacity: [0.56, 0.9, 0.56], scale: [1, 1.045, 1] } : { opacity: 0, scale: 1 }}
+        transition={isFlipped ? { duration: 1.9, repeat: Infinity, ease: 'easeInOut' } : { duration: 0.2 }}
+        style={{
+          background: `conic-gradient(from 0deg at 50% 50%, transparent 0deg, ${info.accent}AA 42deg, transparent 86deg, ${info.accent}88 170deg, transparent 226deg, ${info.accent}AA 304deg, transparent 360deg)`,
+          filter: 'blur(13px)',
+          boxShadow: `0 0 42px ${info.accent}AA, 0 0 74px ${info.glow}`,
+        }}
+      />
+      <motion.div
+        className="pointer-events-none absolute -inset-1 rounded-[24px]"
+        initial={false}
+        animate={isFlipped ? { opacity: [0.72, 1, 0.72] } : { opacity: 0 }}
+        transition={isFlipped ? { duration: 1.9, repeat: Infinity, ease: 'easeInOut' } : { duration: 0.2 }}
+        style={{ boxShadow: `0 0 0 2px ${info.accent}88, 0 0 26px ${info.accent}99` }}
+      />
       <motion.div
         animate={{ rotateY: isFlipped ? 180 : 0 }}
         transition={{ duration: 0.72, ease: [0.22, 0.61, 0.36, 1] }}
@@ -256,36 +287,27 @@ function DestinationCard({
           </div>
         ) : (
           <div
-            className={`absolute inset-0 overflow-hidden rounded-[18px] border ${info.border}`}
+            className="absolute inset-0 overflow-hidden rounded-[18px]"
             style={{
               backfaceVisibility: 'hidden',
               transform: 'rotateY(180deg)',
-              background: `linear-gradient(180deg, rgba(28,24,30,0.98), rgba(17,14,19,0.98)), radial-gradient(circle at 50% 0%, ${info.glow}, transparent 50%)`,
-              boxShadow: `inset 0 1px 0 rgba(255,245,230,0.08), 0 20px 36px rgba(14,10,16,0.34), 0 0 24px ${info.glow}`,
+              boxShadow: `0 20px 36px rgba(14,10,16,0.34), 0 0 24px ${info.glow}`,
             }}
           >
-            <div className="absolute inset-0 opacity-60" style={{ background: `radial-gradient(circle at 50% 15%, ${info.glow}, transparent 48%)` }} />
-            <div className="relative flex h-full flex-col">
-              <div className="flex items-center justify-between border-b border-white/10 px-4 py-3">
-                <span className={`text-[11px] font-semibold tracking-[0.24em] uppercase ${info.color}`}>Destination</span>
-                <span className="text-[10px] tracking-[0.16em] text-[#CBBDA7]/72">#{index + 1}</span>
-              </div>
-              <div className="flex flex-1 flex-col items-center justify-center px-4 text-center">
-                <div className="mb-4 flex h-[86px] w-[86px] items-center justify-center rounded-full border border-white/10" style={{ background: `radial-gradient(circle, ${info.glow}, rgba(16,12,18,0.12) 68%, transparent 72%)` }}>
+            <img src={destinationChoiceCardFrontImg} alt="행선지 카드 앞면" className="pointer-events-none absolute inset-0 h-full w-full object-cover" />
+            <div className="relative h-full w-full text-center">
+              <div className="absolute left-1/2 top-[23px] flex h-[95px] w-[95px] -translate-x-1/2 items-center justify-center">
                   {info.iconImg ? (
-                    <img src={info.iconImg} alt={info.label} className="h-12 w-12 object-contain drop-shadow-[0_4px_14px_rgba(255,245,230,0.14)]" />
+                    <img src={info.iconImg} alt={info.label} className="h-[54px] w-[54px] object-contain drop-shadow-[0_4px_10px_rgba(58,48,64,0.22)]" />
                   ) : (
-                    <span className="text-5xl">{info.emoji}</span>
+                    <span className="text-5xl drop-shadow-[0_4px_10px_rgba(58,48,64,0.22)]">{info.emoji}</span>
                   )}
-                </div>
-                <div className={`mb-1 text-2xl font-bold ${info.color}`}>{nodeTitle}</div>
-                {nodeSubtitle && (
-                  <div className="mb-2 text-[11px] tracking-[0.22em] text-[#CBBDA7]/64 uppercase">{nodeSubtitle}</div>
-                )}
-                <div className="text-[13px] leading-5 text-[#E7DCCD]/78">{nodeDescription}</div>
               </div>
-              <div className="border-t border-white/10 px-4 py-3 text-center text-[11px] tracking-[0.18em] text-[#CBBDA7]/70 uppercase">
-                여정을 계속합니다
+              <div className="absolute left-[43px] right-[43px] top-[137px] flex h-[35px] items-center justify-center px-4">
+                <div className="text-lg font-bold text-[#4A3E50]">{nodeTitle}</div>
+              </div>
+              <div className="absolute left-[24px] right-[24px] top-[180px] flex h-[64px] items-center justify-center px-4">
+                <div className="text-[13px] font-medium leading-5 text-[#5B4D5B]">{nodeDescription}</div>
               </div>
             </div>
           </div>
@@ -834,6 +856,7 @@ export function BattleScreen() {
 
   const isPlayerTurn = battle.phase === 'player_turn';
   const canAct = isPlayerTurn && !battle.combatAnimation?.playerAttacking && !battle.combatAnimation?.enemyAttacking;
+  const totalCoinCount = player.coinInventory.reduce((sum, coin) => sum + coin.count, 0);
 
   // 코인 가치 계산
   const sunResults = battle.lastTossResults.filter(result => result.isHeads);
@@ -848,6 +871,9 @@ export function BattleScreen() {
   const [offset, setOffset] = useState({ x: 0, y: 0 });
   const destinationFlipTimeoutRef = useRef<number | null>(null);
   const destinationCommitTimeoutRef = useRef<number | null>(null);
+  const soulPulseTimeoutRef = useRef<number | null>(null);
+  const companionTimeoutRef = useRef<number | null>(null);
+  const hiddenRewardTimeoutRef = useRef<number | null>(null);
   const [selectedDestinationId, setSelectedDestinationId] = useState<string | null>(null);
   const [destinationCardsFaceUp, setDestinationCardsFaceUp] = useState(false);
   const [revealedMonsterDestinationId, setRevealedMonsterDestinationId] = useState<string | null>(null);
@@ -961,11 +987,11 @@ export function BattleScreen() {
   const previewEffects = (() => {
     // 스킬 드래그 중 + 적 영역 위
     if (skillDragState.isDragging && skillDragState.skill && skillDragState.isOverEnemy) {
-      return calculatePreviewEffects(player, skillDragState.skill, enemy);
+      return calculatePreviewEffects(player, skillDragState.skill, enemy, battle);
     }
     // self/none 타겟 스킬 호버 시
     if (hoveredSkill && hoveredSkill.targetType !== 'enemy') {
-      return calculatePreviewEffects(player, hoveredSkill, enemy);
+      return calculatePreviewEffects(player, hoveredSkill, enemy, battle);
     }
     return null;
   })();
@@ -1054,6 +1080,15 @@ export function BattleScreen() {
       if (destinationCommitTimeoutRef.current !== null) {
         window.clearTimeout(destinationCommitTimeoutRef.current);
       }
+      if (soulPulseTimeoutRef.current !== null) {
+        window.clearTimeout(soulPulseTimeoutRef.current);
+      }
+      if (companionTimeoutRef.current !== null) {
+        window.clearTimeout(companionTimeoutRef.current);
+      }
+      if (hiddenRewardTimeoutRef.current !== null) {
+        window.clearTimeout(hiddenRewardTimeoutRef.current);
+      }
     };
   }, []);
 
@@ -1120,7 +1155,13 @@ export function BattleScreen() {
     setSoulPulse(true);
 
     // 펄스 효과 종료
-    setTimeout(() => setSoulPulse(false), 300 * getCurrentSpeedMultiplier());
+    if (soulPulseTimeoutRef.current !== null) {
+      window.clearTimeout(soulPulseTimeoutRef.current);
+    }
+    soulPulseTimeoutRef.current = window.setTimeout(() => {
+      setSoulPulse(false);
+      soulPulseTimeoutRef.current = null;
+    }, 300 * getCurrentSpeedMultiplier());
   }, []);
 
   const [baseW, baseH] = (() => {
@@ -1273,6 +1314,7 @@ export function BattleScreen() {
           <TopBar
             regionName={getRegion(run.regionId).name}
             souls={player.souls}
+            coinCount={totalCoinCount}
             soulPulse={soulPulse}
             soulCounterRef={soulCounterRef}
             isMuted={isMuted}
@@ -1299,35 +1341,64 @@ export function BattleScreen() {
               }}
             />
           </div>
-          <div className="absolute top-3 left-0 w-full flex justify-center z-20 pointer-events-none">
-            <div className="flex items-center gap-1 px-4 py-1.5 rounded-full bg-[#16161C]/70 border border-[#4A4A55]/50 backdrop-blur-sm">
+          <div className="absolute top-2 left-0 w-full flex justify-center z-20 pointer-events-none">
+            <div
+              className="relative flex h-[60px] w-[544px] items-center justify-center rounded-full"
+              style={{
+                background: 'linear-gradient(to bottom, rgba(31,27,36,0.18), rgba(31,27,36,0.08))',
+                boxShadow: 'inset 0 1px 0 rgba(240,232,216,0.08)',
+                backdropFilter: 'blur(4px)',
+              }}
+            >
+              <div className="relative flex w-[488px] items-center px-[2px]">
               {Array.from({ length: run.totalRounds }, (_, i) => i + 1).map((round) => {
                 const middleRound = Math.ceil(run.totalRounds / 2);
                 const isCurrent = round === run.round;
                 const isPassed = round < run.round;
                 const isVillage = round === middleRound;
                 const isBoss = round === run.totalRounds;
+                const markerSrc = isPassed
+                  ? progressClearedNodeImg
+                  : isBoss
+                    ? progressBossNodeImg
+                    : isVillage
+                      ? progressVillageNodeImg
+                      : progressRoundNodeImg;
 
                 return (
-                  <div key={round} className="flex items-center">
-                    {isBoss ? (
-                      <span className={`text-sm ${isCurrent ? 'drop-shadow-[0_0_6px_rgba(244,63,94,0.8)]' : isPassed ? 'opacity-40' : 'opacity-30 grayscale'}`}>☠️</span>
-                    ) : isVillage ? (
-                      <span className={`text-sm ${isCurrent ? '' : isPassed ? 'opacity-40' : 'opacity-30 grayscale'}`}>🏘️</span>
-                    ) : (
-                      <div className={`rounded-full transition-all ${isCurrent ? 'w-3 h-3 bg-[#D4A574] shadow-[0_0_6px_rgba(212,165,116,0.6)]' : isPassed ? 'w-2 h-2 bg-[#FFF5E6]/50' : 'w-2 h-2 bg-[#4A4A55]'}`} />
-                    )}
+                  <div key={round} className="flex flex-1 items-center">
+                    <div className="relative flex h-10 w-10 shrink-0 items-center justify-center">
+                      <img
+                        src={markerSrc}
+                        alt={isBoss ? '보스 라운드' : isVillage ? '마을 라운드' : isPassed ? '완료 라운드' : '라운드'}
+                        className={`object-contain ${isBoss || isVillage ? 'h-8 w-8' : 'h-7 w-7'}`}
+                        style={{ opacity: isPassed ? 0.82 : 1 }}
+                      />
+                      {isCurrent && (
+                        <img
+                          src={progressCurrentNodeImg}
+                          alt="현재 라운드 표시"
+                          className="pointer-events-none absolute inset-0 h-full w-full object-contain"
+                        />
+                      )}
+                    </div>
                     {round < run.totalRounds && (
-                      <div className={`w-3 h-0.5 mx-0.5 rounded-full ${isPassed ? 'bg-[#FFF5E6]/30' : isCurrent ? 'bg-gradient-to-r from-[#D4A574] to-[#4A4A55]' : 'bg-[#4A4A55]/60'}`} />
+                      <div className="mx-[3px] flex-1">
+                        <img
+                          src={progressConnectorImg}
+                          alt="진행 연결선"
+                          className={`h-[8px] w-full object-fill ${isPassed ? 'opacity-85' : 'opacity-58'}`}
+                        />
+                      </div>
                     )}
                   </div>
                 );
               })}
-
+              </div>
             </div>
           </div>
-          <div className="w-full h-full flex items-center">
-            <div className="flex-1 flex justify-end pr-12">
+            <div className="w-full h-full flex items-center">
+            <div className="flex-1 flex justify-end pr-4">
             <div className="flex flex-col items-center">
               <div className="relative">
                 {run.companions.length > 0 && (
@@ -1481,7 +1552,7 @@ export function BattleScreen() {
                 )}
               </AnimatePresence>
             </div>
-            <div className="flex-1 flex items-center justify-start pl-12">
+            <div className="flex-1 flex items-center justify-start pl-4">
             <div
               ref={enemyZoneRef}
               className="flex flex-col items-center transition-all rounded-lg relative"
@@ -1524,6 +1595,7 @@ export function BattleScreen() {
                       isFlipped={destinationCardsFaceUp}
                       revealMonsterFace={revealedMonsterDestinationId === destination.id}
                       showScratchReveal={scratchRevealDestinationId === destination.id}
+                      scoutedEnemyKey={run.scoutedEnemyKey}
                       onSelect={() => handleDestinationCardSelect(destination.id)}
                     />
                   ))}
@@ -1617,11 +1689,15 @@ export function BattleScreen() {
                       transition={{ duration: 0.2 }}
                       onClick={() => {
                         setCompanionMoving(true);
-                        setTimeout(() => {
+                        if (companionTimeoutRef.current !== null) {
+                          window.clearTimeout(companionTimeoutRef.current);
+                        }
+                        companionTimeoutRef.current = window.setTimeout(() => {
                           selectCompanion(selectedCompanion);
                           setSelectedCompanion(null);
                           setCompanionMoving(false);
                           goBackToFacilitySelection();
+                          companionTimeoutRef.current = null;
                         }, 900 * getCurrentSpeedMultiplier());
                       }}
                     >
@@ -1776,10 +1852,14 @@ export function BattleScreen() {
                         if (selectedBloodAltarRewards.length > 0) {
                           if (selectedBloodAltarRewards.length === 3) {
                             setShowHiddenReward(true);
-                            setTimeout(() => {
+                            if (hiddenRewardTimeoutRef.current !== null) {
+                              window.clearTimeout(hiddenRewardTimeoutRef.current);
+                            }
+                            hiddenRewardTimeoutRef.current = window.setTimeout(() => {
                               setShowHiddenReward(false);
                               selectBloodAltarRewards(selectedBloodAltarRewards);
                               setSelectedBloodAltarRewards([]);
+                              hiddenRewardTimeoutRef.current = null;
                             }, 2500 * getCurrentSpeedMultiplier());
                           } else {
                             selectBloodAltarRewards(selectedBloodAltarRewards);
@@ -1892,7 +1972,7 @@ export function BattleScreen() {
         >
           <div className="flex items-center justify-center h-full overflow-visible -translate-y-5">
             <div
-              className="relative inline-flex items-center justify-center rounded-[28px] border px-6 py-4"
+              className="relative inline-flex items-center justify-center gap-5 rounded-[30px] border px-6 py-4"
               style={{
                 background: 'linear-gradient(to bottom, rgba(124,106,96,0.72), rgba(106,90,82,0.68))',
                 borderColor: 'rgba(240,232,216,0.16)',
@@ -1914,6 +1994,8 @@ export function BattleScreen() {
                 player={player}
                 enemy={enemy}
                 hoveredSkill={hoveredSkill}
+                loots={run.loots}
+                battleState={battle}
                 onUseSkill={useSkill}
                 onSkillHover={handleSkillHover}
                 onSkillDragStart={startSkillDrag}
