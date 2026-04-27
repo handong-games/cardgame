@@ -25,6 +25,10 @@ import monsterFrameT3 from '@assets/frames/frame-t3.png';
 import intentAttackIcon from '@assets/icons/intent-attack.png';
 import intentDefenseIcon from '@assets/icons/intent-defense.png';
 import intentBuffIcon from '@assets/icons/intent-buff.png';
+import intentBadgeAttackImg from '@assets/icons/intent-badge-attack.svg';
+import intentBadgeDefenseImg from '@assets/icons/intent-badge-defense.svg';
+import intentBadgeBuffImg from '@assets/icons/intent-badge-buff.svg';
+import intentBadgeDebuffImg from '@assets/icons/intent-badge-debuff.svg';
 import statusVulnerableIcon from '@assets/icons/status-vulnerable.png';
 import statusStrengthIcon from '@assets/icons/status-strength.png';
 import shieldIcon from '@assets/icons/shield-icon.png';
@@ -132,11 +136,11 @@ export function EnemyCard({
   const isElite = enemy.name.includes('(엘리트)');
   const baseName = enemy.name.replace(/ \(엘리트\)$/, '');
 
-  const intentConfig: Record<string, { icon: string; iconImg?: string; label: string; bg: string; border: string; text: string }> = {
-    attack: { icon: '⚔️', iconImg: intentAttackIcon, label: '공격', bg: 'bg-red-900/60', border: 'border-red-500/50', text: 'text-red-400' },
-    defend: { icon: '🛡️', iconImg: intentDefenseIcon, label: '방어', bg: 'bg-blue-900/60', border: 'border-blue-500/50', text: 'text-blue-400' },
-    buff: { icon: '✨', iconImg: intentBuffIcon, label: '강화', bg: 'bg-amber-900/60', border: 'border-amber-500/50', text: 'text-amber-400' },
-    debuff: { icon: '💢', iconImg: intentBuffIcon, label: '디버프', bg: 'bg-purple-900/60', border: 'border-purple-500/50', text: 'text-purple-400' },
+  const intentConfig: Record<string, { icon: string; iconImg?: string; badgeImg: string; label: string; text: string }> = {
+    attack: { icon: '⚔️', iconImg: intentAttackIcon, badgeImg: intentBadgeAttackImg, label: '공격', text: 'text-red-200' },
+    defend: { icon: '🛡️', iconImg: intentDefenseIcon, badgeImg: intentBadgeDefenseImg, label: '방어', text: 'text-sky-100' },
+    buff: { icon: '✨', iconImg: intentBuffIcon, badgeImg: intentBadgeBuffImg, label: '강화', text: 'text-amber-100' },
+    debuff: { icon: '💢', iconImg: intentBuffIcon, badgeImg: intentBadgeDebuffImg, label: '디버프', text: 'text-fuchsia-100' },
   };
 
   const currentIntent = intentConfig[enemy.intent.type] ?? intentConfig.attack;
@@ -254,21 +258,28 @@ export function EnemyCard({
         )}
       </AnimatePresence>
       <motion.div
-        className={`mb-0 inline-flex items-center self-center px-2.5 py-1 rounded-lg text-xs border whitespace-nowrap ${currentIntent.bg} ${currentIntent.border}`}
-        style={{ width: 'auto', boxShadow: '0 4px 10px rgba(58,48,64,0.12)' }}
+        className="relative z-20 -mb-1 inline-flex h-12 min-w-[152px] items-center self-center justify-center whitespace-nowrap px-4 text-sm"
+        style={{
+          width: 'auto',
+          backgroundImage: `url(${currentIntent.badgeImg})`,
+          backgroundSize: '100% 100%',
+          backgroundRepeat: 'no-repeat',
+          backgroundPosition: 'center',
+          boxShadow: '0 10px 22px rgba(58,48,64,0.24), 0 0 16px rgba(212,165,116,0.12)',
+        }}
         animate={enemy.intent.type === 'attack' ? {
           scale: [1, 1.05, 1],
-          boxShadow: ['0 0 0px rgba(239,68,68,0)', '0 0 8px rgba(239,68,68,0.4)', '0 0 0px rgba(239,68,68,0)'],
+          boxShadow: ['0 10px 22px rgba(58,48,64,0.24)', '0 10px 26px rgba(196,85,85,0.45)', '0 10px 22px rgba(58,48,64,0.24)'],
         } : {}}
         transition={enemy.intent.type === 'attack' ? { duration: 1.5, repeat: Infinity, ease: 'easeInOut' } : {}}
       >
         {currentIntent.iconImg ? (
-          <img src={currentIntent.iconImg} alt={currentIntent.label} className="inline-block w-4 h-4 mr-1 object-contain" />
+          <img src={currentIntent.iconImg} alt={currentIntent.label} className="mr-1.5 inline-block h-5 w-5 object-contain drop-shadow-[0_1px_2px_rgba(0,0,0,0.3)]" />
         ) : (
           <span className="mr-1">{currentIntent.icon}</span>
         )}
-        <span className={currentIntent.text}>{currentIntent.label}</span>
-        <span className={`ml-1 font-bold ${currentIntent.text}`}>{enemy.intent.value}</span>
+        <span className={`font-bold tracking-[0.04em] ${currentIntent.text}`}>{currentIntent.label}</span>
+        <span className={`ml-1.5 text-base font-black ${currentIntent.text}`}>{enemy.intent.value}</span>
       </motion.div>
 
       <div className="mb-0.5 px-1" style={{ width: 'var(--enemy-card-width)' }}>
