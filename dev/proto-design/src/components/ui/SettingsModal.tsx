@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, type JSX, type ReactNode } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useSettingsStore } from '../../stores/settingsStore';
 import type { ResolutionPreset, AnimationSpeed } from '../../stores/settingsStore';
@@ -106,7 +106,7 @@ function Slider({
   );
 }
 
-function SettingRow({ label, description, children }: { label: string; description?: string; children: React.ReactNode }) {
+function SettingRow({ label, description, children }: { label: string; description?: string; children: ReactNode }) {
   return (
     <div className="flex items-center justify-between gap-4 py-3">
       <div className="flex-1">

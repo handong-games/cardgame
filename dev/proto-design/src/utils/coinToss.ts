@@ -4,14 +4,14 @@ import { getCoinDefinition } from '../data/coins';
 /**
  * 단일 동전 토스 (50% 확률)
  */
-export function tossCoin(coinId: string): CoinTossResult | null {
+export function tossCoin(coinId: string, headsChance: number = 0.5): CoinTossResult | null {
   const coin = getCoinDefinition(coinId);
   if (!coin) return null;
 
   return {
     coinId,
     denomination: coin.denomination,
-    isHeads: Math.random() < 0.5,
+    isHeads: Math.random() < headsChance,
   };
 }
 
@@ -20,7 +20,7 @@ export function tossCoin(coinId: string): CoinTossResult | null {
  * @param inventory 동전 인벤토리
  * @returns 각 동전의 토스 결과 배열
  */
-export function tossAllCoins(inventory: CoinInventory[]): CoinTossResult[] {
+export function tossAllCoins(inventory: CoinInventory[], headsChance: number = 0.5): CoinTossResult[] {
   const results: CoinTossResult[] = [];
 
   for (const inv of inventory) {
@@ -29,7 +29,7 @@ export function tossAllCoins(inventory: CoinInventory[]): CoinTossResult[] {
 
     // 보유 개수만큼 토스
     for (let i = 0; i < inv.count; i++) {
-      const result = tossCoin(inv.coinId);
+      const result = tossCoin(inv.coinId, headsChance);
       if (result) {
         results.push(result);
       }

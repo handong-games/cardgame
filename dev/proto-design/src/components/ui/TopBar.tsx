@@ -3,6 +3,7 @@ import type { ReactNode, RefObject } from 'react';
 import { AudioControl } from './AudioControl';
 import settingsIcon from '@assets/icons/settings.png';
 import soulIcon from '@assets/icons/icon-soul.png';
+import coinPouchImg from '@assets/coins/coin-pouch.png';
 
 type TopBarMode = 'battle' | 'shop' | 'event';
 
@@ -14,6 +15,7 @@ interface TopBarProps {
   titleIcon?: string;
   leftContent?: ReactNode;
   souls: number;
+  coinCount?: number;
   soulPulse?: boolean;
   isMuted?: boolean;
   onToggleMute?: () => void;
@@ -29,6 +31,7 @@ export function TopBar({
   titleIcon,
   leftContent,
   souls,
+  coinCount,
   soulPulse = false,
   isMuted = false,
   onToggleMute,
@@ -95,6 +98,15 @@ export function TopBar({
             <img src={soulIcon} alt="소울" className="w-5 h-5 object-contain" />
             <span className="font-bold text-base" style={{ color: '#3A3040' }}>{souls}</span>
           </motion.div>
+          {coinCount !== undefined && (
+            <div
+              className="flex items-center gap-2 px-3 py-1 rounded-full border"
+              style={{ backgroundColor: 'rgba(232,220,210,0.54)', borderColor: 'rgba(107,78,61,0.14)' }}
+            >
+              <img src={coinPouchImg} alt="코인 주머니" className="w-5 h-5 object-contain" />
+              <span className="font-bold text-base" style={{ color: '#3A3040' }}>{coinCount}</span>
+            </div>
+          )}
           {onToggleMute && (
             <AudioControl isMuted={isMuted} onToggleMute={onToggleMute} />
           )}

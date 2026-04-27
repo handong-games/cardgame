@@ -2,6 +2,7 @@ import type {
   Card,
   CardEffect,
   ConditionalEffect,
+  CoinTossResult,
   Player,
 } from '../types';
 import { getBuffEventEffects } from './buffSystem';
@@ -10,7 +11,8 @@ import { getBuffEventEffects } from './buffSystem';
 export function checkCondition(
   condition: ConditionalEffect['condition'],
   conditionValue: string | number,
-  player: Player
+  player: Player,
+  lastTossResults: CoinTossResult[] = []
 ): boolean {
   switch (condition) {
     case 'buff_active':
@@ -22,7 +24,7 @@ export function checkCondition(
 
     case 'coins_above':
       if (typeof conditionValue !== 'number') return false;
-      const headsCount = player.lastTossResults.filter(r => r.isHeads).length;
+      const headsCount = lastTossResults.filter(r => r.isHeads).length;
       return headsCount >= conditionValue;
 
     default:
@@ -31,7 +33,7 @@ export function checkCondition(
 }
 
 // 효과 수집 (카드 기본 효과 + 조건부 효과 + 버프 이벤트 효과)
-export function collectCardEffects(card: Card, player: Player): CardEffect[] {
+export function collectCardEffects(card: Card, player: Player, lastTossResults: CoinTossResult[] = []): CardEffect[] {
   const effectsToApply: CardEffect[] = [];
 
   // 1. 카드 기본 효과 추가
@@ -42,7 +44,7 @@ export function collectCardEffects(card: Card, player: Player): CardEffect[] {
   // 2. 조건부 효과 체크 및 추가
   if (card.conditionalEffects) {
     for (const conditional of card.conditionalEffects) {
-      if (checkCondition(conditional.condition, conditional.conditionValue, player)) {
+      if (checkCondition(conditional.condition, conditional.conditionValue, player, lastTossResults)) {
         effectsToApply.push(conditional.effect);
       }
     }
