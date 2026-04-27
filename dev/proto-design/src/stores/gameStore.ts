@@ -8,7 +8,6 @@ import { getCompanionById } from '../data/companions';
 import { getBloodAltarRewards } from '../data/facilities';
 import { INITIAL_COIN_INVENTORY } from '../data/coins';
 import { createStartingSkills, generateRewardSkills, resetSkillIdCounter } from '../data/skills';
-import { getCurrentSpeedMultiplier } from './settingsStore';
 import { generateShopItems, getRandomDialogue } from '../data/shop';
 import { getEventById, getRandomEvent } from '../data/events';
 import { spendCoins as spendCoinResults, calculateCoinValues } from '../utils/coinToss';
@@ -77,7 +76,47 @@ const createInitialRun = (): RunState => ({
   monsterBuffPercent: 0,  // 레거시
   monsterHpBuffPercent: 0,     // HP 강화 비율
   monsterAttackBuffPercent: 0, // 공격력 강화 비율
+  shopStockByRound: {},
 });
+
+function hasLoot(run: RunState, lootKey: string): boolean {
+  return run.loots.some((loot) => loot.lootKey === lootKey);
+}
+
+function getEffectiveSkillForRun(skill: Skill, skillState: { usedThisTurn: number } | undefined, run: RunState): Skill {
+  if (!hasLoot(run, 'swift_boots') || (skillState?.usedThisTurn ?? 0) > 0) {
+    return skill;
+  }
+
+  const costs = getSkillCosts(skill);
+  if (costs.heads <= 0 && costs.tails <= 0) {
+    return skill;
+  }
+
+  const discountedHeads = costs.heads > 0 ? costs.heads - 1 : costs.heads;
+  const discountedTails = costs.heads > 0 ? costs.tails : Math.max(0, costs.tails - 1);
+
+  return {
+    ...skill,
+    headsCost: discountedHeads,
+    tailsCost: discountedTails,
+    coinCost: undefined,
+  };
+}
+
+function addEnemyDebuff(enemy: NonNullable<GameState['enemy']>, debuffId: string, stacks: number, duration: number): NonNullable<GameState['enemy']> {
+  const activeDebuffs = [...(enemy.activeDebuffs ?? [])];
+  const existing = activeDebuffs.find((debuff) => debuff.debuffId === debuffId);
+
+  if (existing) {
+    existing.stacks += stacks;
+    existing.remainingDuration = Math.max(existing.remainingDuration, duration);
+  } else {
+    activeDebuffs.push({ debuffId, stacks, remainingDuration: duration });
+  }
+
+  return { ...enemy, activeDebuffs };
+}
 
 // 초기 상태
 const initialState: GameState = {
@@ -172,7 +211,10 @@ export const useGameStore = create<GameState & GameActions>((set, get) => ({
         lastTossResults: [],
       },
       reward: null,
+      shop: null,
+      event: null,
       run: createInitialRun(),
+      destinationOptions: [],
     });
   },
 
@@ -243,7 +285,7 @@ export const useGameStore = create<GameState & GameActions>((set, get) => ({
 
   // 코인 토스 실행
   tossCoins: () => {
-    const { player, battle } = get();
+    const { player, battle, run } = get();
 
     // 이미 토스했으면 무시
     if (battle.hasTossedThisTurn) {
@@ -251,7 +293,8 @@ export const useGameStore = create<GameState & GameActions>((set, get) => ({
     }
 
     // 모든 동전 토스 (coins는 즉시 증가하지 않음)
-    const results = tossAllCoins(player.coinInventory);
+    const headsChance = hasLoot(run, 'lucky_coin') ? 0.6 : 0.5;
+    const results = tossAllCoins(player.coinInventory, headsChance);
 
     set({
       battle: {
@@ -328,7 +371,7 @@ export const useGameStore = create<GameState & GameActions>((set, get) => ({
 
   // 스킬 사용 가능 여부 확인
   canUseSkill: (skillId: string) => {
-    const { player, battle } = get();
+    const { player, battle, run } = get();
 
     // 플레이어 턴이 아니면 사용 불가
     if (battle.phase !== 'player_turn') {
@@ -343,14 +386,15 @@ export const useGameStore = create<GameState & GameActions>((set, get) => ({
 
     // 스킬 상태 찾기
     const skillState = getSkillState(player.skillStates, skillId);
+    const effectiveSkill = getEffectiveSkillForRun(skill, skillState, run);
 
-    return canUseSkill(battle.lastTossResults, skill, skillState);
+    return canUseSkill(battle.lastTossResults, effectiveSkill, skillState);
   },
 
   // 스킬 사용
   useSkill: (skillId: string) => {
     const state = get();
-    const { player, enemy, battle } = state;
+    const { player, enemy, battle, run } = state;
 
     // 플레이어 턴이 아니면 사용 불가
     if (battle.phase !== 'player_turn') {
@@ -365,13 +409,14 @@ export const useGameStore = create<GameState & GameActions>((set, get) => ({
 
     // 사용 가능 여부 확인
     const skillState = getSkillState(player.skillStates, skillId);
-    const { canUse, reason } = canUseSkill(battle.lastTossResults, skill, skillState);
+    const effectiveSkill = getEffectiveSkillForRun(skill, skillState, run);
+    const { canUse, reason } = canUseSkill(battle.lastTossResults, effectiveSkill, skillState);
     if (!canUse) {
       return { success: false, reason };
     }
 
     // 코인 소모
-    const costs = getSkillCosts(skill);
+    const costs = getSkillCosts(effectiveSkill);
     const spendResult = spendCoinResults(battle.lastTossResults, costs.heads, costs.tails);
 
     if (!spendResult.success) {
@@ -419,6 +464,9 @@ export const useGameStore = create<GameState & GameActions>((set, get) => ({
         if (effects.damageDealt > 0) {
           // 취약(vulnerable) 디버프 적용
           let finalDamage = effects.damageDealt;
+          if (hasLoot(run, 'berserker_ring') && newPlayer.hp / newPlayer.maxHp <= 0.5) {
+            finalDamage += 2;
+          }
           const vulnerableDebuff = newEnemy.activeDebuffs?.find(d => d.debuffId === 'vulnerable');
           if (vulnerableDebuff) {
             finalDamage += vulnerableDebuff.stacks;  // 받는 데미지 증가
@@ -438,6 +486,10 @@ export const useGameStore = create<GameState & GameActions>((set, get) => ({
             enemyHit: true,
             shieldHit: enemy!.block > 0,
           };
+
+          if (hasLoot(run, 'poison_dagger') && actualDamage > 0) {
+            newEnemy = addEnemyDebuff(newEnemy, 'poison', 1, 2);
+          }
         }
 
         // 디버프 적용
@@ -480,7 +532,7 @@ export const useGameStore = create<GameState & GameActions>((set, get) => ({
     // 적 사망 체크
     if (newEnemy && newEnemy.hp <= 0) {
       // 영혼 보상 추가
-      newPlayer.souls += newEnemy.soulReward;
+      newPlayer.souls += newEnemy.soulReward + (hasLoot(run, 'soul_magnet') ? 3 : 0);
 
       set({
         player: newPlayer,
@@ -604,12 +656,30 @@ export const useGameStore = create<GameState & GameActions>((set, get) => ({
 
   executeEnemyTurn: () => {
     const state = get();
-    const { player, enemy, battle } = state;
+    const { player, enemy, battle, run } = state;
 
     if (!enemy || battle.phase !== 'enemy_turn') return;
 
     const newPlayer = { ...player };
-    const newEnemy = { ...enemy };
+    let newEnemy = { ...enemy };
+
+    const poisonDebuff = newEnemy.activeDebuffs?.find(d => d.debuffId === 'poison');
+    if (poisonDebuff && poisonDebuff.stacks > 0) {
+      newEnemy.hp = Math.max(0, newEnemy.hp - poisonDebuff.stacks);
+    }
+
+    if (newEnemy.hp <= 0) {
+      newPlayer.souls += newEnemy.soulReward + (hasLoot(run, 'soul_magnet') ? 3 : 0);
+      set({
+        player: newPlayer,
+        enemy: null,
+        battle: { ...battle, phase: 'victory', combatAnimation: { ...defaultCombatAnimation } },
+      });
+      setTimeout(() => {
+        get().showReward();
+      }, TOTAL_ATTACK_DURATION * 1000);
+      return;
+    }
 
     // 적 의도에 따른 행동
     const { intent } = enemy;
@@ -638,8 +708,24 @@ export const useGameStore = create<GameState & GameActions>((set, get) => ({
       const remainingBlock = Math.max(0, newPlayer.block - damage);
       newPlayer.block = remainingBlock;
       newPlayer.hp = Math.max(0, newPlayer.hp - actualDamage);
+      if (actualDamage > 0 && hasLoot(run, 'thorns_amulet')) {
+        newEnemy.hp = Math.max(0, newEnemy.hp - 1);
+      }
     } else if (intent.type === 'defend') {
       newEnemy.block += intent.value;
+    }
+
+    if (newEnemy.hp <= 0) {
+      newPlayer.souls += newEnemy.soulReward + (hasLoot(run, 'soul_magnet') ? 3 : 0);
+      set({
+        player: newPlayer,
+        enemy: null,
+        battle: { ...battle, phase: 'victory', combatAnimation: newCombatAnimation },
+      });
+      setTimeout(() => {
+        get().showReward();
+      }, TOTAL_ATTACK_DURATION * 1000);
+      return;
     }
 
     // 플레이어 사망 체크
@@ -704,9 +790,15 @@ export const useGameStore = create<GameState & GameActions>((set, get) => ({
       // 턴 시작 시 버프 효과 처리
       const buffEffects = collectTurnStartBuffEffects(updatedPlayer);
       updatedPlayer.block += buffEffects.blockGained;
+      if (hasLoot(currentRun, 'iron_shield')) {
+        updatedPlayer.block += 2;
+      }
 
       // 턴 종료 시 버프 지속시간 처리
       updatedPlayer = processBuffDurations(updatedPlayer);
+      if (hasLoot(currentRun, 'healing_herb')) {
+        updatedPlayer.hp = Math.min(updatedPlayer.maxHp, updatedPlayer.hp + 1);
+      }
 
       // 적 디버프 지속시간 처리
       let updatedEnemy = { ...currentEnemy, intent: nextIntent };
@@ -936,6 +1028,7 @@ export const useGameStore = create<GameState & GameActions>((set, get) => ({
         ...run,
         round: nextRound,
         selectedDestinationType: selectedDestination.type,
+        scoutedEnemyKey: undefined,
       },
       destinationOptions: [],
     });
@@ -1098,11 +1191,16 @@ export const useGameStore = create<GameState & GameActions>((set, get) => ({
     const { player, run } = get();
     const existingSkillKeys = player.skills.map(s => s.skillKey);
     const existingLootKeys = run.loots.map(l => l.lootKey);
-    const items = generateShopItems(player.characterClass, existingSkillKeys, existingLootKeys);
+    const existingStock = run.shopStockByRound[run.round];
+    const items = existingStock ?? generateShopItems(player.characterClass, existingSkillKeys, existingLootKeys);
     const dialogue = getRandomDialogue('greeting');
 
     set({
       battle: { ...get().battle, phase: 'shop' as const },
+      run: existingStock ? run : {
+        ...run,
+        shopStockByRound: { ...run.shopStockByRound, [run.round]: items },
+      },
       shop: {
         items,
         merchantDialogue: dialogue,
@@ -1134,6 +1232,7 @@ export const useGameStore = create<GameState & GameActions>((set, get) => ({
 
       set({
         player: { ...player, souls: newSouls, skills: newSkills, skillStates: newSkillStates },
+        run: { ...run, shopStockByRound: { ...run.shopStockByRound, [run.round]: newItems } },
         shop: { ...shop, items: newItems, merchantDialogue: dialogue, pendingPurchaseItemId: undefined },
       });
       return { success: true };
@@ -1147,7 +1246,7 @@ export const useGameStore = create<GameState & GameActions>((set, get) => ({
 
       set({
         player: { ...player, souls: newSouls },
-        run: { ...run, loots: newLoots },
+        run: { ...run, loots: newLoots, shopStockByRound: { ...run.shopStockByRound, [run.round]: newItems } },
         shop: { ...shop, items: newItems, merchantDialogue: dialogue },
       });
       return { success: true };
@@ -1162,6 +1261,28 @@ export const useGameStore = create<GameState & GameActions>((set, get) => ({
 
       set({
         player: { ...player, souls: newSouls, maxSkillSlots: player.maxSkillSlots + 1 },
+        run: { ...run, shopStockByRound: { ...run.shopStockByRound, [run.round]: newItems } },
+        shop: { ...shop, items: newItems, merchantDialogue: dialogue },
+      });
+      return { success: true };
+    }
+
+    if (item.type === 'coin' && item.coinId && item.coinCount) {
+      const newSouls = player.souls - item.price;
+      const newCoinInventory = [...player.coinInventory];
+      const existingCoin = newCoinInventory.find(inv => inv.coinId === item.coinId);
+      if (existingCoin) {
+        existingCoin.count += item.coinCount;
+      } else {
+        newCoinInventory.push({ coinId: item.coinId, count: item.coinCount });
+      }
+
+      const newItems = shop.items.map(i => i.id === itemId ? { ...i, sold: true } : i);
+      const dialogue = getRandomDialogue('purchase');
+
+      set({
+        player: { ...player, souls: newSouls, coinInventory: newCoinInventory },
+        run: { ...run, shopStockByRound: { ...run.shopStockByRound, [run.round]: newItems } },
         shop: { ...shop, items: newItems, merchantDialogue: dialogue },
       });
       return { success: true };
@@ -1171,7 +1292,7 @@ export const useGameStore = create<GameState & GameActions>((set, get) => ({
   },
 
   replaceSkillForShop: (oldSkillId: string) => {
-    const { player, shop } = get();
+    const { player, shop, run } = get();
     if (!shop || !shop.pendingPurchaseItemId) return;
 
     const item = shop.items.find(i => i.id === shop.pendingPurchaseItemId);
@@ -1190,6 +1311,7 @@ export const useGameStore = create<GameState & GameActions>((set, get) => ({
 
     set({
       player: { ...player, souls: newSouls, skills: newSkills, skillStates: newSkillStates },
+      run: { ...run, shopStockByRound: { ...run.shopStockByRound, [run.round]: newItems } },
       shop: { ...shop, items: newItems, merchantDialogue: dialogue, pendingPurchaseItemId: undefined },
     });
   },
@@ -1220,7 +1342,7 @@ export const useGameStore = create<GameState & GameActions>((set, get) => ({
   },
 
   selectEventChoice: (choiceId: string) => {
-    const { event: eventState, player } = get();
+    const { event: eventState, player, run } = get();
     if (!eventState) return;
 
     const choice = eventState.event.choices.find(c => c.id === choiceId);
@@ -1248,6 +1370,7 @@ export const useGameStore = create<GameState & GameActions>((set, get) => ({
     });
 
     let newPlayer = { ...player };
+    let newRun = { ...run };
     for (const effect of resolvedEffects) {
       switch (effect.type) {
         case 'heal':
@@ -1263,6 +1386,10 @@ export const useGameStore = create<GameState & GameActions>((set, get) => ({
           newPlayer.souls = Math.max(0, newPlayer.souls - effect.value);
           break;
         case 'info':
+          newRun = {
+            ...newRun,
+            scoutedEnemyKey: ROUND_ENEMIES[newRun.round] ?? ROUND_ENEMIES[ROUND_ENEMIES.length - 1],
+          };
           break;
       }
     }
@@ -1271,6 +1398,7 @@ export const useGameStore = create<GameState & GameActions>((set, get) => ({
 
     set({
       player: newPlayer,
+      run: newRun,
       event: {
         ...eventState,
         phase: needsCoinFlip ? 'coin_flip' : 'result',
@@ -1282,17 +1410,6 @@ export const useGameStore = create<GameState & GameActions>((set, get) => ({
         },
       },
     });
-
-    if (needsCoinFlip) {
-      setTimeout(() => {
-        const currentEvent = get().event;
-        if (currentEvent?.phase === 'coin_flip') {
-          set({
-            event: { ...currentEvent, phase: 'result' },
-          });
-        }
-      }, 1500 * getCurrentSpeedMultiplier());
-    }
   },
 
   abandonEvent: () => {
