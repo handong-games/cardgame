@@ -4,9 +4,9 @@ import path from 'path'
 
 const router = Router()
 
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY || ''
-const GEMINI_ENDPOINT =
-  'https://generativelanguage.googleapis.com/v1beta/models/imagen-4.0-generate-001:predict'
+const OPENAI_API_KEY = process.env.OPENAI_API_KEY || ''
+const OPENAI_IMAGE_MODEL = process.env.OPENAI_IMAGE_MODEL || 'gpt-image-1'
+const OPENAI_IMAGE_ENDPOINT = 'https://api.openai.com/v1/images/generations'
 
 const ENTITY_OUTPUT_MAP: Record<string, { dir: string; prefix: string }> = {
   character: { dir: 'characters', prefix: 'character_' },
@@ -18,37 +18,36 @@ const ENTITY_OUTPUT_MAP: Record<string, { dir: string; prefix: string }> = {
   npc: { dir: 'npcs', prefix: 'npc_' },
 }
 
-function getAspectRatio(entityType: string, _entityId: string): string {
-  if (entityType === 'background') return '16:9'
-  if (entityType === 'ui') return '1:1'
-  return '3:4' // character, monster, companion, frame, npc
+function getOpenAIImageSize(entityType: string, _entityId: string): string {
+  if (entityType === 'background') return '1536x1024'
+  if (entityType === 'ui') return '1024x1024'
+  return '1024x1536' // character, monster, companion, frame, npc
 }
 
-interface GeminiRequest {
-  instances: Array<{ prompt: string }>
-  parameters: {
-    sampleCount: number
-    aspectRatio: string
-    imageSize: string
-    personGeneration: string
-    negativePrompt?: string
-    outputOptions?: {
-      mimeType: string
-    }
-  }
+interface OpenAIImageRequest {
+  model: string
+  prompt: string
+  n: number
+  size: string
+  background: 'transparent'
+  output_format: 'png'
 }
 
-interface GeminiResponse {
-  generatedImages?: Array<{
-    image: {
-      imageBytes: string
-      mimeType: string
-    }
-    raiFilteredReason?: string
+interface OpenAIImageResponse {
+  data?: Array<{
+    b64_json?: string
+    url?: string
+    revised_prompt?: string
   }>
 }
 
-// POST /api/generate — Gemini Imagen API 직접 호출로 이미지 생성
+function buildPrompt(prompt: string, negative?: string): string {
+  if (!negative?.trim()) return prompt
+
+  return `${prompt}\n\nAvoid: ${negative}`
+}
+
+// POST /api/generate — OpenAI 이미지 API 직접 호출로 이미지 생성
 router.post('/', async (req, res) => {
   const { entity_type, entity_id, prompt_override, negative_override, options } = req.body
 
@@ -60,10 +59,10 @@ router.post('/', async (req, res) => {
     })
   }
 
-  if (!GEMINI_API_KEY) {
+  if (!OPENAI_API_KEY) {
     return res.status(500).json({
       status: 'error',
-      error: 'GEMINI_API_KEY 환경변수가 설정되지 않았습니다',
+      error: 'OPENAI_API_KEY 환경변수가 설정되지 않았습니다',
     })
   }
 
@@ -82,8 +81,7 @@ router.post('/', async (req, res) => {
     })
   }
 
-  const aspectRatio = getAspectRatio(entity_type, entity_id)
-  const imageSize = options?.image_size || '1K'
+  const imageSize = getOpenAIImageSize(entity_type, entity_id)
 
   // dry_run 모드: API 호출 없이 요청 정보만 반환
   if (options?.dry_run) {
@@ -100,34 +98,26 @@ router.post('/', async (req, res) => {
 
   const startTime = Date.now()
 
-  const geminiRequest: GeminiRequest = {
-    instances: [{ prompt: prompt_override }],
-    parameters: {
-      sampleCount: options?.sample_count || 1,
-      aspectRatio,
-      imageSize,
-      personGeneration: 'allow_adult',
-      outputOptions: {
-        mimeType: 'image/png',
-      },
-    },
-  }
-
-  if (negative_override) {
-    geminiRequest.parameters.negativePrompt = negative_override
+  const openAIRequest: OpenAIImageRequest = {
+    model: OPENAI_IMAGE_MODEL,
+    prompt: buildPrompt(prompt_override, negative_override),
+    n: options?.sample_count || 1,
+    size: imageSize,
+    background: 'transparent',
+    output_format: 'png',
   }
 
   try {
     const controller = new AbortController()
     const timeout = setTimeout(() => controller.abort(), 120000) // 120초 타임아웃
 
-    const response = await fetch(GEMINI_ENDPOINT, {
+    const response = await fetch(OPENAI_IMAGE_ENDPOINT, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'x-goog-api-key': GEMINI_API_KEY,
+        Authorization: `Bearer ${OPENAI_API_KEY}`,
       },
-      body: JSON.stringify(geminiRequest),
+      body: JSON.stringify(openAIRequest),
       signal: controller.signal,
     })
 
@@ -137,21 +127,21 @@ router.post('/', async (req, res) => {
       const errorText = await response.text()
       return res.status(response.status).json({
         status: 'error',
-        error: `Gemini API 오류 (${response.status}): ${errorText}`,
+        error: `OpenAI 이미지 API 오류 (${response.status}): ${errorText}`,
       })
     }
 
-    const result = (await response.json()) as GeminiResponse
+    const result = (await response.json()) as OpenAIImageResponse
 
-    if (!result.generatedImages?.length) {
+    const imageBase64 = result.data?.[0]?.b64_json
+    if (!imageBase64) {
       return res.status(422).json({
         status: 'error',
-        error: '이미지 생성 실패: 응답에 이미지가 없습니다 (안전 필터에 의해 차단되었을 수 있습니다)',
+        error: '이미지 생성 실패: OpenAI 응답에 base64 이미지가 없습니다',
       })
     }
 
-    const { imageBytes } = result.generatedImages[0].image
-    const imageBuffer = Buffer.from(imageBytes, 'base64')
+    const imageBuffer = Buffer.from(imageBase64, 'base64')
 
     const assetsDir = path.resolve(process.cwd(), '../../assets')
     const categoryDir = path.join(assetsDir, outputInfo.dir)
@@ -166,14 +156,16 @@ router.post('/', async (req, res) => {
     const metadata = {
       prompt: prompt_override,
       negative: negative_override || '',
-      model: 'gemini-imagen-4.0',
+      model: OPENAI_IMAGE_MODEL,
       generatedAt: new Date().toISOString(),
       parameters: {
-        aspectRatio,
         imageSize,
         entityType: entity_type,
         entityId: entity_id,
         sampleCount: options?.sample_count || 1,
+        background: 'transparent',
+        outputFormat: 'png',
+        provider: 'openai',
       },
     }
 
@@ -204,13 +196,13 @@ router.post('/', async (req, res) => {
     if (error instanceof Error && error.name === 'AbortError') {
       return res.status(504).json({
         status: 'error',
-        error: 'Gemini API 요청 타임아웃 (120초 초과)',
+        error: 'OpenAI 이미지 API 요청 타임아웃 (120초 초과)',
       })
     }
 
     res.status(502).json({
       status: 'error',
-      error: `Gemini API 연결 실패: ${error instanceof Error ? error.message : String(error)}`,
+      error: `OpenAI 이미지 API 연결 실패: ${error instanceof Error ? error.message : String(error)}`,
     })
   }
 })
