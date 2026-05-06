@@ -62,6 +62,8 @@ interface SkillSlotProps {
   onDragStart?: (skill: Skill, e: React.MouseEvent, rect: DOMRect) => void;
   isDragging?: boolean;
   costReduction?: number;
+  isReorderMode?: boolean;
+  isReorderDragging?: boolean;
 }
 
 export function SkillSlot({
@@ -75,6 +77,8 @@ export function SkillSlot({
   onDragStart,
   isDragging,
   costReduction = 0,
+  isReorderMode = false,
+  isReorderDragging = false,
 }: SkillSlotProps) {
   const [isHovered, setIsHovered] = useState(false);
   const slotRef = useRef<HTMLButtonElement>(null);
@@ -107,6 +111,7 @@ export function SkillSlot({
   const skillFrameImg = getSkillFrameImage(skill);
 
   const handleClick = () => {
+    if (isReorderMode) return;
     if (isEnemyTarget) return;
     if (canUse) {
       onUse(skill.id);
@@ -114,6 +119,7 @@ export function SkillSlot({
   };
 
   const handleMouseDown = (e: React.MouseEvent) => {
+    if (isReorderMode) return;
     if (!isEnemyTarget || !canUse || !onDragStart) return;
 
     const rect = slotRef.current?.getBoundingClientRect();
@@ -144,13 +150,13 @@ export function SkillSlot({
         ref={slotRef}
         onClick={handleClick}
         onMouseDown={handleMouseDown}
-        disabled={!canUse}
+        disabled={!isReorderMode && !canUse}
         className={`
           relative flex flex-col items-center justify-center
           w-32 h-36 rounded-2xl
           transition-all duration-150
           ${hasImage
-            ? `border-0 bg-transparent ${canUse ? (isEnemyTarget ? 'cursor-grab' : 'cursor-pointer') : 'cursor-not-allowed opacity-60'}`
+            ? `border-0 bg-transparent ${isReorderMode ? 'cursor-move' : canUse ? (isEnemyTarget ? 'cursor-grab' : 'cursor-pointer') : 'cursor-not-allowed opacity-60'}`
             : `border-2 ${canUse
                 ? `skill-slot-coin ${isEnemyTarget ? 'cursor-grab' : 'cursor-pointer'}`
                 : 'bg-dark-deep/50 border-dark-graphite/50 cursor-not-allowed opacity-60'
@@ -158,16 +164,17 @@ export function SkillSlot({
           }
           ${canUse ? 'drop-shadow-[0_10px_18px_rgba(240,232,216,0.16)]' : ''}
           ${isDragging ? 'opacity-50 ring-2 ring-amber-400/60 shadow-[0_0_12px_rgba(251,191,36,0.4)]' : ''}
+          ${isReorderDragging ? 'opacity-70 ring-2 ring-[#D8C8E8] shadow-[0_0_18px_rgba(216,200,232,0.5)]' : ''}
         `}
         animate={{
-          scale: isHovered && canUse && !isDragging ? 1.1 : 1,
+          scale: isHovered && (canUse || isReorderMode) && !isDragging ? 1.1 : 1,
         }}
         transition={{
           type: 'spring',
           stiffness: 400,
           damping: 25,
         }}
-        whileTap={canUse && !isEnemyTarget ? { scale: 0.95 } : {}}
+        whileTap={(canUse && !isEnemyTarget) || isReorderMode ? { scale: 0.95 } : {}}
       >
         {hasImage ? (
           <div className="relative w-full h-full">
