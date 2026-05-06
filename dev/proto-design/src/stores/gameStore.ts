@@ -139,7 +139,7 @@ const initialState: GameState = {
 // 스토어 액션 타입
 interface GameActions {
   // 런 시작
-  startRun: () => void;
+  startRun: (characterClass?: CharacterClass) => void;
   // 전투 시작 (enemyKey 선택적 - 없으면 현재 라운드 적 사용)
   startBattle: (enemyKey?: string) => void;
   // 다음 라운드 시작
@@ -152,6 +152,7 @@ interface GameActions {
   // 스킬 시스템
   useSkill: (skillId: string) => { success: boolean; reason?: string };
   addSkill: (skill: Skill) => void;
+  reorderSkills: (sourceSkillId: string, targetSkillId: string) => void;
   canUseSkill: (skillId: string) => { canUse: boolean; reason?: string };
   // 턴 종료
   endTurn: () => void;
@@ -196,12 +197,12 @@ export const useGameStore = create<GameState & GameActions>((set, get) => ({
   ...initialState,
 
   // 새로운 런 시작
-  startRun: () => {
+  startRun: (characterClass: CharacterClass = 'warrior') => {
     const enemyKey = ROUND_ENEMIES[0]; // 라운드 1 적
     const enemy = createEnemy(enemyKey);
 
     set({
-      player: createInitialPlayer('warrior'),
+      player: createInitialPlayer(characterClass),
       enemy,
       battle: {
         phase: 'player_turn',
@@ -389,6 +390,25 @@ export const useGameStore = create<GameState & GameActions>((set, get) => ({
     const effectiveSkill = getEffectiveSkillForRun(skill, skillState, run);
 
     return canUseSkill(battle.lastTossResults, effectiveSkill, skillState);
+  },
+
+  reorderSkills: (sourceSkillId: string, targetSkillId: string) => {
+    const { player } = get();
+    const sourceIndex = player.skills.findIndex(skill => skill.id === sourceSkillId);
+    const targetIndex = player.skills.findIndex(skill => skill.id === targetSkillId);
+
+    if (sourceIndex < 0 || targetIndex < 0 || sourceIndex === targetIndex) return;
+
+    const nextSkills = [...player.skills];
+    const [movedSkill] = nextSkills.splice(sourceIndex, 1);
+    nextSkills.splice(targetIndex, 0, movedSkill);
+
+    set({
+      player: {
+        ...player,
+        skills: nextSkills,
+      },
+    });
   },
 
   // 스킬 사용
