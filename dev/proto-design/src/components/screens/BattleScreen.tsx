@@ -35,7 +35,7 @@ import nodeRestIcon from '@assets/icons/node-rest.png';
 import nodeMonsterIcon from '@assets/icons/node-monster.png';
 import nodeBossIcon from '@assets/icons/node-boss.png';
 import companionFrameImg from '@assets/frames/frame-companion.png';
-import destinationChoiceCardFrontImg from '@assets/frames/destination-choice-card-front.svg';
+import destinationChoiceCardFrontImg from '@assets/frames/destination-choice-card-front.png';
 import sunCoinImg from '@assets/coins/sun-coin.png';
 import moonCoinImg from '@assets/coins/moon-coin.png';
 import endTurnButtonImg from '@assets/buttons/btn-end-turn.png';
@@ -43,7 +43,6 @@ import companionFairyImg from '@assets/companions/moss-fairy.png';
 import companionOwlImg from '@assets/companions/forest-owl.png';
 import destinationDeckBackImg from '@assets/branding/card-back-duskfold.png';
 import progressRoundNodeImg from '@assets/progress/progress-round-node.png';
-import progressCurrentNodeImg from '@assets/progress/progress-current-node.png';
 import progressConnectorImg from '@assets/progress/progress-connector.png';
 import progressVillageNodeImg from '@assets/progress/progress-village-node.png';
 import progressBossNodeImg from '@assets/progress/progress-boss-node.png';
@@ -153,7 +152,6 @@ function DestinationCard({
   isFlipped,
   revealMonsterFace,
   showScratchReveal,
-  scoutedEnemyKey,
   onSelect,
 }: {
   destination: DestinationOption;
@@ -166,24 +164,14 @@ function DestinationCard({
   isFlipped: boolean;
   revealMonsterFace: boolean;
   showScratchReveal: boolean;
-  scoutedEnemyKey?: string;
   onSelect: () => void;
 }) {
   const info = DESTINATION_INFO[destination.type];
   const destinationTitle = destination.enemyKey
     ? ENEMY_DEFINITIONS[destination.enemyKey]?.name ?? info.label
     : info.label;
-  const destinationDescription = destination.type === 'rest'
-    ? `체력 ${destination.healPercent ?? 30}% 회복`
-    : info.description;
   const isMonsterDestination = Boolean(destination.enemyKey);
-  const isScoutedMonster = Boolean(destination.enemyKey && destination.enemyKey === scoutedEnemyKey);
   const nodeTitle = isMonsterDestination ? '몬스터' : destinationTitle;
-  const nodeDescription = isMonsterDestination
-    ? isScoutedMonster
-      ? `정보: ${destinationTitle} 출현 예상`
-      : '정체를 확인하려면 선택하세요'
-    : destinationDescription;
   const baseRotation = cardCount === 2
     ? (index === 0 ? -4 : 4)
     : index === 0
@@ -294,20 +282,17 @@ function DestinationCard({
               boxShadow: `0 20px 36px rgba(14,10,16,0.34), 0 0 24px ${info.glow}`,
             }}
           >
-            <img src={destinationChoiceCardFrontImg} alt="행선지 카드 앞면" className="pointer-events-none absolute inset-0 h-full w-full object-cover" />
+            <img src={destinationChoiceCardFrontImg} alt="행선지 카드 앞면" className="pointer-events-none absolute inset-0 h-full w-full object-fill" />
             <div className="relative h-full w-full text-center">
-              <div className="absolute left-1/2 top-[23px] flex h-[95px] w-[95px] -translate-x-1/2 items-center justify-center">
+              <div className="absolute left-1/2 top-[56px] flex h-[108px] w-[108px] -translate-x-1/2 items-center justify-center">
                   {info.iconImg ? (
-                    <img src={info.iconImg} alt={info.label} className="h-[54px] w-[54px] object-contain drop-shadow-[0_4px_10px_rgba(58,48,64,0.22)]" />
+                    <img src={info.iconImg} alt={info.label} className="h-[66px] w-[66px] object-contain drop-shadow-[0_4px_10px_rgba(58,48,64,0.22)]" />
                   ) : (
-                    <span className="text-5xl drop-shadow-[0_4px_10px_rgba(58,48,64,0.22)]">{info.emoji}</span>
+                    <span className="text-[58px] drop-shadow-[0_4px_10px_rgba(58,48,64,0.22)]">{info.emoji}</span>
                   )}
               </div>
-              <div className="absolute left-[43px] right-[43px] top-[137px] flex h-[35px] items-center justify-center px-4">
-                <div className="text-lg font-bold text-[#4A3E50]">{nodeTitle}</div>
-              </div>
-              <div className="absolute left-[24px] right-[24px] top-[180px] flex h-[64px] items-center justify-center px-4">
-                <div className="text-[13px] font-medium leading-5 text-[#5B4D5B]">{nodeDescription}</div>
+              <div className="absolute left-[20px] right-[20px] top-[181px] flex h-[25px] items-center justify-center px-4">
+                <div className="text-base font-bold text-[#4A3E50] drop-shadow-[0_1px_0_rgba(245,240,230,0.45)]">{nodeTitle}</div>
               </div>
             </div>
           </div>
@@ -783,6 +768,7 @@ export function BattleScreen() {
     endTurn,
     tossCoins,
     useSkill,
+    reorderSkills,
     selectDestination,
     showDestinationSelection,
     proceedToVillageAccessory,
@@ -1343,14 +1329,14 @@ export function BattleScreen() {
           </div>
           <div className="absolute top-2 left-0 w-full flex justify-center z-20 pointer-events-none">
             <div
-              className="relative flex h-[60px] w-[544px] items-center justify-center rounded-full"
+              className="relative flex h-[54px] w-[628px] items-center justify-center rounded-full"
               style={{
-                background: 'linear-gradient(to bottom, rgba(31,27,36,0.18), rgba(31,27,36,0.08))',
-                boxShadow: 'inset 0 1px 0 rgba(240,232,216,0.08)',
+                background: 'linear-gradient(to bottom, rgba(31,27,36,0.12), rgba(31,27,36,0.05))',
+                boxShadow: 'inset 0 1px 0 rgba(240,232,216,0.06)',
                 backdropFilter: 'blur(4px)',
               }}
             >
-              <div className="relative flex w-[488px] items-center px-[2px]">
+              <div className="relative flex w-[574px] items-center px-[2px]">
               {Array.from({ length: run.totalRounds }, (_, i) => i + 1).map((round) => {
                 const middleRound = Math.ceil(run.totalRounds / 2);
                 const isCurrent = round === run.round;
@@ -1367,27 +1353,21 @@ export function BattleScreen() {
 
                 return (
                   <div key={round} className="flex flex-1 items-center">
-                    <div className="relative flex h-10 w-10 shrink-0 items-center justify-center">
+                    <div className="relative flex h-9 w-9 shrink-0 items-center justify-center">
                       <img
                         src={markerSrc}
                         alt={isBoss ? '보스 라운드' : isVillage ? '마을 라운드' : isPassed ? '완료 라운드' : '라운드'}
-                        className={`object-contain ${isBoss || isVillage ? 'h-8 w-8' : 'h-7 w-7'}`}
-                        style={{ opacity: isPassed ? 0.82 : 1 }}
+                        className={`relative z-10 object-contain ${isBoss || isVillage ? 'h-[44px] w-[44px]' : 'h-[27px] w-[27px]'}`}
+                        style={{ opacity: isPassed ? 0.7 : 1 }}
                       />
-                      {isCurrent && (
-                        <img
-                          src={progressCurrentNodeImg}
-                          alt="현재 라운드 표시"
-                          className="pointer-events-none absolute inset-0 h-full w-full object-contain"
-                        />
-                      )}
+                      {isCurrent && <div className="pointer-events-none absolute inset-0 rounded-full ring-2 ring-[#F0E8D8]/70 ring-offset-2 ring-offset-transparent" />}
                     </div>
                     {round < run.totalRounds && (
-                      <div className="mx-[3px] flex-1">
+                      <div className="mx-[1px] flex-1">
                         <img
                           src={progressConnectorImg}
                           alt="진행 연결선"
-                          className={`h-[8px] w-full object-fill ${isPassed ? 'opacity-85' : 'opacity-58'}`}
+                          className={`h-[7px] w-full object-fill ${isPassed ? 'opacity-78' : 'opacity-48'}`}
                         />
                       </div>
                     )}
@@ -1595,7 +1575,6 @@ export function BattleScreen() {
                       isFlipped={destinationCardsFaceUp}
                       revealMonsterFace={revealedMonsterDestinationId === destination.id}
                       showScratchReveal={scratchRevealDestinationId === destination.id}
-                      scoutedEnemyKey={run.scoutedEnemyKey}
                       onSelect={() => handleDestinationCardSelect(destination.id)}
                     />
                   ))}
@@ -2000,6 +1979,7 @@ export function BattleScreen() {
                 onSkillHover={handleSkillHover}
                 onSkillDragStart={startSkillDrag}
                 draggingSkillId={skillDragState.skill?.id ?? null}
+                onReorderSkill={reorderSkills}
               />
             </div>
           </div>
