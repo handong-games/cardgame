@@ -3,7 +3,8 @@
 **목적**: 모든 게임 에셋의 복사-붙여넣기 가능한 실전 프롬프트 레퍼런스  
 **스타일**: v6.0 "라벤더 안개" (Lavender Mist)  
 **총 에셋**: 프레임 9 + 캐릭터 3 + 동료 3 + NPC 1 + 숲 몬스터 8 + 던전 몬스터 3 + 성 몬스터 2 + 배경 4 + UI + 스킬 아이콘  
-**데이터 원천**: `src/data/promptExamples.ts` (Source of Truth)  
+**데이터 원천**: `src/data/promptExamples.ts` (Source of Truth, ChatGPT/OpenAI 이미지 생성용)  
+**Gemini 백업**: `src/data/promptExamples.gemini-backup.ts`  
 **기획 원천**: `projects/gameplan` (게임 기획서)  
 **디자인 DNA**: `docs/비주얼-디자인-DNA-v6.md`
 
@@ -65,7 +66,8 @@ zero gradients zero shading zero tonal layering within any shape
 ### 몬스터 마스터 스타일
 
 > 캐릭터와 같은 플랫 컬러 일러스트 결을 유지하면서, 몬스터는 지역별 컬러 아웃라인 언더톤과 좌측 방향으로 구분합니다.
-> 운영 예외: 실제 생성본은 누끼 작업 효율을 위해 **pure solid white background**를 사용합니다. 최상위 컨셉 문서의 크림 양피지 배경 규칙은 인게임 표현 기준으로 유지합니다.
+> 운영 기준: 현재 `promptExamples.ts`는 **ChatGPT/OpenAI 이미지 생성용**입니다. 생성 시 API 옵션 `background: "transparent"` + `output_format: "png"`/`webp`를 함께 사용해 실제 알파 채널 투명 배경을 요청합니다. 기존 Gemini용 프롬프트는 `src/data/promptExamples.gemini-backup.ts`에 백업되어 있습니다. 최상위 컨셉 문서의 크림 양피지 배경 규칙은 인게임 표현 기준으로 유지하고, 생성 프롬프트에서는 피사체 밖 배경을 투명하게 둡니다.
+> 서버 생성 경로도 OpenAI 이미지 API 기준으로 동작하며 `OPENAI_API_KEY` 환경변수를 사용합니다. 기본 모델은 `gpt-image-1`이고, 필요 시 `OPENAI_IMAGE_MODEL` 환경변수로 교체합니다.
 
 ```
 simple flat color illustration with clean solid fills and no gradients,
@@ -81,7 +83,8 @@ silhouette-driven monster design recognizable from shape alone,
 tiny simplified eyes with no visible pupils or irises, paired with short simple line eyebrows,
 cute and charming monster design that is not scary or threatening,
 body facing left at three-quarter angle opposing the hero,
-isolated on pure solid white background for easy background removal and cutout workflow,
+isolated as a true transparent-background PNG asset with real alpha outside the subject,
+no checkerboard transparency pattern, no fake transparent background, no white matte, no drop shadow, no contact shadow,
 no border no frame,
 vertical portrait 2:3 aspect ratio,
 strictly flat color fills with hard boundaries between each color region,
@@ -176,7 +179,7 @@ center area intentionally kept open for cards and UI
 | `mage` | CLS_M | 마법사 | ⬜ 미설계 | 아메시스트 `#B8A0D0` |
 | `rogue` | CLS_R | 도적 | ⬜ 미설계 | 에메랄드 `#A0C8B0` |
 
-> 전체 프롬프트는 `promptExamples.ts`의 `character` 섹션 참조. 마법사/도적은 gameplan 미확정 상태이므로 placeholder입니다.
+> 전체 프롬프트는 `promptExamples.ts`의 `character` 섹션 참조. 마법사/도적은 gameplan 미확정 상태이지만, 캐릭터 선택 화면용 이미지 생성이 가능하도록 임시 클래스 정체성(마법사=아메시스트 로브+지팡이, 도적=에메랄드 후드+단검)을 반영했습니다.
 
 ---
 
