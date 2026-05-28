@@ -66,7 +66,7 @@ zero gradients zero shading zero tonal layering within any shape
 ### 몬스터 마스터 스타일
 
 > 캐릭터와 같은 플랫 컬러 일러스트 결을 유지하면서, 몬스터는 지역별 컬러 아웃라인 언더톤과 좌측 방향으로 구분합니다.
-> 운영 기준: 현재 `promptExamples.ts`는 **ChatGPT/OpenAI 이미지 생성용**입니다. 생성 시 API 옵션 `background: "transparent"` + `output_format: "png"`/`webp`를 함께 사용해 실제 알파 채널 투명 배경을 요청합니다. 기존 Gemini용 프롬프트는 `src/data/promptExamples.gemini-backup.ts`에 백업되어 있습니다. 최상위 컨셉 문서의 크림 양피지 배경 규칙은 인게임 표현 기준으로 유지하고, 생성 프롬프트에서는 피사체 밖 배경을 투명하게 둡니다.
+> 운영 기준: 현재 `promptExamples.ts`는 **ChatGPT/OpenAI 이미지 생성용**입니다. 생성 시 API 옵션은 불투명 배경(`background: "opaque"`)을 사용하고, 프롬프트에서도 피사체 밖을 순수 흰색(`#FFFFFF`) 배경으로 요청합니다. 기존 Gemini용 프롬프트는 `src/data/promptExamples.gemini-backup.ts`에 백업되어 있습니다. 최상위 컨셉 문서의 크림 양피지 배경 규칙은 인게임 표현 기준으로 유지하고, 생성 프롬프트에서는 피사체 밖 배경을 순수 흰색으로 둡니다.
 > 서버 생성 경로도 OpenAI 이미지 API 기준으로 동작하며 `OPENAI_API_KEY` 환경변수를 사용합니다. 기본 모델은 `gpt-image-1`이고, 필요 시 `OPENAI_IMAGE_MODEL` 환경변수로 교체합니다.
 
 ```
@@ -83,8 +83,8 @@ silhouette-driven monster design recognizable from shape alone,
 tiny simplified eyes with no visible pupils or irises, paired with short simple line eyebrows,
 cute and charming monster design that is not scary or threatening,
 body facing left at three-quarter angle opposing the hero,
-isolated as a true transparent-background PNG asset with real alpha outside the subject,
-no checkerboard transparency pattern, no fake transparent background, no white matte, no drop shadow, no contact shadow,
+isolated on a pure solid white #FFFFFF background PNG asset,
+no checkerboard transparency pattern, no fake transparent background, no colored matte, no drop shadow, no contact shadow,
 no border no frame,
 vertical portrait 2:3 aspect ratio,
 strictly flat color fills with hard boundaries between each color region,
@@ -111,10 +111,10 @@ center area intentionally kept open for cards and UI
 
 | 에셋 타입 | 방향 | 비율 | 구도 | 배경 |
 |-----------|------|------|------|------|
-| 캐릭터 | 우측 → (3/4) | 2:3 세로형 | bust portrait (mid-chest upward) | cream parchment `#F0E8D8` |
-| 동료 | 우측 → (3/4) | 1:1 정사각 (원형 프레임) | bust/얼굴 클로즈업 | cream parchment `#F0E8D8` |
-| NPC | 정면 또는 3/4 | 2:3 세로형 | bust portrait (mid-chest upward) | cream parchment `#F0E8D8` |
-| 몬스터 | 좌측 ← (3/4) | 2:3 세로형 | bust portrait (mid-chest upward) | cream parchment `#F0E8D8` |
+| 캐릭터 | 우측 → (3/4) | 2:3 세로형 | bust portrait (mid-chest upward) | pure white `#FFFFFF` |
+| 동료 | 우측 → (3/4) | 1:1 정사각 (원형 프레임) | bust/얼굴 클로즈업 | pure white `#FFFFFF` |
+| NPC | 정면 또는 3/4 | 2:3 세로형 | bust portrait (mid-chest upward) | pure white `#FFFFFF` |
+| 몬스터 | 좌측 ← (3/4) | 2:3 세로형 | bust portrait (mid-chest upward) | pure white `#FFFFFF` |
 | 배경 | — | 16:9 가로형 | 환경만 (생물 금지) | — |
 
 ### 색상 시스템 요약
@@ -274,6 +274,25 @@ center area intentionally kept open for cards and UI
 
 ## 10. UI 프롬프트
 
+### 타이틀 화면 핵심 프롬프트
+
+| ID | 이름 | 용도 |
+|----|------|------|
+| `title-screen-background-duskfold` | 게임 메인화면 배경 | 캐릭터와 몬스터를 모두 제거한 순수 배경 이미지. 배틀씬과 같은 심플한 소프트 플랫 그림체로 숲·던전·성의 원거리 실루엣만 아주 단순하게 암시하고, 이전보다 조금 더 진한 스모키 라벤더-그레이/브라운-그린 톤으로 표현한다. 중앙 아래의 네모 박스/카드 슬롯/4칸 패널도 절대 그리지 않고, 로고와 버튼이 올라갈 수 있는 비어 있는 배경으로 둔다. |
+| `title-logo-duskfold-wordmark` | 타이틀 로고 - 더스크폴드 | 카드 뒷면 대체용 와이드 로고 이미지. DUSKFOLD 워드마크 + 해/달 엠블럼, 흰 배경 출력 기준, 메인화면 버튼 위에 배치. |
+| `character-select-background-duskfold` | 캐릭터 선택 화면 배경 | 메인화면과 배틀씬 사이를 자연스럽게 잇는 전환 배경. 별도 3개 슬롯이나 스포트라이트를 만들지 않고, 숲·던전·성 원거리 실루엣과 부드러운 길/안개 낀 공터만 심플하게 표현한다. |
+
+> 메인 배경에는 로고·텍스트·버튼을 그리지 않는다. 실제 UI에서 로고 이미지와 `새게임 / 이어하기 / 설정 / 종료` 4개 버튼을 세로로 얹는다.
+
+### 배틀 진행바 HUD 프롬프트
+
+| ID | 이름 | 핵심 기준 |
+|----|------|-----------|
+| `ui-battle-progress-track` | 배틀 진행 트랙 통합 시트 | 배틀씬 중앙 상단 진행바 기준. 일반/완료/현재 노드는 동일한 기준 크기로 맞추고, 연결선은 노드 아래로 자연스럽게 맞물리게 생성한다. 현재 라운드는 과도하게 큰 배지가 아니라 28px 내부 노드 + 42px 외부 링으로 표시한다. |
+| `ui-progress-round-marker` / `ui-progress-cleared-marker` | 일반/완료 라운드 마커 | 같은 28px 시각 지름을 유지해 라운드 간 리듬이 흔들리지 않게 한다. |
+| `ui-progress-current-marker` / `ui-progress-current-ring` | 현재 위치 마커/강조 링 | 내부 노드는 일반 라운드와 같은 크기, 강조 링은 노드 크기에 맞게 감싸는 정도로만 사용한다. |
+| `ui-progress-connector` | 진행바 연결선 | 약 5px 두께의 둥근 연결선. 노드와 선 사이에 빈틈이 보이지 않도록 좌우 끝이 노드 아래로 살짝 들어가는 형태를 기준으로 한다. |
+
 ### 코인 (해/달 보석 코인)
 
 | 면 | 심볼 | 색상 | HEX |
@@ -336,14 +355,14 @@ multiple frames, tilted angle, perspective distortion
 realistic, photorealistic, 3D render, CGI,
 anime manga style,
 extreme chibi 1 to 2 head ratio, baby proportions,
-pure black, pure white background, neon colors, high saturation above 60 percent,
+pure black, neon colors, high saturation above 60 percent,
 gore, blood, horror, grotesque, scary, dark atmosphere,
 tonal layering, soft shading, gradient shading, cel-shading,
 visible brushwork, brush strokes, paint texture, paper grain, gouache texture,
 detailed eyes with highlights and reflections, large expressive eyes,
 complex accessories, ornate decoration, detailed armor, intricate patterns,
 lavender tint, purple ambient light, blue color cast, cool color cast on skin,
-complex detailed background, white background,
+complex detailed background,
 facing left, looking left, back view,
 full body, legs, feet, shoes, ground, floor,
 ornate heavy armor, giant oversized weapons, complex weapon designs,
@@ -361,14 +380,14 @@ soft diffused edges between color zones
 ```
 realistic, photorealistic, 3D render, CGI,
 anime manga style,
-pure black, pure white background, neon colors, high saturation above 60 percent,
+pure black, neon colors, high saturation above 60 percent,
 gore, blood, horror, grotesque, scary, dark atmosphere,
 tonal layering, soft shading, gradient shading, cel-shading,
 visible brushwork, brush strokes, paint texture, paper grain, gouache texture,
 detailed eyes with highlights and reflections, large expressive eyes,
 complex accessories, ornate decoration, intricate patterns,
 lavender tint, purple ambient light, cool color cast on skin,
-complex detailed background, white background,
+complex detailed background,
 facing right, looking right,
 full body, legs, feet, ground, floor,
 cute mascot comedy tone, slapstick expression,
@@ -401,14 +420,14 @@ blurry low quality
 realistic, photorealistic, 3D render, CGI,
 anime manga style,
 extreme chibi 1 to 2 head ratio, baby proportions,
-pure black, pure white background, neon colors, high saturation above 60 percent,
+pure black, neon colors, high saturation above 60 percent,
 gore, blood, horror, grotesque, scary, dark atmosphere,
 tonal layering, soft shading, gradient shading, cel-shading,
 visible brushwork, brush strokes, paint texture, paper grain, gouache texture,
 detailed eyes with highlights and reflections, large expressive eyes,
 complex accessories, ornate decoration, detailed armor, intricate patterns,
 lavender tint, purple ambient light, cool color cast on skin,
-complex detailed background, white background,
+complex detailed background,
 facing left, looking left, back view,
 full body, legs, feet, shoes, ground, floor,
 royal throne pose, combat-ready aggression,
@@ -442,13 +461,13 @@ text, letters, numbers, watermark
 - [ ] **양피지 프레임**: 프레임에 `parchment cream #F0E8D8` 사용 — 다크 차콜 금지
 - [ ] **방향**: 캐릭터/NPC/동료 → 우측 → / 몬스터 → 좌측 ←
 - [ ] **비율**: 캐릭터/몬스터/NPC 2:3 / 동료 1:1 정사각 (원형 프레임) / 스킬 카드 1:1 정사각 / 배경 16:9
-- [ ] **배경**: 캐릭터/몬스터/NPC → `solid cream parchment background #F0E8D8`
+- [ ] **배경**: 캐릭터/몬스터/NPC/스킬/UI 단일 에셋 → `pure solid white #FFFFFF background`
 - [ ] **구도**: `centered composition with moderate headroom above the head` + `character/creature fills most of the frame`
 - [ ] **톤**: 아늑한 파스텔 분위기 — 고어/그로테스크/공포 금지
 - [ ] **플랫 컬러**: `strictly flat color fills with hard boundaries` 포함 여부 — 수채화/그라디언트 결과 나오면 네거티브 강화
 - [ ] **네거티브 안티-수채화**: CHARACTER/MONSTER 네거티브에 `watercolor, watercolor wash, watercolor blending` 포함 여부
 - [ ] **네거티브**: 에셋 타입에 맞는 네거티브 프롬프트 적용 (6종 중 선택)
-- [ ] **구 스타일 잔재 확인**: `clean digital illustration`, `cel-shading`, `solid white background`, `lavender and lilac undertone`, `near-black outlines #1A1A1E`, `full-body`, `amber #D4A574`, `dark charcoal #1E1E24`, `paper grain overlay 5-8%`, `gouache`, `hand-painted` (배경 제외), `brushwork`, `tonal layering` (네거티브 제외) 가 남아 있지 않은지 확인
+- [ ] **구 스타일 잔재 확인**: `clean digital illustration`, `cel-shading`, `lavender and lilac undertone`, `near-black outlines #1A1A1E`, `full-body`, `amber #D4A574`, `dark charcoal #1E1E24`, `paper grain overlay 5-8%`, `gouache`, `hand-painted` (배경 제외), `brushwork`, `tonal layering` (네거티브 제외) 가 남아 있지 않은지 확인
 - [ ] **gameplan 정합성**: gameplanId와 designStatus 일치 확인
 - [ ] **gameplan Tier 1 참조**: 엔티티 데이터는 `docs/specific/` 명세서 기준
 

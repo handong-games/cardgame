@@ -29,7 +29,7 @@ interface OpenAIImageRequest {
   prompt: string
   n: number
   size: string
-  background: 'transparent'
+  background: 'opaque'
   output_format: 'png'
 }
 
@@ -103,7 +103,7 @@ router.post('/', async (req, res) => {
     prompt: buildPrompt(prompt_override, negative_override),
     n: options?.sample_count || 1,
     size: imageSize,
-    background: 'transparent',
+    background: 'opaque',
     output_format: 'png',
   }
 
@@ -163,7 +163,7 @@ router.post('/', async (req, res) => {
         entityType: entity_type,
         entityId: entity_id,
         sampleCount: options?.sample_count || 1,
-        background: 'transparent',
+        background: 'opaque',
         outputFormat: 'png',
         provider: 'openai',
       },

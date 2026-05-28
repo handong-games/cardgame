@@ -14,16 +14,16 @@ export interface PromptExample {
 const joinPrompt = (...lines: Array<string | false | null | undefined>) =>
   lines.filter(Boolean).join(',\n')
 
-const PROMPT_CHATGPT_TRANSPARENT_BACKGROUND = 'ChatGPT website image prompt for a clean cutout game asset: draw only the designed subject on a pure solid white background for easy background removal after generation, no floor, no wall, no environment, no scene, no pattern, no canvas texture, no drop shadow, no contact shadow'
+const PROMPT_CHATGPT_WHITE_BACKGROUND = 'ChatGPT website image prompt for a clean game asset: draw the designed subject directly on a pure solid white #FFFFFF background, no floor, no wall, no environment, no scene, no pattern, no canvas texture, no drop shadow, no contact shadow'
 
-const PROMPT_TRANSPARENT_SAFE_MARGIN = 'leave generous plain white outer canvas padding around the asset, especially toward the lower-right edge, keep the lower-right area around 10 percent of the canvas naturally empty and plain white, do not place important subject details near the edge, and do not create any separate empty square, blank box, pale panel, placeholder rectangle, framed patch, isolated background block, pale circle, round seal, orb, dot, or watermark-like corner shape there'
+const PROMPT_WHITE_SAFE_MARGIN = 'leave generous pure solid white #FFFFFF outer canvas padding around the asset, especially toward the lower-right edge, keep the lower-right area around 10 percent of the canvas naturally empty and plain white, do not place important subject details near the edge, and do not create any separate empty square, blank box, pale panel, placeholder rectangle, framed patch, isolated background block, pale circle, round seal, orb, dot, or watermark-like corner shape there'
 
 const PROMPT_NO_BOX_ARTIFACTS = 'no empty square, no blank box, no placeholder panel, no inset rectangle, no isolated lower-right block, no framed patch, no UI-like box artifact, no lower-right circle, no pale circle, no orb, no seal, no stamp mark, no watermark-like corner shape'
 
-const applyPromptChatGptTransparentRules = (prompt: string) => joinPrompt(
+const applyPromptChatGptWhiteBackgroundRules = (prompt: string) => joinPrompt(
   prompt,
-  PROMPT_CHATGPT_TRANSPARENT_BACKGROUND,
-  PROMPT_TRANSPARENT_SAFE_MARGIN,
+  PROMPT_CHATGPT_WHITE_BACKGROUND,
+  PROMPT_WHITE_SAFE_MARGIN,
   PROMPT_NO_BOX_ARTIFACTS,
 )
 
@@ -33,14 +33,20 @@ lower-right circle, pale circle, round seal, orb, dot, stamp mark, watermark-lik
 scene background, environmental backdrop, floor shadow, contact shadow, drop shadow in empty outer canvas areas,
 cream parchment backdrop outside the designed subject, colored backdrop outside the designed subject, patterned backdrop outside the designed subject`
 
-const mapPromptExamplesWithChatGptTransparentRules = (source: Record<ExampleCategory, PromptExample[]>): Record<ExampleCategory, PromptExample[]> => {
+const isBlackStatusBadgeExample = (example: PromptExample) => example.id.startsWith('status-badge-')
+
+const mapPromptExamplesWithChatGptWhiteBackgroundRules = (source: Record<ExampleCategory, PromptExample[]>): Record<ExampleCategory, PromptExample[]> => {
   const result = {} as Record<ExampleCategory, PromptExample[]>
 
   for (const category of Object.keys(source) as ExampleCategory[]) {
     result[category] = source[category].map((example) => ({
       ...example,
-      prompt: applyPromptChatGptTransparentRules(example.prompt),
-      negative: applyNegativeNoBoxArtifacts(example.negative),
+      prompt: category === 'background' || example.id.includes('background') || isBlackStatusBadgeExample(example)
+        ? example.prompt
+        : applyPromptChatGptWhiteBackgroundRules(example.prompt),
+      negative: isBlackStatusBadgeExample(example)
+        ? example.negative
+        : applyNegativeNoBoxArtifacts(example.negative),
     }))
   }
 
@@ -81,14 +87,14 @@ multiple nameplates, tilted angle, perspective distortion`
 export const CHARACTER_NEGATIVE = `realistic, photorealistic, 3D render, CGI,
 anime manga style,
 extreme chibi 1 to 2 head ratio, baby proportions,
-pure black, pure white background, neon colors, high saturation above 60 percent,
+pure black, neon colors, high saturation above 60 percent,
 gore, blood, horror, grotesque, scary, dark atmosphere,
 tonal layering, soft shading, gradient shading, cel-shading,
 visible brushwork, brush strokes, paint texture, paper grain, gouache texture,
 detailed eyes with highlights and reflections, large expressive eyes,
 complex accessories, ornate decoration, detailed armor, intricate patterns,
 lavender tint, purple ambient light, blue color cast, cool color cast on skin,
-complex detailed background, white background,
+complex detailed background,
 facing left, looking left, back view,
 full body, legs, feet, shoes, ground, floor,
 ornate heavy armor, giant oversized weapons, complex weapon designs,
@@ -179,14 +185,14 @@ small fragments, debris, cracks with loose pieces, ornamental cuts, complex patt
 
 export const NPC_NEGATIVE = `realistic, photorealistic, 3D render, CGI,
 anime manga style,
-pure black, pure white background, neon colors, high saturation above 60 percent,
+pure black, neon colors, high saturation above 60 percent,
 gore, blood, horror, grotesque, scary, dark atmosphere,
 tonal layering, soft shading, gradient shading, cel-shading,
 visible brushwork, brush strokes, paint texture, paper grain, gouache texture,
 detailed eyes with highlights and reflections, large expressive eyes,
 complex accessories, ornate decoration, intricate patterns,
 lavender tint, purple ambient light, cool color cast on skin,
-complex detailed background, white background,
+complex detailed background,
 facing left, looking left, back view,
 full body, legs, feet, shoes, ground, floor,
 royal throne pose, combat-ready aggression,
@@ -212,7 +218,7 @@ const CHARACTER_RENDER_BASE = [
   'only 1 to 2 iconic props maximum',
   'tiny simplified eyes with no visible pupils or irises, paired with short simple line eyebrows and no nose detail',
   'body facing right at three-quarter angle looking toward right side',
-  'pure solid white background outside the character for easy background removal, with cream parchment color used only inside intentional designed surfaces if needed',
+  'pure solid white #FFFFFF background outside the character, with cream parchment color used only inside intentional designed surfaces if needed',
   'no border no frame',
   'vertical portrait 2:3 aspect ratio',
   'strictly flat color fills with hard boundaries between each color region',
@@ -231,7 +237,7 @@ const COMPANION_RENDER_BASE = [
   'muted warm pastel colors strictly 40 to 55 percent saturation',
   'silhouette-driven creature design recognizable from shape alone',
   'small simple dot eyes',
-  'pure solid white background outside the creature for easy background removal, with cream parchment color used only inside intentional designed surfaces if needed',
+  'pure solid white #FFFFFF background outside the creature, with cream parchment color used only inside intentional designed surfaces if needed',
   'no border no frame',
   'square 1:1 aspect ratio',
   'close-up bust and face composition optimized for circular crop',
@@ -278,35 +284,48 @@ function createPortraitFramePrompt(subject: string, accentLines: string[], detai
     'lower frame edge should remain a clean uninterrupted frame boundary with no integrated ribbon or plaque',
     ...detailLines,
     'clean empty single-surface area for portrait insertion',
-    'area outside the outer frame edge must remain fully transparent with no shadow, glow, texture, or color spill',
+    'area outside the outer frame edge must remain pure solid white #FFFFFF with no shadow, glow, texture, or color spill',
     'professional game UI asset',
     '2D clean digital illustration',
     'aged parchment paper texture overlay',
-    'isolated as a transparent-background PNG asset, no background outside the designed subject',
+    'isolated on a pure solid white #FFFFFF background PNG asset',
     outputLine,
   )
 }
 
 function createNameplatePrompt(subject: string, detailLines: string[], outputLine: string) {
   return joinPrompt(
-    `game UI parchment ribbon nameplate design for ${subject}`,
+    `shared darker parchment tape-on nameplate design that perfectly matches the existing card frames for ${subject}`,
     'standalone nameplate asset without full card frame or portrait illustration',
-    'wide horizontal ribbon banner only',
+    'one low-profile rounded rectangle label only, shaped like a sturdy parchment tape label attached just below the lower color band of the character and monster card frame',
     'main card nameplate proportions around 200x44 pixels',
-    'aged parchment cream paper #F0E8D8',
-    'thin parchment border #d8cdb8 around the central panel',
-    'soft folded ribbon ends on both sides',
-    'center rectangular label panel with clean readable interior',
-    'subtle paper overlap and inner shadow only, no heavy 3D depth',
+    'visual plate body should feel around 184x30 pixels centered vertically and horizontally within the canvas, matching the card frame lower name area scale',
+    'leave a very generous pure solid white #FFFFFF margin around the entire nameplate on all sides',
+    'keep at least 14 percent of the canvas width empty white on the left and right sides and at least 20 percent of the canvas height empty white above and below',
+    'especially keep the lower-right corner as completely blank pure solid white #FFFFFF so the Gemini watermark never overlaps the nameplate artwork',
+    'do not place any part of the nameplate, outline, paper texture, or decorative pixel near the lower-right watermark area',
+    'slightly deeper aged parchment tan surface #E4D1A8 that is more saturated and darker than the card interior while still belonging to the same parchment family',
+    'use the same worn-paper edge language as frame-player, frame-t1, frame-t2, and frame-t3: restrained, rounded, handmade, and not modern UI',
+    'add a warm inner cream fill #F1E2C4 as a subtle readable center field, blended into the parchment rather than a separate panel',
+    'clear dark warm-brown outer outline #7A5138 around the entire shape, visible at small UI size, about 3 to 4 pixels when used at final scale',
+    'add a second thin inner edge line #B98A58 just inside the dark outline so the border reads clearly against both player and monster card frames',
+    'top edge should feel pressed onto the card like a paper tape label sitting immediately below the bottom color strip, flush and attached rather than floating',
+    'subtle taped-on construction cues: slightly darker top seam, tiny worn corner fibers, and gently flattened side edges, but no separate tape pieces',
+    'the plate should look like it is physically attached to the lower card frame area, not like an imported button or detached banner asset',
+    'no drop shadow, no contact shadow, no lower shadow under the nameplate',
+    'no accent color, no player color, no monster color, no tier color, no decorative stripe',
+    'no folded ribbon ends, no protruding paper tabs, no separate center panel, no attached banner tails, no glossy bevel, no button-like capsule shine',
     'minimalist cozy pastel fantasy UI for v6.0 Lavender Mist',
-    'designed to sit at the lower edge of a 240x360 portrait card',
-    'keep the center panel clean for later name text placement',
+    'designed as the exact same reusable nameplate for both player cards and monster cards',
+    'center area must remain completely blank, calm, and high-contrast for later name text placement in dark lavender #3A3040',
+    'soft rounded corners should match the 10 to 12px rounded card frame language',
+    'paper texture should be extremely subtle and evenly distributed so text remains readable',
     'no text no letters no numbers inside the plate',
     ...detailLines,
     'professional game UI asset',
     '2D clean digital illustration',
     'aged parchment paper texture overlay',
-    'isolated as a transparent-background PNG asset, no background outside the designed subject',
+    'isolated on a larger pure solid white #FFFFFF background PNG asset with wide protective padding around the nameplate',
     outputLine,
   )
 }
@@ -324,11 +343,11 @@ function createCompanionFramePrompt(accentLines: string[], detailLines: string[]
     'smooth radial gradient center with soft cream edge separation',
     ...detailLines,
     'clean empty circular center area for bust portrait insertion',
-    'area outside the outer ring edge must remain fully transparent with no shadow, glow, texture, or color spill',
+    'area outside the outer ring edge must remain pure solid white #FFFFFF with no shadow, glow, texture, or color spill',
     'professional game UI asset',
     '2D clean digital illustration',
     'aged parchment paper texture overlay',
-    'isolated as a transparent-background PNG asset, no background outside the designed subject',
+    'isolated on a pure solid white #FFFFFF background PNG asset',
     'output resolution 512x512 pixels',
     'final usage 96x96 pixels after downscaling',
   )
@@ -364,11 +383,11 @@ function createSkillFramePrompt(accentLines: string[], detailLines: string[]) {
     'very subtle cream-tone vignette at edges',
     ...detailLines,
     'clean empty center area for skill icon insertion',
-    'area outside the outer frame edge must remain fully transparent with no shadow, glow, texture, or color spill',
+    'area outside the outer frame edge must remain pure solid white #FFFFFF with no shadow, glow, texture, or color spill',
     'professional game UI asset',
     '2D clean digital illustration',
     'aged parchment paper texture overlay',
-    'isolated as a transparent-background PNG asset, no background outside the designed subject',
+    'isolated on a pure solid white #FFFFFF background PNG asset',
     'output resolution 512x512 pixels',
     'final usage 140x140 pixels after downscaling',
   )
@@ -389,7 +408,7 @@ function createLockedCharacterSilhouettePrompt() {
     'single flat dark lavender-gray silhouette only, no visible face, no eyes, no skin color, no costume color details',
     'generic unknown adventurer bust silhouette, shared common silhouette for every locked character',
     'simple hooded head-and-shoulders outline only, no class-specific weapon, no staff, no dagger, no hat, no unique hair shape',
-    'soft muted silhouette color around #6A6070 on a true transparent background, no cream rectangle behind the silhouette',
+    'soft muted silhouette color around #6A6070 on a pure solid white #FFFFFF background, no cream rectangle behind the silhouette',
     'slightly mysterious but cozy, not scary, not hostile, not realistic',
     'designed to sit inside the character select card as an unavailable locked class preview',
     'clear readable bust silhouette at small UI size, matching the game character card style',
@@ -421,7 +440,7 @@ function createMonsterPrompt(region: RegionKey, tierLine: string, ...details: st
     'silhouette-driven monster design recognizable from shape alone',
     'tiny simplified eyes with no visible pupils or irises, paired with short simple line eyebrows',
     'cute and charming monster design that is not scary or threatening',
-    'isolated as a true transparent-background PNG asset with real alpha outside the subject',
+    'isolated on a pure solid white #FFFFFF background PNG asset',
     'no border no frame',
     'vertical portrait 2:3 aspect ratio',
     'strictly flat color fills with hard boundaries between each color region',
@@ -459,7 +478,7 @@ const UI_ICON_STYLE = joinPrompt(
   'ultra-simple skill icon symbol design with one centered motif only, similar in simplicity to the Fighting Spirit clenched fist icon',
   'icon must be readable from silhouette alone, the player should understand the feeling immediately at a glance',
   'all skill icons must use the exact same single neutral pastel color: warm greige gray #B8B2A8',
-  'one solid color only, no secondary accent color, no per-skill color variation, no palette variation unless absolutely necessary for one tiny transparent cutout',
+  'one solid color only, no secondary accent color, no per-skill color variation, no palette variation unless absolutely necessary for one tiny cutout asset',
   'flat matte vector-like filled silhouette, not an illustration, not a rendered object',
   'use bold primitive shapes with very few parts, preferably one single connected shape',
   'maximum one essential internal cut or notch, otherwise keep it as a plain filled shape',
@@ -468,8 +487,8 @@ const UI_ICON_STYLE = joinPrompt(
   'consistent visual language across all skill icons with the same simplicity level as simple mobile game ability icons',
   'no parchment texture, no paper grain, no beige backdrop, no badge background',
   'do not place any separate square, rectangle, box, circle, orb, seal, stamp, pale mark, or watermark-like shape in the lower-right corner',
-  'the lower-right corner must remain fully transparent with no extra shape or isolated background artifact',
-  'isolated as a transparent-background PNG asset, no background outside the designed subject',
+  'the lower-right corner must remain pure solid white #FFFFFF with no extra shape or isolated background artifact',
+  'isolated on a pure solid white #FFFFFF background PNG asset',
   'output 256x256 pixels',
 )
 
@@ -487,12 +506,213 @@ function createSkillIconPrompt(symbolLine: string, detailLine: string) {
   )
 }
 
+const STATUS_BADGE_ICON_STYLE = joinPrompt(
+  'battle status badge icon for v6.0 Lavender Mist pastel fantasy card game',
+  'designed for a tiny square buff and debuff slot directly below character and monster cards',
+  'entire canvas is one solid dark lavender black background #181320, not transparent, not white, not parchment',
+  'single centered status symbol only, drawn in one consistent muted gold yellow #D8B84C',
+  'flat matte vector-like filled silhouette, no gradient, no glow, no texture, no shading, no 3D bevel',
+  'large readable symbol filling about 68 percent of the square canvas with safe padding on all sides',
+  'ultra-simple primitive shapes, preferably one connected bold shape with at most one essential cutout',
+  'rounded edges and calm cozy-fantasy UI language, not harsh neon warning signage',
+  'must remain readable at 16 to 24 pixels in the battle UI',
+  'strictly consistent icon set: same background color, same yellow color, same symbol weight, same scale, same front-facing orthographic view',
+  'no text, no letters, no numbers, no labels, no frame border, no extra badge ring',
+  'output 128x128 pixels',
+)
+
+const STATUS_BADGE_ICON_NEGATIVE = `${UI_NEGATIVE},
+white background, transparent background, parchment background, cream background, colored background variation,
+multiple colors, green poison color, blue defense color, red warning color, purple magic color, per-status color coding,
+outline-only icon, thin line icon, small detailed illustration, realistic object, 3D render,
+glow aura, particle effects, motion trails, soft shadow, cast shadow, inner shadow,
+border frame, circular badge, ring, separate panel, extra corner mark, watermark-like shape,
+text, letters, numbers, status abbreviation`
+
+function createStatusBadgeIconPrompt(symbolLine: string, meaningLine: string) {
+  return joinPrompt(
+    STATUS_BADGE_ICON_STYLE,
+    symbolLine,
+    meaningLine,
+    'use only muted gold yellow #D8B84C for the symbol and only dark lavender black #181320 for the background',
+    'keep the silhouette simple enough to recognize instantly under a card as a small square status marker',
+  )
+}
+
+const STATUS_BADGE_ICON_PROMPTS: PromptExample[] = [
+  {
+    id: 'status-badge-poison',
+    name: '상태 뱃지 - 독',
+    nameEn: 'Status Badge - Poison',
+    group: '버프·디버프 뱃지',
+    prompt: createStatusBadgeIconPrompt(
+      'center symbol: one compact poison droplet with a tiny skull cutout inside, no dripping particles',
+      'meaning: poison debuff that deals damage over time to the affected target',
+    ),
+    negative: STATUS_BADGE_ICON_NEGATIVE
+  },
+  {
+    id: 'status-badge-spore',
+    name: '상태 뱃지 - 포자',
+    nameEn: 'Status Badge - Spore',
+    group: '버프·디버프 뱃지',
+    prompt: createStatusBadgeIconPrompt(
+      'center symbol: one simple mushroom cap releasing three large round spore dots above it, dots fused visually into a compact emblem',
+      'meaning: spore debuff that interferes with the player coin flow',
+    ),
+    negative: STATUS_BADGE_ICON_NEGATIVE
+  },
+  {
+    id: 'status-badge-thorns',
+    name: '상태 뱃지 - 가시',
+    nameEn: 'Status Badge - Thorns',
+    group: '버프·디버프 뱃지',
+    prompt: createStatusBadgeIconPrompt(
+      'center symbol: one curved vine hook with three blunt triangular thorns, compact C-shaped silhouette',
+      'meaning: thorns buff that reflects damage when hit',
+    ),
+    negative: STATUS_BADGE_ICON_NEGATIVE
+  },
+  {
+    id: 'status-badge-hardening',
+    name: '상태 뱃지 - 경화',
+    nameEn: 'Status Badge - Hardening',
+    group: '버프·디버프 뱃지',
+    prompt: createStatusBadgeIconPrompt(
+      'center symbol: one squat stone slab shield with two simple angular facet cuts only',
+      'meaning: hardening buff that reduces incoming damage or grows defensive toughness',
+    ),
+    negative: STATUS_BADGE_ICON_NEGATIVE
+  },
+  {
+    id: 'status-badge-evasion',
+    name: '상태 뱃지 - 회피',
+    nameEn: 'Status Badge - Evasion',
+    group: '버프·디버프 뱃지',
+    prompt: createStatusBadgeIconPrompt(
+      'center symbol: one arcing dash silhouette wrapping around a small empty center, like a simplified dodge swoop',
+      'meaning: evasion buff that avoids or nullifies an incoming hit',
+    ),
+    negative: STATUS_BADGE_ICON_NEGATIVE
+  },
+  {
+    id: 'status-badge-vulnerable',
+    name: '상태 뱃지 - 취약',
+    nameEn: 'Status Badge - Vulnerable',
+    group: '버프·디버프 뱃지',
+    prompt: createStatusBadgeIconPrompt(
+      'center symbol: one shield silhouette split by a single vertical crack cut through the middle',
+      'meaning: vulnerable debuff that increases damage taken',
+    ),
+    negative: STATUS_BADGE_ICON_NEGATIVE
+  },
+  {
+    id: 'status-badge-weak',
+    name: '상태 뱃지 - 약화',
+    nameEn: 'Status Badge - Weak',
+    group: '버프·디버프 뱃지',
+    prompt: createStatusBadgeIconPrompt(
+      'center symbol: one downward-bent sword silhouette with a single notch near the blade tip',
+      'meaning: weak debuff that reduces enemy attack power',
+    ),
+    negative: STATUS_BADGE_ICON_NEGATIVE
+  },
+  {
+    id: 'status-badge-strength',
+    name: '상태 뱃지 - 힘',
+    nameEn: 'Status Badge - Strength',
+    group: '버프·디버프 뱃지',
+    prompt: createStatusBadgeIconPrompt(
+      'center symbol: one upward sword silhouette with a single broad upward chevron behind it',
+      'meaning: strength or howling power buff that increases attack damage',
+    ),
+    negative: STATUS_BADGE_ICON_NEGATIVE
+  },
+  {
+    id: 'status-badge-charge',
+    name: '상태 뱃지 - 차지',
+    nameEn: 'Status Badge - Charge',
+    group: '버프·디버프 뱃지',
+    prompt: createStatusBadgeIconPrompt(
+      'center symbol: one bold lightning bolt contained inside a simple filled half-circle battery shape',
+      'meaning: charge buff that stores power for the next attack',
+    ),
+    negative: STATUS_BADGE_ICON_NEGATIVE
+  },
+  {
+    id: 'status-badge-focus',
+    name: '상태 뱃지 - 집중',
+    nameEn: 'Status Badge - Focus',
+    group: '버프·디버프 뱃지',
+    prompt: createStatusBadgeIconPrompt(
+      'center symbol: one simple eye shape with one tiny diamond cutout pupil, no rays',
+      'meaning: focus buff that improves attack damage for a short duration',
+    ),
+    negative: STATUS_BADGE_ICON_NEGATIVE
+  },
+  {
+    id: 'status-badge-aura-of-devotion',
+    name: '상태 뱃지 - 헌신의 오라',
+    nameEn: 'Status Badge - Aura of Devotion',
+    group: '버프·디버프 뱃지',
+    prompt: createStatusBadgeIconPrompt(
+      'center symbol: one small shield nested under one simple halo arc, fused into a compact holy-protection emblem',
+      'meaning: devotion aura buff that grants defense at turn start and improves attacks',
+    ),
+    negative: STATUS_BADGE_ICON_NEGATIVE
+  },
+  {
+    id: 'status-badge-justice-aura',
+    name: '상태 뱃지 - 정의의 오라',
+    nameEn: 'Status Badge - Justice Aura',
+    group: '버프·디버프 뱃지',
+    prompt: createStatusBadgeIconPrompt(
+      'center symbol: one balanced sword-and-scale emblem simplified into a vertical sword with two tiny equal side weights',
+      'meaning: justice aura buff that increases attack damage',
+    ),
+    negative: STATUS_BADGE_ICON_NEGATIVE
+  },
+  {
+    id: 'status-badge-guardian-aura',
+    name: '상태 뱃지 - 수호의 오라',
+    nameEn: 'Status Badge - Guardian Aura',
+    group: '버프·디버프 뱃지',
+    prompt: createStatusBadgeIconPrompt(
+      'center symbol: one broad shield wrapped by a simple crescent arc, no wings and no complex holy detail',
+      'meaning: guardian aura buff that grants defense at turn start',
+    ),
+    negative: STATUS_BADGE_ICON_NEGATIVE
+  },
+  {
+    id: 'status-badge-regeneration',
+    name: '상태 뱃지 - 재생',
+    nameEn: 'Status Badge - Regeneration',
+    group: '버프·디버프 뱃지',
+    prompt: createStatusBadgeIconPrompt(
+      'center symbol: one heart silhouette with a single sprout leaf cut emerging from the top',
+      'meaning: healing or regeneration effect from defensive and recovery skills',
+    ),
+    negative: STATUS_BADGE_ICON_NEGATIVE
+  },
+  {
+    id: 'status-badge-bind',
+    name: '상태 뱃지 - 뿌리 속박',
+    nameEn: 'Status Badge - Root Bind',
+    group: '버프·디버프 뱃지',
+    prompt: createStatusBadgeIconPrompt(
+      'center symbol: two crossing root tendrils tied around a small square block, very chunky and simple',
+      'meaning: root bind debuff that suppresses defense or restricts the player',
+    ),
+    negative: STATUS_BADGE_ICON_NEGATIVE
+  },
+]
+
 const UI_COIN_STYLE = joinPrompt(
   'fantasy card game gemstone coin asset for v6.0 Lavender Mist',
   'clean digital illustration with soft colored outlines',
   'circular translucent gemstone coin design with polished faceted surface',
   'muted pastel highlights with subtle depth and parchment texture overlay',
-  'isolated as a transparent-background PNG asset, no background outside the designed subject',
+  'isolated on a pure solid white #FFFFFF background PNG asset',
   'output 256x256 pixels',
 )
 
@@ -507,18 +727,71 @@ const UI_BUTTON_STYLE = joinPrompt(
   'thin muted brown border close to parchment tone',
   'no text no letters no numbers',
   'clean professional game asset readable on pastel backgrounds',
-  'isolated as a transparent-background PNG asset, no background outside the designed subject',
+  'isolated on a pure solid white #FFFFFF background PNG asset',
   'output 512x192 pixels',
 )
 
+const UI_TITLE_BUTTON_STYLE = joinPrompt(
+  'main menu button image for Duskfold, a cozy dark fantasy roguelike deckbuilder in v6.0 Lavender Mist style',
+  'designed specifically for the title screen background with a dark lavender forest threshold and soft cave entrance atmosphere',
+  'single reusable wide horizontal button plate for a centered vertical menu column, no text no letters no numbers',
+  'rounded parchment plaque silhouette with softly flattened sides, calm premium fantasy UI, not modern web UI',
+  'slightly deeper aged parchment fill #E4D1A8 with warm cream center #F1E2C4 for readable Korean menu text added later',
+  'clear dark lavender-brown outer rim #3A3040 and restrained inner gold edge #C9A86C, visible on dark background without glowing loudly',
+  'subtle duskfold identity cues: tiny folded-card corner notches, soft moon-lavender side shading, and one very quiet warm-gold top highlight',
+  'matte 2D game UI asset with parchment paper texture kept extremely subtle and low-noise',
+  'button should feel sturdy, inviting, mysterious, and calm, suitable for Start, Continue, Settings, and Exit menu items',
+  'no icon, no symbol, no logo, no decorative emblem, no readable typography inside the button',
+  'no drop shadow baked into the outer white canvas, only a very restrained lower edge thickness inside the button silhouette for depth',
+  'pure solid white #FFFFFF background outside the button silhouette, generous safe margin around the asset',
+  'output 640x180 pixels, final usage around 320x72 pixels after downscaling',
+)
+
+const UI_PROGRESS_HUD_STYLE = joinPrompt(
+  'battle-scene top-center round progress HUD for v6.0 Lavender Mist pastel fantasy card game',
+  'sophisticated but very quiet low-profile UI component, designed to sit naturally over a dark muted forest battle background',
+  'single cohesive parchment-and-lavender rail system, not a row of disconnected stickers',
+  'matte flat 2D game UI with soft rounded silhouettes, no glossy shine, no hard vector sharpness, no 3D bevel',
+  'all pieces share the same visual scale, rim thickness, connector thickness, shadow softness, and center baseline',
+  'palette: cream parchment #F0E8D8, muted lavender-gray #6A6070, dark lavender #3A3040, restrained gold #C9A86C, dusty rose #C89098',
+  'use soft cream rim highlights and tiny dark-lavender lower shadows only where needed for readability',
+  'avoid visual clutter: no labels, no numbers, no large ornament, no floating halos, no detached decorative parts',
+)
+
+function createProgressHudPrompt(...details: string[]) {
+  return joinPrompt(
+    UI_PROGRESS_HUD_STYLE,
+    ...details,
+  )
+}
+
 const UI_NODE_STYLE = joinPrompt(
   'game map node badge for v6.0 Lavender Mist pastel fantasy card game',
-  'clean digital illustration with colored outlines and parchment texture',
-  'small circular badge design, 1:1 ratio',
-  'clean minimal readability at 24px',
-  'isolated as a transparent-background PNG asset, no background outside the designed subject',
+  'single consistent circular badge system for all round map nodes',
+  'clean flat vector-like digital illustration with soft colored outlines, no realistic texture',
+  'exact 1:1 square canvas, perfectly centered circular badge',
+  'badge outer circle fills about 82 percent of the canvas width, leaving even white margin on all sides',
+  'same geometry for every node: circular colored face, thin cream parchment rim, tiny dark-lavender lower cast shadow',
+  'center icon fills about 42 percent of the badge diameter and stays optically centered',
+  'one simple readable symbol only, built from bold rounded silhouette shapes with uniform stroke weight',
+  'maximum two accent colors per node: one badge color and one icon color, optional tiny gold accent only when specified',
+  'matte soft pastel finish matching the battle progress HUD and parchment UI',
+  'clean minimal readability at 24px, no small decorative details',
+  'isolated on a pure solid white #FFFFFF background PNG asset',
   'output 128x128 pixels',
 )
+
+function createRoundNodePrompt(symbolLine: string, colorRuleLine: string, meaningLine: string) {
+  return joinPrompt(
+    UI_NODE_STYLE,
+    symbolLine,
+    colorRuleLine,
+    meaningLine,
+    'all round nodes must share the exact same badge size, rim thickness, icon scale, shadow softness, and camera angle',
+    'front-facing orthographic UI icon, no perspective tilt, no 3D bevel, no glossy highlight',
+    'pastel fantasy map node icon that feels like one cohesive icon set',
+  )
+}
 
 const SKILL_ICON_PROMPTS: PromptExample[] = [
   {
@@ -785,9 +1058,8 @@ cute friendly, cheerful bright`
       prompt: createNameplatePrompt(
         'fantasy RPG hero card',
         [
-          'soft rose-quartz edge tint #E8B4B8 kept very restrained',
-          'warm cozy adventurer mood matching player card identity',
-          'balanced parchment ribbon with clean readability for class name text',
+          'identical shared nameplate style used for both player and monster cards',
+          'plain parchment label with maximum readability for class name text',
         ],
         'output resolution 256x64 pixels, final usage 200x44 pixels after downscaling',
       ),
@@ -801,9 +1073,8 @@ cute friendly, cheerful bright`
       prompt: createNameplatePrompt(
         'fantasy RPG monster card',
         [
-          'same exact silhouette and dimensions as the player nameplate for shared card UI consistency',
-          'neutral parchment treatment that fits tier 1, tier 2, and tier 3 monster cards equally well',
-          'clear readable center panel for monster name text without horror styling or metallic plaques',
+          'identical shared nameplate style used for both player and monster cards',
+          'plain parchment label with maximum readability for monster name text',
         ],
         'output resolution 256x64 pixels, final usage 200x44 pixels after downscaling',
       ),
@@ -919,7 +1190,7 @@ scary dark menacing`
         'subtle reward importance through calm gold-lavender emphasis only',
         'professional game UI asset',
         '2D clean digital illustration',
-        'isolated as a transparent-background PNG asset, no background outside the designed subject',
+        'isolated on a pure solid white #FFFFFF background PNG asset',
         'output resolution 512x768 pixels',
       ),
       negative: FRAME_NEGATIVE
@@ -951,7 +1222,7 @@ scary dark menacing`
         'minimal restrained border logic with no heavy ornament, no filigree, no glossy shine, no gold emphasis, and no sci-fi HUD styling',
         'professional game UI asset',
         '2D clean digital illustration',
-        'isolated as a transparent-background PNG asset, no background outside the designed subject',
+        'isolated on a pure solid white #FFFFFF background PNG asset',
         'output resolution 512x768 pixels',
       ),
       negative: `${FRAME_NEGATIVE},
@@ -973,7 +1244,7 @@ white circle, pale circle, circular white seal, round white stamp, white orb, wh
         'clear icon-safe area and text-safe area with no inset rectangle or placeholder box',
         'professional game UI asset',
         '2D clean digital illustration',
-        'isolated as a transparent-background PNG asset, no background outside the designed subject',
+        'isolated on a pure solid white #FFFFFF background PNG asset',
         'output resolution 512x256 pixels',
       ),
       negative: FRAME_NEGATIVE
@@ -993,7 +1264,7 @@ white circle, pale circle, circular white seal, round white stamp, white orb, wh
         'no heavy ornament, no crown motif, no extra chains or hanging parts',
         'professional game UI asset',
         '2D clean digital illustration',
-        'isolated as a transparent-background PNG asset, no background outside the designed subject',
+        'isolated on a pure solid white #FFFFFF background PNG asset',
         'output resolution 256x256 pixels',
       ),
       negative: FRAME_NEGATIVE
@@ -1012,7 +1283,7 @@ white circle, pale circle, circular white seal, round white stamp, white orb, wh
         'no filigree, no extra panel, no layered badge stack, no banner attachment',
         'professional game UI asset',
         '2D clean digital illustration',
-        'isolated as a transparent-background PNG asset, no background outside the designed subject',
+        'isolated on a pure solid white #FFFFFF background PNG asset',
         'output resolution 256x256 pixels',
       ),
       negative: FRAME_NEGATIVE
@@ -1031,7 +1302,7 @@ white circle, pale circle, circular white seal, round white stamp, white orb, wh
         'short spiky warm-brown hair with bold messy silhouette and clear outer contour readable at small card size',
         'small sword hilt at shoulder kept simple and unmistakable',
         'brave beginner adventurer with friendly but focused expression, face and shoulders scaled large for immediate card readability',
-        'the empty canvas outside the warrior must remain a clean pure white background so it can be removed cleanly after generation',
+        'the empty canvas outside the warrior must remain a clean pure solid white #FFFFFF background',
       ),
       negative: CHARACTER_NEGATIVE
     },
@@ -1408,6 +1679,8 @@ white circle, pale circle, circular white seal, round white stamp, white orb, wh
   'skillIcon': SKILL_ICON_PROMPTS,
 
   'ui': [
+    ...STATUS_BADGE_ICON_PROMPTS,
+
     {
       id: 'brand-logo-duskfold',
       name: '게임 로고 - 더스크폴드',
@@ -1465,23 +1738,26 @@ high legibility at small size`,
       nameEn: 'Main Menu Standoff Image - Duskfold',
       group: '타이틀/캐릭터 선택',
       prompt: joinPrompt(
-        'main menu hero image for a cozy dark fantasy roguelike deckbuilder',
-        '16:9 wide game main screen standoff illustration with no logo, no text, and no buttons',
-        'Lavender Mist v6.0 visual DNA: a mysterious card-adventure world, cream parchment warmth, muted lavender atmosphere, dusty rose haze, restrained warm gold accents',
-        'main warrior character in the strongest foreground position, supported by a mage and a rogue slightly behind on the same player side',
-        'characters should match or closely resemble the in-game battle scene character style: simple readable card-battle heroes, soft pastel shapes, not realistic high-detail fantasy portraits',
-        'warrior is the visual leader: sturdy rose-quartz armored silhouette, round shield and short sword, facing right toward enemies, mainly using warm gold sun symbol power',
-        'mage support character uses amethyst tones, simple staff gesture, mainly channeling muted moon-purple crescent moon symbol power as restrained magical energy',
-        'rogue support character uses emerald tones and a hooded agile silhouette, handling both sun and moon symbols together with a small dagger or quick dual-resource gesture',
-        'enemy group on the opposite side facing left, defeated or being pushed back by combined sun and moon symbol power, non-gory and readable as a tense standoff',
-        'sun and moon symbols are the key combat motif: warm gold sun disk and muted moon-purple crescent, crossing between heroes and enemies like clean magical emblems',
-        'composition should feel like the moment before victory in a card battle, with heroes on the left and enemies on the right, strong diagonal tension across the center',
-        'leave enough calm upper-center and lower-center negative space for a separate logo overlay and start button overlay added later by UI',
+        'ultra-simple main menu background image for Duskfold, a cozy dark fantasy roguelike deckbuilder, drawn in the exact same low-detail visual language as the current battle scene',
+        '16:9 wide game main screen background, designed specifically for a centered logo at the top and a vertical four-button menu column below it, with no logo, no text, no button shapes drawn into the image',
+        'must feel like the same game as the battle screen: ultra-simple soft flat storybook background, muted low-contrast silhouettes, huge broad shapes, gentle blur, rounded cozy forms, not high-quality splash art',
+        'background should be a little darker and richer than the previous pale version: smoky lavender-gray, warm brown-gray, muted dark forest green, parchment cream haze, and faint dusty rose; use a soft dark edge vignette but avoid pitch-black areas',
+        'background simplification rule: only 3 to 5 large soft silhouette layers total, no leaf detail, no bark detail, no grass detail, no small props',
+        'do not draw any rectangular card slots, square placeholders, four-box panels, menu boxes, or empty framed blocks in the lower center; the lower center must remain plain atmospheric background for UI buttons added later',
+        'remove all characters and monsters completely: no warrior, no mage, no rogue, no goblin, no spider, no mushroom monster, no creature silhouettes, no people, no faces, no figures',
+        'remove all battle or magic exchange elements: no sun attack symbol, no moon attack symbol, no spell arcs, no beams, no collision effect, no emblems crossing in the center',
+        'the setting should read as a quiet threshold before the adventure: include a broad dark cave or dungeon entrance shape in the lower midground, like a soft rounded stone mouth leading inward, visible but not scary',
+        'place a distant castle silhouette higher in the composition, slightly above the horizon and farther back than before, small and mist-soft so it feels far away rather than central',
+        'composition should be pure environment: left and right dark tree silhouettes frame the scene, lower-mid cave/dungeon entrance shape, high distant castle silhouette, calm empty center, very low detail and very few objects',
+        'keep the top center and lower center readable for UI overlays; the center should be atmospheric background only without characters, monsters, symbols, or boxes',
+        'reduce quality and polish intentionally: make it look like a simple prototype-ready game background illustration matching the battle scene, not a polished key art illustration',
+        'flat color only, no texture, no rim light, no detailed shadows, no painterly brush detail',
+        'leave generous upper-center negative space for a separate Duskfold logo image overlay, and lower-center negative space for four same-width vertical menu buttons',
         'do not include the word Duskfold anywhere in the image, no title text, no readable typography, no letters',
-        'background hints at a grand atmospheric card-adventure world with soft misty paths, drifting parchment cards, and distant forest, crystal dungeon, and castle silhouettes',
-        'soft blurred environment behind the characters, low clutter, controlled contrast behind UI, readable behind title buttons and logo',
-        'premium calm atmosphere, cozy but slightly mysterious, not horror, not realistic',
-        'dark lavender, gray-purple, muted cream, dusty rose, mint, sky-lavender, and restrained warm gold accents',
+        'background should feel like the same card adventure world as the battle scene, not a world-map collage and not a premium character splash screen',
+        'soft blurred environment, low clutter, controlled contrast behind UI, readable behind title buttons and logo; the cave entrance must remain behind the lower menu area without becoming a black hole',
+        'premium calm atmosphere, cozy but slightly mysterious, not horror, not realistic, not epic poster art',
+        'slightly darker battle-scene palette: smoky lavender gray, warm brown-gray, muted dark forest green, parchment cream haze, dusty rose, muted mint, restrained warm gold and moon-purple accents',
         'professional game UI background',
         '2D clean digital illustration',
         'output resolution 1920x1080 pixels',
@@ -1491,8 +1767,14 @@ anime manga style, pure black, pure white, neon colors, high saturation above 60
 gore, blood, horror, grotesque, scary, pitch-black horror darkness,
 sharp hard edges, harsh lighting, crushed blacks,
 complex cluttered composition, overcrowded battlefield, tiny unreadable characters,
+cinematic poster art, high-detail fantasy splash art, dramatic rim lighting, realistic anatomy,
+detailed character art, detailed monster art, close-up hero, close-up enemy, high polish, premium key art, complex costume detail, complex monster detail,
+realistic lighting, detailed magic beam, particle burst, glow storm, ornate weapons, detailed armor, fabric folds, texture rendering,
+hair strands, belts, buckles, leaves, bark texture, grass detail, painterly brushwork, gradient shading, soft shading, rim light, complex silhouettes,
+characters, people, heroes, warrior, mage, rogue, monsters, creatures, enemies, faces, bodies, sun symbol, moon symbol, magic attack, spell effect,
 text, letters, numbers, watermark,
 logo, title typography, buttons, UI panels,
+rectangular card slots, square placeholders, four boxes, empty framed blocks, lower-center panel, UI card grid, menu boxes,
 blurry low quality`
     },
     {
@@ -1501,13 +1783,16 @@ blurry low quality`
       nameEn: 'Title Logo - Duskfold Wordmark',
       group: '타이틀/캐릭터 선택',
       prompt: joinPrompt(
-        'premium title logo design for a cozy dark fantasy deckbuilder called Duskfold',
-        'main title wordmark area with a simple sun-and-moon emblem above or integrated very subtly',
-        'should match the existing card back identity and brand logo motif',
-        'muted cream lettering feel, dark lavender outline, dusty rose support accent, restrained warm gold highlight',
-        'matte parchment print feeling, no glossy metal, no gemstone, no neon',
+        'premium title logo image for the main menu of a cozy dark fantasy deckbuilder called Duskfold',
+        'designed to replace the card-back mark on the title screen, not a card back and not an app icon',
+        'wide centered wordmark logo that fits above a vertical four-button menu, matching the mood of the gamemain.png reference: calm, mysterious, premium, readable over a dark lavender standoff background',
+        'large DUSKFOLD wordmark with elegant fantasy serif lettering, clear at 1920x1080 title-screen scale, no tiny details',
+        'simple sun-and-moon emblem integrated above or between the letters: warm gold sun disk balanced with muted moon-purple crescent, subtle card-adventure identity',
+        'muted cream lettering, dark lavender outer stroke, dusty rose support accent, restrained warm gold highlight only on the emblem or a few letter cuts',
+        'matte parchment print feeling with soft carved-paper edge, no glossy metal, no gemstone, no neon, no bevel-heavy RPG logo',
+        'keep the silhouette broad and horizontal, with plain white empty space around the logo for clean UI placement',
         'elegant readable fantasy game title logo for title screen overlay',
-        'transparent-background centered composition with no visible plain background',
+        'centered composition on a pure solid white #FFFFFF background',
         'output resolution 1024x512 pixels',
       ),
       negative: BRANDING_NEGATIVE
@@ -1518,17 +1803,18 @@ blurry low quality`
       nameEn: 'Character Select Background - Duskfold',
       group: '타이틀/캐릭터 선택',
       prompt: joinPrompt(
-        'character select screen background for a cozy dark fantasy deckbuilder',
-        '16:9 wide background designed for three large character selection cards in the foreground',
+        'character select screen background for Duskfold, a cozy dark fantasy deckbuilder, naturally bridging the main menu background and the battle scene background',
+        '16:9 wide background, no dedicated empty slots, no vertical spotlight columns, no character-card placeholders, no UI layout drawn into the image',
         'no characters, no creatures, no portraits, no text, no icons, no card UI drawn into the image',
         'do not include the word Duskfold anywhere in the image, no title text, no readable typography, no letters',
-        'Lavender Mist v6.0 style: quiet adventurer staging space before a branching multi-region journey, muted lavender depth, cream parchment warmth, dusty rose haze',
-        'three soft vertical spotlight zones suggested only by gentle background lighting, aligned for warrior, locked mage, and locked rogue cards to be overlaid later',
-        'clear open center and lower area for character cards and start button, with very low detail behind the card positions',
-        'subtle journey preparation mood: a calm warm glow far below center, faint branching map paths into mist, and distant hints of forest, crystal dungeon, and castle regions around the edges',
-        'background should feel like choosing an adventurer before entering a larger card-world, not like a single forest map',
-        'soft blurred environment, low detail, low contrast behind UI, premium calm atmosphere, readable behind parchment character cards',
-        'dark lavender, gray-purple, muted cream, dusty rose, mint, sky-lavender, and restrained warm gold accents',
+        'Lavender Mist v6.0 style: quiet transition space after the title screen and before battle, muted lavender depth, cream parchment warmth, dusty rose haze, simple card-adventure mood',
+        'the scene should feel like the party has just arrived at the entrance of the forest: a soft winding path stops at a welcoming forest gateway or arch of trees, inviting but calm',
+        'include slightly more environmental detail than the title screen while staying simple: two or three broad foreground tree trunks, a rounded path edge, low mossy stones, and a soft mist layer near the ground',
+        'the forest entrance should sit behind the character selection panel as atmospheric scenery, not as a UI frame; no spotlight columns and no empty card slots',
+        'background should feel continuous with the main menu background but closer to the first region, calmer and more preparatory, like standing before the run begins',
+        'soft flat storybook background with 5 to 7 large shape layers, a little more depth than the title background, but still no leaf detail, no bark texture, no grass detail, no small props clutter',
+        'soft blurred environment, medium-low detail, low contrast behind UI, calm arrival atmosphere, readable behind character selection cards',
+        'smoky lavender gray, warm brown-gray, parchment cream haze, dusty rose, muted mint, restrained warm gold and moon-purple accents',
         'professional game UI background',
         '2D clean digital illustration',
         'output resolution 1920x1080 pixels',
@@ -1549,7 +1835,7 @@ blurry low quality`
         'no character illustration, no text, no letters, no numbers',
         'clean readable UI asset for title-to-character-select flow',
         '2D clean digital illustration',
-        'isolated as a transparent-background PNG asset, no background outside the designed subject',
+        'isolated on a pure solid white #FFFFFF background PNG asset',
         'output resolution 768x512 pixels',
       ),
       negative: UI_NEGATIVE
@@ -1610,7 +1896,7 @@ horizontal strip shape,
  sun-gold to moon-purple gradient across translucent surface,
 serrated ridged pattern along the edge,
 warm gold tone on left transitioning to moon-purple on right,
- isolated as a transparent-background PNG asset, no background outside the coin edge,
+ isolated on a pure solid white #FFFFFF background PNG asset,
 output 256x64 pixels`,
       negative: UI_NEGATIVE
     },
@@ -1628,12 +1914,25 @@ pouch shown empty with no visible coins,
 cozy pastel travel gear feeling that matches nearby parchment UI assets,
 muted lavender-cream palette with balanced sun-gold #C9A86C and moon-purple #6A5080 highlights,
 clean readable silhouette with no extra trinkets, straps, or clutter,
-isolated as a transparent-background PNG asset, no background outside the pouch silhouette,
+isolated on a pure solid white #FFFFFF background PNG asset,
 output 256x256 pixels`,
       negative: UI_NEGATIVE
     },
 
-    // ---- 버튼 (5종) ----
+    // ---- 버튼 (6종) ----
+    {
+      id: 'btn-title-menu',
+      name: '메인화면 메뉴 버튼',
+      nameEn: 'Title Menu Button',
+      group: '버튼',
+      prompt: UI_TITLE_BUTTON_STYLE,
+      negative: `${UI_NEGATIVE},
+logo, title wordmark, readable text, letters, numbers,
+icon, emblem, symbol, character, monster,
+bright neon glow, glossy plastic, metallic chrome,
+heavy ornate filigree, royal ornament overload,
+separate background panel, full menu screen, multiple buttons`
+    },
     {
       id: 'btn-end-turn',
       name: '턴 종료',
@@ -1641,17 +1940,15 @@ output 256x256 pixels`,
       group: '버튼',
       prompt: `${UI_BUTTON_STYLE},
 
- ultra-minimal end-turn action button with immediate readability,
- shape-first design that communicates decisive forward completion even with no text,
- compact horizontal capsule merged with a clear right-pointing wedge silhouette,
- muted crimson parchment base around #A56A72 with dusty rose highlight and restrained wine-red edge,
- one small centered chevron cut or embossed forward mark only,
- large clean negative space and almost no interior detail,
- no decorative inset frame and no ornamental texture emphasis,
- restrained soft lower shadow only for separation,
- subtle inner glow or focus emphasis around the forward mark so the button soul reads clearly on screen,
- the core action identity should feel unmistakable, centered, and emotionally present even at a glance,
- designed to feel urgent but controlled, somber, tactical, and naturally blended into the dark fantasy battle scene,
+ end turn button for the current battle scene UI, matching the soft parchment-card and muted lavender forest battle mood,
+ compact horizontal rounded capsule with a subtle right-pointing end-cap silhouette, no text, no letters,
+ cream parchment base #F0E8D8 with muted dusty-rose rim #C89098 and a restrained dark-lavender underside #6A6070,
+ centered icon should be a very simple moon-to-sun handoff mark: tiny crescent and tiny sun dot with one short right arrow or chevron, communicating pass turn without words,
+ icon uses muted moon-purple #6A5080 and restrained warm gold #C9A86C only, very small and clean,
+ matte flat UI style, soft rounded silhouette, same low-detail softness as HP bar, coin panel, and progress HUD,
+ readable at small size but not flashy, not dangerous, not crimson alarm, not glossy,
+ no decorative inset frame, no heavy ornament, no gemstone shine, no neon glow,
+ restrained soft lower shadow only for separation on the dark battle background,
  small-size readable tactical UI asset for card battle screen`,
       negative: UI_NEGATIVE
     },
@@ -1662,7 +1959,7 @@ output 256x256 pixels`,
       group: '버튼',
       prompt: `${UI_BUTTON_STYLE},
 
-transparent background outside the button silhouette, cream parchment fill #F0E8D8 with gold accent #C9A86C only inside the button shape,
+pure solid white #FFFFFF background outside the button silhouette, cream parchment fill #F0E8D8 with gold accent #C9A86C only inside the button shape,
 small sun-and-moon coin symbol centered,
 subtle gold glow effect around edges,
 bright warm inviting feeling,
@@ -1676,7 +1973,7 @@ gemlike sheen highlight on top edge`,
       group: '버튼',
       prompt: `${UI_BUTTON_STYLE},
 
-transparent background outside the button silhouette, cream parchment fill #F0E8D8 with gold accent gradient #C9A86C to #D8C090 only inside the button shape,
+pure solid white #FFFFFF background outside the button silhouette, cream parchment fill #F0E8D8 with gold accent gradient #C9A86C to #D8C090 only inside the button shape,
 subtle smooth gradient transition,
 versatile general purpose action button,
 soft warm highlight on top edge,
@@ -1690,7 +1987,7 @@ professional understated elegance`,
       group: '버튼',
       prompt: `${UI_BUTTON_STYLE},
 
-transparent background outside the button silhouette, cream parchment fill #F0E8D8 with light lavender accent #D8C8E8 only inside the button shape,
+pure solid white #FFFFFF background outside the button silhouette, cream parchment fill #F0E8D8 with light lavender accent #D8C8E8 only inside the button shape,
 thin muted-lavender border outline #B8A0D4,
 subdued secondary action appearance,
 subtle inner bevel for minimal depth,
@@ -1704,7 +2001,7 @@ neutral understated design`,
       group: '버튼',
       prompt: `${UI_BUTTON_STYLE},
 
-transparent background outside the button shape, cream parchment fill #F0E8D8 with muted rose accent #C07878 only inside the button silhouette,
+pure solid white #FFFFFF background outside the button shape, cream parchment fill #F0E8D8 with muted rose accent #C07878 only inside the button silhouette,
 warning destructive action appearance,
 subtle warm vignette at edges,
 muted rose tone evoking caution,
@@ -1716,22 +2013,23 @@ slightly desaturated red for pastel fantasy feel`,
       name: '배틀 진행 트랙 통합 시트',
       nameEn: 'Battle Progress Track Combined Sheet',
       group: '배틀 HUD',
-      prompt: joinPrompt(
-        'single combined image asset sheet for a cozy dark fantasy battle progress HUD',
-        'all progress bar components must appear together in one image, arranged cleanly in one horizontal layout, not separate files',
-        'include one complete long progress bar example plus reusable component variants: normal round node, cleared node, current position node, village house node, boss node, long thin connector line, current highlight ring, village highlight aura, boss warning aura',
-        'progress bar circles must be noticeably smaller than before, compact small round nodes with strong tiny-size readability',
-        'connector line must be much thinner and longer than before, elegant 2 to 4 pixel visual weight, long horizontal rail spanning most of the canvas',
-        'current position node must stand out the most among normal nodes, use muted gold center, bright cream rim, thicker outer ring, and soft readable halo',
-        'village node must stand out more than normal nodes, replace generic village symbol with a clear cozy small house icon, warm amber roof, cream body, tiny chimney silhouette, safe resting-point feeling',
-        'boss node must stand out more than normal nodes, replace generic boss symbol with a clear ancient crown-and-horn crest icon, muted crimson and dusty rose, ominous but elegant, no skull gore',
-        'boss and village nodes should be larger or brighter than normal round nodes but still smaller than the current position emphasis',
-        'Lavender Mist style with muted cream parchment, dark lavender support tones, dusty gold accents, muted amber village accent, muted crimson boss accent',
-        'minimal flat 2D game UI, clean silhouettes, no gradients, no heavy texture, no detailed illustration, no text labels',
-        'professional game UI asset sheet, easy to crop into individual components after generation',
+      prompt: createProgressHudPrompt(
+        'single combined image asset sheet for the in-game round progress bar, arranged cleanly in one horizontal layout with one complete example plus reusable pieces',
+        'complete example: a thin continuous parchment-lavender rail gently running through evenly spaced markers, with nodes visually embedded into the rail instead of sitting on top as separate icons',
+        'include reusable component variants: normal round marker, cleared marker, current round marker, village marker, boss marker, connector rail segment, current marker outer ring, village accent, boss accent',
+        'strict scale consistency: normal marker diameter = 28px visual size, cleared marker = 28px, current inner marker = 28px, current outer ring = 40px to 42px, village and boss special markers = 34px maximum visual size',
+        'all markers and special icons must share one horizontal center baseline; village and boss nodes must not float above or sink below the connector rail',
+        'connector rail: about 5px visual thickness, rounded caps, muted lavender-gray core #6A6070 with a thin cream parchment edge #F0E8D8, tucked slightly under each circular marker so there are no awkward gaps',
+        'normal marker: tiny cream parchment bead with subtle warm-gray rim, quiet and low contrast, same diameter across every standard round',
+        'cleared marker: same exact diameter as normal marker, dimmer cream-gray fill, reads as completed through softness rather than extra size or decoration',
+        'current marker: same-size inner cream bead plus a fitted thin outer ring, elegant focused emphasis, no huge halo, no oversized badge',
+        'village marker: tiny cozy house silhouette inside the 34px marker area, cream body and restrained warm gold roof, simplified enough to read at HUD size',
+        'boss marker: tiny crown or horned crest inside the 34px marker area, muted dusty-rose red accent, elegant tension without alarm styling',
+        'natural flow requirement: spacing should feel like a calm route ribbon, with every node connected by the same rail rhythm and no isolated floating parts',
+        'professional game UI asset sheet, easy to crop into individual components while preserving identical scale relationships',
         'no text no letters no numbers',
         '2D clean digital illustration',
-        'isolated as a transparent-background PNG asset, no background outside the designed subject',
+        'isolated on a pure solid white #FFFFFF background PNG asset',
         'output resolution 2048x512 pixels',
       ),
       negative: UI_NEGATIVE
@@ -1741,13 +2039,12 @@ slightly desaturated red for pastel fantasy feel`,
       name: '진행바 일반 라운드 마커',
       nameEn: 'Progress Round Marker',
       group: '배틀 HUD',
-      prompt: joinPrompt(
-        'simple round marker icon for fantasy battle progress bar',
-        'small circular node for a standard combat round',
-        'Lavender Mist style with muted cream center and soft dusty-gold ring',
-        'very simple flat shape, tiny-size readability first, no ornament',
-        'calm matte game HUD icon',
-        'isolated as a transparent-background PNG asset, no background outside the designed subject',
+      prompt: createProgressHudPrompt(
+        'standard round marker component, exactly 28px visual diameter within a 128x128 pure solid white #FFFFFF canvas',
+        'small cream parchment bead #F0E8D8 with subtle warm-gray rim and a tiny dark-lavender lower shadow',
+        'connector rail should tuck naturally under the left and right edges, so the bead must stay perfectly centered and clean',
+        'quiet low-profile marker, tiny-size readability first, no ornament, no extra halo, no icon inside',
+        'isolated on a pure solid white #FFFFFF background PNG asset',
         'output 128x128 pixels',
       ),
       negative: UI_NEGATIVE
@@ -1757,13 +2054,13 @@ slightly desaturated red for pastel fantasy feel`,
       name: '진행바 현재 위치 마커',
       nameEn: 'Progress Current Marker',
       group: '배틀 HUD',
-      prompt: joinPrompt(
-        'simple current position marker for fantasy battle progress bar',
-        'small round marker with slightly stronger emphasis than a normal round node',
-        'muted gold center, soft cream ring, and a very subtle highlight aura',
-        'minimal flat shape with excellent tiny-size readability',
-        'calm premium Lavender Mist HUD icon',
-        'isolated as a transparent-background PNG asset, no background outside the designed subject',
+      prompt: createProgressHudPrompt(
+        'current round marker component, built to fit the exact same rail rhythm as the standard marker',
+        'inner bead remains exactly 28px visual diameter, same center and baseline as normal markers',
+        'outer emphasis ring is thin and fitted at 40px to 42px visual diameter, evenly wrapped around the inner bead with calm breathing room',
+        'cream parchment inner bead, muted warm-gray rim, soft cream outer ring with very restrained gold tint #C9A86C',
+        'elegant active-state focus, no giant halo, no large badge, no detached glow',
+        'isolated on a pure solid white #FFFFFF background PNG asset',
         'output 128x128 pixels',
       ),
       negative: UI_NEGATIVE
@@ -1773,13 +2070,12 @@ slightly desaturated red for pastel fantasy feel`,
       name: '진행바 완료 라운드 마커',
       nameEn: 'Progress Cleared Marker',
       group: '배틀 HUD',
-      prompt: joinPrompt(
-        'simple cleared round marker for fantasy battle progress bar',
-        'small subdued circular node for completed progress',
-        'soft cream-gray fill and quiet dusty border',
-        'visually lighter and quieter than the current position marker',
-        'minimal flat game HUD icon',
-        'isolated as a transparent-background PNG asset, no background outside the designed subject',
+      prompt: createProgressHudPrompt(
+        'cleared round marker component, exactly the same 28px visual diameter as the normal marker',
+        'soft dimmed cream-gray fill with quiet dusty-lavender rim, completed state shown by lower contrast rather than added symbols',
+        'must align perfectly with the connector rail and other markers, no size change from normal marker',
+        'visually quieter than the current position marker, but still readable on dark battle background',
+        'isolated on a pure solid white #FFFFFF background PNG asset',
         'output 128x128 pixels',
       ),
       negative: UI_NEGATIVE
@@ -1789,13 +2085,13 @@ slightly desaturated red for pastel fantasy feel`,
       name: '진행바 마을 마커',
       nameEn: 'Progress Village Marker',
       group: '배틀 HUD',
-      prompt: joinPrompt(
-        'simple village marker icon for fantasy battle progress bar',
-        'tiny symbolic village emblem for route progression HUD',
-        'small house cluster silhouette in muted amber and cream',
-        'cozy, safe, and very simple, readable at tiny size',
-        'flat Lavender Mist game HUD icon',
-        'isolated as a transparent-background PNG asset, no background outside the designed subject',
+      prompt: createProgressHudPrompt(
+        'village marker component, maximum 34px visual size within a 128x128 pure solid white #FFFFFF canvas',
+        'tiny symbolic cozy house emblem, centered on the same baseline as normal round markers and visually embedded into the rail',
+        'simple house silhouette with cream body #F0E8D8 and restrained warm-gold roof #C9A86C, no windows unless one tiny dark-lavender dot is needed for readability',
+        'connector rail should visually meet the horizontal center of the marker without gaps, floating, or vertical offset',
+        'special marker should feel slightly distinct but not louder than the current marker ring',
+        'isolated on a pure solid white #FFFFFF background PNG asset',
         'output 128x128 pixels',
       ),
       negative: UI_NEGATIVE
@@ -1805,13 +2101,13 @@ slightly desaturated red for pastel fantasy feel`,
       name: '진행바 보스 마커',
       nameEn: 'Progress Boss Marker',
       group: '배틀 HUD',
-      prompt: joinPrompt(
-        'simple boss marker icon for fantasy battle progress bar',
-        'tiny ominous but elegant boss emblem for route HUD',
-        'simplified crown-skull or ancient crest silhouette in muted crimson and dusty rose',
-        'strong tiny-size readability with very restrained detail',
-        'flat Lavender Mist game HUD icon',
-        'isolated as a transparent-background PNG asset, no background outside the designed subject',
+      prompt: createProgressHudPrompt(
+        'boss marker component, maximum 34px visual size within a 128x128 pure solid white #FFFFFF canvas',
+        'tiny ominous but elegant crown or horned crest emblem, centered on the same baseline as normal round markers and visually embedded into the rail',
+        'simplified crest silhouette in muted dusty-rose red #C87878 with cream parchment highlight #F0E8D8, no skull gore and no sharp spikes',
+        'strong tiny-size readability with restrained detail, not larger than the current marker outer ring',
+        'connector rail should visually meet the horizontal center of the marker without gaps, floating, or vertical offset',
+        'isolated on a pure solid white #FFFFFF background PNG asset',
         'output 128x128 pixels',
       ),
       negative: UI_NEGATIVE
@@ -1821,12 +2117,12 @@ slightly desaturated red for pastel fantasy feel`,
       name: '진행바 연결선',
       nameEn: 'Progress Connector',
       group: '배틀 HUD',
-      prompt: joinPrompt(
-        'simple connector segment for fantasy battle progress HUD',
-        'short horizontal connector bar between progress markers',
-        'muted cream to lavender-gray tone with clean flat silhouette',
-        'minimal and elegant with tiny-size readability',
-        'isolated as a transparent-background PNG asset, no background outside the designed subject',
+      prompt: createProgressHudPrompt(
+        'connector rail segment component, designed to attach naturally between 28px round markers',
+        'long thin horizontal rail with about 5px visual thickness, rounded caps, muted lavender-gray core #6A6070 and thin cream parchment edge #F0E8D8',
+        'line ends should tuck slightly under circular markers so the route appears continuous with no visible gaps',
+        'subtle hand-crafted softness, not a thick bulky bar, not a perfectly mechanical pipe',
+        'isolated on a pure solid white #FFFFFF background PNG asset',
         'output 256x64 pixels',
       ),
       negative: UI_NEGATIVE
@@ -1836,12 +2132,13 @@ slightly desaturated red for pastel fantasy feel`,
       name: '진행바 현재 위치 강조 링',
       nameEn: 'Progress Current Ring',
       group: '배틀 HUD',
-      prompt: joinPrompt(
-        'simple emphasis ring overlay for the active progress marker',
-        'tiny circular ring designed to sit behind or around the current round marker',
-        'muted gold edge with a very soft calm halo',
-        'minimal, elegant, and not flashy',
-        'isolated as a transparent-background PNG asset, no background outside the designed subject',
+      prompt: createProgressHudPrompt(
+        'current round emphasis ring overlay component for the active progress marker',
+        'outer ring must be 40px to 42px visual diameter, designed to wrap evenly around a 28px round marker',
+        'thin cream parchment ring with muted warm-gray lower shadow and tiny restrained gold tint #C9A86C',
+        'the ring must fit the marker naturally, centered on the same baseline, not too large, not floating, not glowing outward',
+        'minimal and elegant active focus for a premium but restrained battle HUD',
+        'isolated on a pure solid white #FFFFFF background PNG asset',
         'output 128x128 pixels',
       ),
       negative: UI_NEGATIVE
@@ -1851,12 +2148,12 @@ slightly desaturated red for pastel fantasy feel`,
       name: '진행바 보스 경고 오라',
       nameEn: 'Progress Boss Aura',
       group: '배틀 HUD',
-      prompt: joinPrompt(
-        'simple boss arrival aura for fantasy battle progress HUD',
-        'tiny ambient warning halo designed for a boss marker',
-        'muted crimson rose aura with soft dark edge',
-        'elegant tension rather than danger alarm, very minimal and flat',
-        'isolated as a transparent-background PNG asset, no background outside the designed subject',
+      prompt: createProgressHudPrompt(
+        'boss arrival aura overlay component for the final progress marker',
+        'tiny ambient dusty-rose tension ring designed to sit behind the boss marker without changing its baseline or size',
+        'muted dusty-rose red #C87878 with soft dark-lavender edge #3A3040, very low opacity feeling',
+        'elegant destination emphasis rather than danger alarm, no flame burst, no neon glow',
+        'isolated on a pure solid white #FFFFFF background PNG asset',
         'output 128x128 pixels',
       ),
       negative: UI_NEGATIVE
@@ -1876,7 +2173,7 @@ slightly desaturated red for pastel fantasy feel`,
         'no text no letters no numbers',
         'professional game UI asset',
         '2D clean digital illustration',
-        'isolated as a transparent-background PNG asset, no background outside the designed subject',
+        'isolated on a pure solid white #FFFFFF background PNG asset',
         'output resolution 1280x320 pixels',
       ),
       negative: UI_NEGATIVE
@@ -1894,7 +2191,7 @@ slightly desaturated red for pastel fantasy feel`,
         'cozy Lavender Mist world tone with matte parchment material and subtle premium weight',
         'professional game UI asset set',
         '2D clean digital illustration',
-        'isolated as a transparent-background PNG asset, no background outside the designed subject',
+        'isolated on a pure solid white #FFFFFF background PNG asset',
         'output resolution 768x256 pixels',
       ),
       negative: UI_NEGATIVE
@@ -1914,7 +2211,7 @@ slightly desaturated red for pastel fantasy feel`,
         'left edge may be slightly reinforced for anchoring but must not contain a separate icon medallion',
         'right edge softly tapered or rounded, premium but restrained, matching Lavender Mist battle HUD style',
         'flat 2D clean digital UI illustration, matte material, no gradients, no heavy texture, no glossy glass effect',
-        'professional game UI asset, isolated as a transparent-background PNG asset with no background outside the designed subject',
+        'professional game UI asset, isolated on a pure solid white #FFFFFF background PNG asset',
         'output resolution 1024x192 pixels',
       ),
       negative: UI_NEGATIVE
@@ -1933,7 +2230,7 @@ slightly desaturated red for pastel fantasy feel`,
         'quiet premium mood that blends into the current battle scene and feels more branded than generic labels',
         'professional game UI asset set',
         '2D clean digital illustration',
-        'isolated as a transparent-background PNG asset, no background outside the designed subject',
+        'isolated on a pure solid white #FFFFFF background PNG asset',
         'output resolution 960x224 pixels',
       ),
       negative: UI_NEGATIVE
@@ -1951,7 +2248,7 @@ slightly desaturated red for pastel fantasy feel`,
         'must feel elegant, readable, and premium rather than flashy or sci-fi',
         'professional game UI overlay asset',
         '2D clean digital illustration',
-        'isolated as a transparent-background PNG asset, no background outside the designed subject',
+        'isolated on a pure solid white #FFFFFF background PNG asset',
         'output resolution 512x512 pixels',
       ),
       negative: UI_NEGATIVE
@@ -1970,7 +2267,7 @@ slightly desaturated red for pastel fantasy feel`,
         'no text no letters no numbers',
         'professional game UI asset',
         '2D clean digital illustration',
-        'isolated as a transparent-background PNG asset, no background outside the designed subject',
+        'isolated on a pure solid white #FFFFFF background PNG asset',
         'output resolution 1536x160 pixels',
       ),
       negative: UI_NEGATIVE
@@ -1988,7 +2285,7 @@ slightly desaturated red for pastel fantasy feel`,
         'should feel like a short-lived premium HUD feedback element rather than a generic popup',
         'professional game UI asset',
         '2D clean digital illustration',
-        'isolated as a transparent-background PNG asset, no background outside the designed subject',
+        'isolated on a pure solid white #FFFFFF background PNG asset',
         'output resolution 960x320 pixels',
       ),
       negative: UI_NEGATIVE
@@ -2116,10 +2413,11 @@ pastel fantasy status effect icon`,
       group: '리소스 아이콘',
       prompt: `${UI_ICON_STYLE},
 
-heart symbol with warm inner glow,
-warm rose color #E8B4B8,
-smooth rounded heart shape,
-subtle highlight on upper left,
+heart symbol for HP resource,
+muted red rose color #C87878 as the main fill, clearly more red than pink,
+small warm cream cut or highlight #F0E8D8 only if needed for readability,
+smooth rounded heart shape with strong silhouette,
+flat matte red-toned HP icon that reads instantly as health,
 pastel fantasy resource icon`,
       negative: UI_NEGATIVE
     },
@@ -2303,13 +2601,11 @@ pastel fantasy turn phase icon`,
       name: '몬스터 노드',
       nameEn: 'Monster Node',
       group: '라운드 노드',
-      prompt: `${UI_NODE_STYLE},
-
-sword icon on red circular badge background #D4A0A0,
-simple crossed sword silhouette,
-white or cream icon on colored circle,
-combat encounter node,
-pastel fantasy map node icon`,
+      prompt: createRoundNodePrompt(
+        'center symbol: simple crossed sword icon, two short rounded blades crossing at 45 degrees, no blood, no sharp realism',
+        'color rule: ordinary monster node uses white circular badge face #F8F6F0, thin cream parchment rim #F0E8D8, dark-lavender sword silhouette #3A3040, tiny muted gold hilt accent #C9A86C',
+        'meaning: normal combat encounter node, neutral and readable rather than dangerous',
+      ),
       negative: UI_NEGATIVE
     },
     {
@@ -2317,13 +2613,11 @@ pastel fantasy map node icon`,
       name: '엘리트 노드',
       nameEn: 'Elite Node',
       group: '라운드 노드',
-      prompt: `${UI_NODE_STYLE},
-
-skull icon on purple circular badge background #9A80B8,
-simple skull silhouette front view,
-white or cream icon on colored circle,
-elite dangerous encounter node,
-pastel fantasy map node icon`,
+      prompt: createRoundNodePrompt(
+        'center symbol: simple skull icon front view, rounded head and tiny cheek shape, very simplified and cute-scary, no teeth detail',
+        'color rule: elite monster node uses yellow circular badge face #D8C070, thin cream parchment rim #F0E8D8, dark-lavender skull silhouette #3A3040, tiny cream eye holes #F0E8D8',
+        'meaning: elite combat encounter node, stronger than ordinary monster but still soft pastel, not orange, not red',
+      ),
       negative: UI_NEGATIVE
     },
     {
@@ -2331,13 +2625,11 @@ pastel fantasy map node icon`,
       name: '상점 노드',
       nameEn: 'Shop Node',
       group: '라운드 노드',
-      prompt: `${UI_NODE_STYLE},
-
-gem or bag icon on gold circular badge background #C9A86C,
-simple treasure silhouette,
-white or cream icon on colored circle,
-merchant shop node,
-pastel fantasy map node icon`,
+      prompt: createRoundNodePrompt(
+        'center symbol: simple merchant bag icon with one small coin dot, rounded silhouette, no detailed stitching or text',
+        'color rule: shop node uses blue circular badge face #88A8D8, thin cream parchment rim #F0E8D8, cream bag silhouette #F0E8D8, tiny muted gold coin accent #C9A86C',
+        'meaning: merchant shop node, calm and trustworthy, clearly distinct from combat and rest nodes',
+      ),
       negative: UI_NEGATIVE
     },
     {
@@ -2345,13 +2637,11 @@ pastel fantasy map node icon`,
       name: '이벤트 노드',
       nameEn: 'Event Node',
       group: '라운드 노드',
-      prompt: `${UI_NODE_STYLE},
-
-exclamation mark on cream circular badge background #F0E8D8,
-bold dark-lavender exclamation symbol #6A6070,
-dark icon on light cream circle,
-random event encounter node,
-pastel fantasy map node icon`,
+      prompt: createRoundNodePrompt(
+        'center symbol: simple question mark icon with rounded stroke and one dot, no letters, no speech bubble, no warning triangle',
+        'color rule: event node uses purple circular badge face #9A80B8, thin cream parchment rim #F0E8D8, cream question mark #F0E8D8, tiny dusty-rose dot accent #C89098',
+        'meaning: random event encounter node, mysterious but not dangerous, no red warning feeling',
+      ),
       negative: UI_NEGATIVE
     },
     {
@@ -2359,13 +2649,11 @@ pastel fantasy map node icon`,
       name: '보스 노드',
       nameEn: 'Boss Node',
       group: '라운드 노드',
-      prompt: `${UI_NODE_STYLE},
-
-crown icon on muted rose circular badge background #C89098,
-regal crown silhouette with pointed peaks,
-white or cream icon on rose circle,
-final boss encounter node,
-pastel fantasy map node icon`,
+      prompt: createRoundNodePrompt(
+        'center symbol: simple crown icon with three rounded peaks, thick filled silhouette, no jewel details, no sharp spikes',
+        'color rule: boss monster node uses red circular badge face #C87878, thin cream parchment rim #F0E8D8, cream crown silhouette #F0E8D8, tiny dark-lavender inner cut lines #3A3040',
+        'meaning: final boss encounter node, highest threat but still muted pastel, not neon, not crimson alarm',
+      ),
       negative: UI_NEGATIVE
     },
     {
@@ -2373,13 +2661,11 @@ pastel fantasy map node icon`,
       name: '휴식 노드',
       nameEn: 'Rest Node',
       group: '라운드 노드',
-      prompt: `${UI_NODE_STYLE},
-
-campfire flame icon on warm pastel brown circular badge background #C8B888,
-simple flame silhouette with small sparks,
-white or cream icon on colored circle,
-rest recovery healing node,
-pastel fantasy map node icon`,
+      prompt: createRoundNodePrompt(
+        'center symbol: simple campfire flame icon over two tiny rounded logs, cozy silhouette, no smoke and no detailed sparks',
+        'color rule: rest node uses green circular badge face #A8C8A0, thin cream parchment rim #F0E8D8, cream flame silhouette #F0E8D8, tiny muted gold warmth accent #C9A86C',
+        'meaning: rest recovery healing node, cozy and safe, calm recovery mood',
+      ),
       negative: UI_NEGATIVE
     },
 
@@ -2444,7 +2730,7 @@ pastel fantasy defense badge icon`,
         'soft hooded cloak in warm greige and muted taupe tones, cream inner scarf, no dark horror styling',
         'large rounded backpack visible behind the shoulders with simple pouch silhouette and one tiny tied bundle, kept as the main readable merchant cue',
         'small coin pouch in muted antique gold #C9A86C as the only accent prop, no pile of coins and no cluttered goods display',
-        'Lavender Mist v6.0 visual language: flat pastel fantasy, cozy dark fantasy mood, pure solid white background outside the character for easy background removal, soft muted colors, clean chibi bust portrait',
+        'Lavender Mist v6.0 visual language: flat pastel fantasy, cozy dark fantasy mood, pure solid white #FFFFFF background outside the character, soft muted colors, clean chibi bust portrait',
         'designed to read clearly as a shop merchant when displayed small at about 112x144 pixels in the game UI',
       ),
       negative: NPC_NEGATIVE
@@ -2452,4 +2738,4 @@ pastel fantasy defense badge icon`,
   ]
 }
 
-export const PROMPT_EXAMPLES: Record<ExampleCategory, PromptExample[]> = mapPromptExamplesWithChatGptTransparentRules(BASE_PROMPT_EXAMPLES)
+export const PROMPT_EXAMPLES: Record<ExampleCategory, PromptExample[]> = mapPromptExamplesWithChatGptWhiteBackgroundRules(BASE_PROMPT_EXAMPLES)

@@ -14,7 +14,7 @@ export interface PromptExample {
 const joinPrompt = (...lines: Array<string | false | null | undefined>) =>
   lines.filter(Boolean).join(',\n')
 
-const PROMPT_CUTOUT_READY_BACKGROUND = 'cutout-ready asset background: keep the designed subject isolated with a crisp silhouette, no environment, no scene, no texture, no drop shadow, no contact shadow; for Gemini Imagen output use a single flat pure white #FFFFFF matte background so automatic background removal can produce a real alpha cutout; do not draw a checkerboard transparency pattern; for OpenAI GPT image models use API background="transparent" with PNG/WebP output instead of asking the model to paint transparency'
+const PROMPT_CUTOUT_READY_BACKGROUND = 'cutout-ready asset background: keep the designed subject isolated with a crisp silhouette, no environment, no scene, no texture, no drop shadow, no contact shadow; use a single flat pure white #FFFFFF matte background as the final output; do not draw a checkerboard transparency pattern; for OpenAI GPT image models use API background="opaque" with PNG output'
 
 const PROMPT_WATERMARK_SAFE_MARGIN = 'leave generous outer canvas padding, especially toward the lower-right edge, so the Gemini watermark area can sit on clean empty removable background outside the main designed image area, and keep the lower-right area around 10 percent of the canvas naturally simple, open, flat, and low-detail within the same background so any Gemini watermark area does not overlap important subject matter, but do not create any separate empty square, blank box, pale panel, placeholder rectangle, framed patch, isolated background block, pale circle, round seal, orb, dot, or watermark-like corner shape there'
 
@@ -30,7 +30,7 @@ const applyPromptWatermarkSafeMargin = (prompt: string) => joinPrompt(
 const applyNegativeNoBoxArtifacts = (negative: string) => `${negative},
 empty square, blank box, placeholder panel, inset rectangle, isolated lower-right block, framed patch, UI box artifact,
 lower-right circle, pale circle, round seal, orb, dot, stamp mark, watermark-like corner shape,
-checkerboard transparency pattern, fake transparent background, painted transparency grid, gray checker pattern,
+checkerboard transparency pattern, fake transparency grid, painted checker grid, gray checker pattern,
 scene background, environmental backdrop, floor shadow, contact shadow, drop shadow in empty outer canvas areas`
 
 const mapPromptExamplesWithSafeMargin = (source: Record<ExampleCategory, PromptExample[]>): Record<ExampleCategory, PromptExample[]> => {
@@ -456,7 +456,7 @@ const UI_ICON_STYLE = joinPrompt(
   'ultra-simple skill icon symbol design with one centered motif only, similar in simplicity to the Fighting Spirit clenched fist icon',
   'icon must be readable from silhouette alone, the player should understand the feeling immediately at a glance',
   'all skill icons must use the exact same single neutral pastel color: warm greige gray #B8B2A8',
-  'one solid color only, no secondary accent color, no per-skill color variation, no palette variation unless absolutely necessary for one tiny transparent cutout',
+  'one solid color only, no secondary accent color, no per-skill color variation unless absolutely necessary for one tiny cutout asset',
   'flat matte vector-like filled silhouette, not an illustration, not a rendered object',
   'use bold primitive shapes with very few parts, preferably one single connected shape',
   'maximum one essential internal cut or notch, otherwise keep it as a plain filled shape',
@@ -1503,7 +1503,7 @@ blurry low quality`
         'muted cream lettering feel, dark lavender outline, dusty rose support accent, restrained warm gold highlight',
         'matte parchment print feeling, no glossy metal, no gemstone, no neon',
         'elegant readable fantasy game title logo for title screen overlay',
-        'transparent-safe centered composition on plain background',
+        'centered composition on pure solid white #FFFFFF background',
         'output resolution 1024x512 pixels',
       ),
       negative: BRANDING_NEGATIVE
