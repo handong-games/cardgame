@@ -67,6 +67,8 @@ const createInitialRun = (): RunState => ({
   round: 1,
   totalRounds: 8,  // 지역당 8라운드
   isComplete: false,
+  selectedDestinationType: 'normal',
+  visitedDestinationTypesByRound: { 1: 'normal' },
   // 마을 시스템
   accessories: [],
   companions: [],
@@ -162,7 +164,7 @@ interface GameActions {
   resetGame: () => void;
   // 보상 시스템
   showReward: () => void;
-  selectRewardSkill: (skillId: string) => void;
+  selectRewardSkill: (skillId: string, replaceSkillId?: string) => void;
   skipReward: () => void;
   // 전직 시스템
   checkAdvancement: () => void;
@@ -453,11 +455,6 @@ export const useGameStore = create<GameState & GameActions>((set, get) => ({
     newPlayer.hp = Math.max(0, newPlayer.hp - effects.selfDamage);
     newPlayer.skillStates = updateSkillStateAfterUse(player.skillStates, skill);
 
-    // 버프 적용
-    if (effects.buffsApplied.length > 0) {
-      newPlayer = applyBuffsToPlayer(newPlayer, effects.buffsApplied);
-    }
-
     // lastTossResults 업데이트 (코인 소모 반영)
     let newLastTossResults = spendResult.remainingResults;
 
@@ -546,6 +543,12 @@ export const useGameStore = create<GameState & GameActions>((set, get) => ({
           }
           return true;  // 유지
         });
+      }
+
+      // 이번 스킬로 새로 얻은 버프는 공격 후 적용한다.
+      // 그래야 '차지'처럼 공격 스킬이 부여하는 다음 공격 버프가 즉시 소모되지 않는다.
+      if (effects.buffsApplied.length > 0) {
+        newPlayer = applyBuffsToPlayer(newPlayer, effects.buffsApplied);
       }
     }
 
@@ -859,7 +862,10 @@ export const useGameStore = create<GameState & GameActions>((set, get) => ({
   showReward: () => {
     const { player } = get();
     // 클래스에 맞는 보상 스킬 3개 생성
-    const rewardSkills = generateRewardSkills(player.characterClass, 3);
+    const ownedSkillKeys = new Set(player.skills.map(skill => skill.skillKey));
+    const rewardSkills = generateRewardSkills(player.characterClass, 8)
+      .filter(skill => !ownedSkillKeys.has(skill.skillKey))
+      .slice(0, 3);
 
     set({
       battle: { ...get().battle, phase: 'reward' },
@@ -868,14 +874,31 @@ export const useGameStore = create<GameState & GameActions>((set, get) => ({
   },
 
   // 보상 스킬 선택
-  selectRewardSkill: (skillId: string) => {
-    const { reward } = get();
+  selectRewardSkill: (skillId: string, replaceSkillId?: string) => {
+    const { reward, player } = get();
     if (!reward) return;
 
     // 선택한 스킬 찾기
     const selectedSkill = reward.skills.find(s => s.id === skillId);
     if (selectedSkill) {
-      get().addSkill(selectedSkill);
+      if (replaceSkillId) {
+        const newSkills = player.skills
+          .filter(skill => skill.id !== replaceSkillId)
+          .concat(selectedSkill);
+        const newSkillStates = player.skillStates
+          .filter(skillState => skillState.skillId !== replaceSkillId)
+          .concat({ skillId: selectedSkill.id, usedThisTurn: 0, cooldownRemaining: 0 });
+
+        set({
+          player: {
+            ...player,
+            skills: newSkills,
+            skillStates: newSkillStates,
+          },
+        });
+      } else {
+        get().addSkill(selectedSkill);
+      }
     }
 
     set({ reward: null });
@@ -961,6 +984,10 @@ export const useGameStore = create<GameState & GameActions>((set, get) => ({
     if (!selectedDestination) return;
 
     const nextRound = run.round + 1;
+    const visitedDestinationTypesByRound = {
+      ...run.visitedDestinationTypesByRound,
+      [nextRound]: selectedDestination.type,
+    };
 
     // 휴식 행선지 선택 시
     if (selectedDestination.type === 'rest') {
@@ -969,7 +996,12 @@ export const useGameStore = create<GameState & GameActions>((set, get) => ({
 
       set({
         player: { ...player, hp: newHp },
-        run: { ...run, round: nextRound },
+        run: {
+          ...run,
+          round: nextRound,
+          selectedDestinationType: selectedDestination.type,
+          visitedDestinationTypesByRound,
+        },
         destinationOptions: [],
       });
 
@@ -981,7 +1013,12 @@ export const useGameStore = create<GameState & GameActions>((set, get) => ({
     // 상점 행선지 선택 시
     if (selectedDestination.type === 'shop') {
       set({
-        run: { ...run, round: nextRound },
+        run: {
+          ...run,
+          round: nextRound,
+          selectedDestinationType: selectedDestination.type,
+          visitedDestinationTypesByRound,
+        },
         destinationOptions: [],
       });
       get().openShop();
@@ -990,7 +1027,12 @@ export const useGameStore = create<GameState & GameActions>((set, get) => ({
 
     if (selectedDestination.type === 'event') {
       set({
-        run: { ...run, round: nextRound },
+        run: {
+          ...run,
+          round: nextRound,
+          selectedDestinationType: selectedDestination.type,
+          visitedDestinationTypesByRound,
+        },
         destinationOptions: [],
       });
       get().openEvent(selectedDestination.eventId);
@@ -1048,6 +1090,7 @@ export const useGameStore = create<GameState & GameActions>((set, get) => ({
         ...run,
         round: nextRound,
         selectedDestinationType: selectedDestination.type,
+        visitedDestinationTypesByRound,
         scoutedEnemyKey: undefined,
       },
       destinationOptions: [],

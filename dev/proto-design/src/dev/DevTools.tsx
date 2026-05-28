@@ -105,6 +105,28 @@ export function DevTools() {
     });
   }, []);
 
+  // 현재 몬스터 즉사
+  const killEnemy = useCallback(() => {
+    const store = useGameStore.getState();
+    if (!store.enemy) return;
+
+    useGameStore.setState({
+      player: {
+        ...store.player,
+        souls: store.player.souls + store.enemy.soulReward,
+      },
+      enemy: null,
+      battle: {
+        ...store.battle,
+        phase: 'victory',
+      },
+    });
+
+    window.setTimeout(() => {
+      useGameStore.getState().showReward();
+    }, 300);
+  }, []);
+
   if (!DEV_TOOLS_ENABLED) return null;
 
   return (
@@ -138,6 +160,14 @@ export function DevTools() {
             <div>Round: <span className="text-white">{run.round}/{run.totalRounds}</span></div>
             <div>HP: <span className="text-white">{player.hp}/{player.maxHp}</span></div>
             <div>Souls: <span className="text-purple-400">{player.souls}</span></div>
+          </div>
+
+          {/* 전투 섹션 */}
+          <div className="px-3 py-2 border-b border-gray-700">
+            <div className="text-gray-500 text-xs mb-2">⚔️ 전투</div>
+            <div className="flex flex-wrap gap-1">
+              <DevButton onClick={killEnemy}>몬스터 즉사</DevButton>
+            </div>
           </div>
 
           {/* 마을 섹션 */}

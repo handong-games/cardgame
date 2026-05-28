@@ -20,6 +20,62 @@ const CHARACTER_IMAGES: Record<string, { src: string; position: 'top' | 'center'
   '팔라딘': { src: warriorCharacter, position: 'top' },
 };
 
+function PlayerAttackEffect() {
+  return (
+    <motion.div
+      className="pointer-events-none absolute -right-16 top-[31%] z-30 h-24 w-36"
+      initial={{ opacity: 0, x: -28, scale: 0.86 }}
+      animate={{ opacity: [0, 1, 0], x: [-28, 18, 54], scale: [0.86, 1.08, 0.96] }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.34, ease: 'easeOut', times: [0, 0.48, 1] }}
+    >
+      {[0, 1, 2].map((line) => (
+        <motion.div
+          key={line}
+          className="absolute left-1/2 h-3 rounded-full"
+          initial={{ scaleX: 0.4 }}
+          animate={{ scaleX: [0.4, 1, 0.72] }}
+          transition={{ duration: 0.3, delay: line * 0.025, ease: 'easeOut' }}
+          style={{
+            top: `${22 + line * 18}%`,
+            width: `${86 - line * 10}%`,
+            rotate: '-13deg',
+            background: 'linear-gradient(90deg, rgba(255,255,255,0), rgba(240,232,216,0.95), rgba(201,168,108,0.72), rgba(255,255,255,0))',
+            boxShadow: '0 0 12px rgba(240,232,216,0.54), 0 0 18px rgba(201,168,108,0.28)',
+            mixBlendMode: 'screen',
+          }}
+        />
+      ))}
+    </motion.div>
+  );
+}
+
+function PlayerHitEffect({ delay }: { delay: number }) {
+  return (
+    <motion.div
+      className="pointer-events-none absolute inset-0 z-30 overflow-hidden rounded-[inherit]"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: [0, 1, 0] }}
+      exit={{ opacity: 0 }}
+      transition={{ delay, duration: 0.36, ease: 'easeOut', times: [0, 0.35, 1] }}
+    >
+      <div className="absolute inset-0 bg-red-500/24" />
+      <motion.div
+        className="absolute left-[-22%] top-[44%] h-5 w-[150%] rounded-full"
+        initial={{ x: -40, scaleX: 0.55 }}
+        animate={{ x: 42, scaleX: [0.55, 1, 0.75] }}
+        transition={{ delay, duration: 0.34, ease: 'easeOut' }}
+        style={{
+          rotate: '-18deg',
+          background: 'linear-gradient(90deg, rgba(255,255,255,0), rgba(255,238,220,0.9), rgba(196,85,85,0.72), rgba(255,255,255,0))',
+          boxShadow: '0 0 14px rgba(255,238,220,0.45)',
+          mixBlendMode: 'screen',
+        }}
+      />
+    </motion.div>
+  );
+}
+
 interface CharacterCardProps {
   name: string;
   hp: number;
@@ -59,6 +115,10 @@ export function CharacterCard({
 
   const characterData = CHARACTER_IMAGES[name];
   const characterImage = characterData?.src;
+  const hitEffectDelay = (() => {
+    const t = getScaledCombatTiming();
+    return t.PEEK_DURATION + t.HIT_DURATION;
+  })();
 
   useEffect(() => {
     if (isAttacking) {
@@ -140,6 +200,9 @@ export function CharacterCard({
           </motion.div>
         )}
       </AnimatePresence>
+      <AnimatePresence>
+        {isAttacking && <PlayerAttackEffect />}
+      </AnimatePresence>
       <div className="mb-0.5 px-1" style={{ width: 'var(--character-card-width)' }}>
         <div className="flex items-center gap-2 px-2 py-1.5 rounded-xl border" style={{ background: 'linear-gradient(to bottom, rgba(240,232,216,0.94), rgba(232,220,210,0.82))', borderColor: 'rgba(106,80,128,0.16)', boxShadow: '0 8px 16px rgba(58,48,64,0.14)' }}>
           <motion.div
@@ -196,8 +259,8 @@ export function CharacterCard({
           alt="카드 프레임"
           className="absolute inset-0 w-full h-full object-cover rounded-[inherit]"
         />
-        <div className="absolute bottom-[3.6%] left-1/2 z-10 w-[88%] -translate-x-1/2 pointer-events-none">
-          <img src={cardNameplate} alt="이름판" className="w-full h-auto object-contain drop-shadow-[0_3px_6px_rgba(88,64,52,0.2)]" />
+        <div className="absolute bottom-[-2.8%] left-1/2 z-10 w-[88%] -translate-x-1/2 pointer-events-none">
+          <img src={cardNameplate} alt="이름판" className="w-full h-auto object-contain" />
         </div>
         <div className="absolute inset-0 flex items-center justify-center">
           {characterImage && !imageError ? (
@@ -213,13 +276,7 @@ export function CharacterCard({
         </div>
         <AnimatePresence>
           {isHit && (
-            <motion.div
-              className="absolute inset-0 bg-red-500/30 rounded-[inherit] pointer-events-none z-20"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: [0, 0.6, 0] }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.4 }}
-            />
+            <PlayerHitEffect delay={hitEffectDelay} />
           )}
           {previewBlock > 0 && (
             <motion.div
@@ -240,8 +297,8 @@ export function CharacterCard({
             />
           )}
         </AnimatePresence>
-        <div className="absolute bottom-[5.5%] left-1/2 flex h-[10%] w-[56%] -translate-x-1/2 items-center justify-center pointer-events-none z-20 px-[6%]">
-          <span className="block max-w-full truncate text-center text-[12px] font-semibold tracking-[0.04em]" style={{ color: '#6B4E3D', fontFamily: 'Georgia, "Times New Roman", serif' }}>{name}</span>
+        <div className="absolute bottom-[-0.9%] left-1/2 flex h-[10%] w-[56%] -translate-x-1/2 items-center justify-center pointer-events-none z-20 px-[6%]">
+          <span className="block max-w-full truncate text-center text-[16px] font-semibold tracking-[0.04em]" style={{ color: '#6B4E3D', fontFamily: 'Georgia, "Times New Roman", serif' }}>{name}</span>
         </div>
       </div>
     </motion.div>

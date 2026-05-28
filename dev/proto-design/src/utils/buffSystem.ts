@@ -10,7 +10,91 @@ import { PALADIN_BUFF_DEFINITIONS, PALADIN_BUFF_EVENT_EFFECTS } from '../data/ch
 import { WARRIOR_BUFF_DEFINITIONS, WARRIOR_BUFF_EVENT_EFFECTS } from '../data/characters/warrior';
 
 // 모든 버프 정의 통합
+const COMMON_STATUS_DEFINITIONS: Record<string, Buff> = {
+  weak: {
+    id: 'weak',
+    name: '약화',
+    type: 'debuff',
+    duration: 1,
+    stackable: true,
+    description: '공격 데미지 -1 (스택당).',
+  },
+  vulnerable: {
+    id: 'vulnerable',
+    name: '취약',
+    type: 'debuff',
+    duration: 2,
+    stackable: true,
+    description: '받는 데미지 +1 (스택당).',
+  },
+  poison: {
+    id: 'poison',
+    name: '독',
+    type: 'debuff',
+    duration: 2,
+    stackable: true,
+    description: '적 턴 시작 시 HP 피해 1 (스택당).',
+  },
+  spore: {
+    id: 'spore',
+    name: '포자',
+    type: 'debuff',
+    duration: 1,
+    stackable: true,
+    description: '코인 흐름을 방해하는 디버프.',
+  },
+  thorns: {
+    id: 'thorns',
+    name: '가시',
+    type: 'power',
+    duration: 'combat',
+    stackable: true,
+    description: '피격 시 반사 피해 1 (스택당).',
+  },
+  hardening: {
+    id: 'hardening',
+    name: '경화',
+    type: 'power',
+    duration: 'combat',
+    stackable: true,
+    description: '받는 피해 감소 1 (스택당).',
+  },
+  evasion: {
+    id: 'evasion',
+    name: '회피',
+    type: 'temporary',
+    duration: 1,
+    stackable: true,
+    description: '다음 피격 피해를 무효화합니다.',
+  },
+  regeneration: {
+    id: 'regeneration',
+    name: '재생',
+    type: 'power',
+    duration: 1,
+    stackable: true,
+    description: 'HP 회복 1 (스택당).',
+  },
+  bind: {
+    id: 'bind',
+    name: '뿌리 속박',
+    type: 'debuff',
+    duration: 2,
+    stackable: true,
+    description: '방어도 획득량 -2.',
+  },
+  root_bind: {
+    id: 'root_bind',
+    name: '뿌리 속박',
+    type: 'debuff',
+    duration: 2,
+    stackable: true,
+    description: '방어도 획득량 -2.',
+  },
+};
+
 const ALL_BUFF_DEFINITIONS: Record<string, Buff> = {
+  ...COMMON_STATUS_DEFINITIONS,
   ...PALADIN_BUFF_DEFINITIONS,
   ...WARRIOR_BUFF_DEFINITIONS,
 };

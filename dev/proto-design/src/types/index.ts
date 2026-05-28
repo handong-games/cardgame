@@ -392,6 +392,7 @@ export interface RunState {
   totalRounds: number;     // 총 라운드 수
   isComplete: boolean;     // 런 클리어 여부
   selectedDestinationType?: DestinationType;  // 선택한 행선지 타입 (보상 차등용)
+  visitedDestinationTypesByRound: Partial<Record<number, DestinationType>>; // 라운드별 실제 진행 노드 타입
   // 마을 시스템
   accessories: Accessory[];       // 획득한 장신구 목록
   companions: Companion[];        // 동료 목록

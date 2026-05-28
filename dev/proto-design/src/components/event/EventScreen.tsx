@@ -375,17 +375,14 @@ export function EventScreen() {
       <div className="absolute inset-0" style={{ background: 'radial-gradient(ellipse at center, transparent 30%, rgba(0,0,0,0.5) 100%)' }} />
 
       {/* Zone A: 상단 HUD */}
-      <div className="absolute top-0 left-0 w-full h-[72px] z-20 bg-[#16161C]/80 backdrop-blur-sm border-b border-[#4A4A55]">
+      <div className="absolute top-0 left-0 w-full h-[72px] z-20">
         <TopBar
           mode="event"
           title={eventDef.name}
           subtitle={categoryStyle.label}
           titleIcon={eventDef.emoji}
-          leftContent={
-            <span className={`text-xs px-2.5 py-1 rounded-full ${categoryStyle.bg} ${categoryStyle.accent} font-medium border ${categoryStyle.border}`}>
-              {categoryStyle.label}
-            </span>
-          }
+          hp={player.hp}
+          maxHp={player.maxHp}
           souls={player.souls}
           coinCount={totalCoinCount}
           isMuted={isMuted}

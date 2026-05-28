@@ -28,25 +28,21 @@ import { calculatePreviewEffects } from '../../utils/skillSystem';
 import { useSkillDrag } from '../../hooks/useSkillDrag';
 import { useAudio } from '../../hooks/useAudio';
 import forestBg from '@assets/backgrounds/sunny-forest-day.png';
-import nodeShopIcon from '@assets/icons/node-shop.png';
-import nodeEliteIcon from '@assets/icons/node-elite.png';
-import nodeEventIcon from '@assets/icons/node-event.png';
-import nodeRestIcon from '@assets/icons/node-rest.png';
-import nodeMonsterIcon from '@assets/icons/node-monster.png';
-import nodeBossIcon from '@assets/icons/node-boss.png';
 import companionFrameImg from '@assets/frames/frame-companion.png';
 import destinationChoiceCardFrontImg from '@assets/frames/destination-choice-card-front.png';
+import nodeRestIcon from '@assets/nodes/node-rest.png';
+import nodeMonsterT1Icon from '@assets/nodes/node-monster-t1.png';
+import nodeMonsterT2Icon from '@assets/nodes/node-monster-t2.png';
+import nodeShopIcon from '@assets/nodes/node-shop.png';
+import nodeEventIcon from '@assets/nodes/node-event.png';
+import nodeBossIcon from '@assets/nodes/node-boss.png';
 import sunCoinImg from '@assets/coins/sun-coin.png';
 import moonCoinImg from '@assets/coins/moon-coin.png';
 import endTurnButtonImg from '@assets/buttons/btn-end-turn.png';
 import companionFairyImg from '@assets/companions/moss-fairy.png';
 import companionOwlImg from '@assets/companions/forest-owl.png';
 import destinationDeckBackImg from '@assets/branding/card-back-duskfold.png';
-import progressRoundNodeImg from '@assets/progress/progress-round-node.png';
 import progressConnectorImg from '@assets/progress/progress-connector.png';
-import progressVillageNodeImg from '@assets/progress/progress-village-node.png';
-import progressBossNodeImg from '@assets/progress/progress-boss-node.png';
-import progressClearedNodeImg from '@assets/progress/progress-cleared-node.png';
 import type { BgTheme } from '../../types';
 
 // 현재 숲 배경만 존재 — 성/던전 배경은 gamedesign에서 생성 후 추가 예정
@@ -67,6 +63,22 @@ const COMPANION_IMAGES: Record<string, string> = {
 
 const COMPANION_FRAME: string | null = companionFrameImg;
 
+type DestinationNodeStyle = {
+  cardSizeClass: string;
+  progressSizeClass: string;
+  imageRendering?: 'auto' | 'crisp-edges' | 'pixelated';
+};
+
+const DESTINATION_NODE_STYLE: Record<DestinationType, DestinationNodeStyle> = {
+  normal: { cardSizeClass: 'h-[126px] w-[126px]', progressSizeClass: 'h-[31px] w-[31px]' },
+  elite: { cardSizeClass: 'h-[130px] w-[130px]', progressSizeClass: 'h-[34px] w-[34px]' },
+  boss: { cardSizeClass: 'h-[132px] w-[132px]', progressSizeClass: 'h-[36px] w-[36px]' },
+  rest: { cardSizeClass: 'h-[128px] w-[128px]', progressSizeClass: 'h-[34px] w-[34px]' },
+  shop: { cardSizeClass: 'h-[128px] w-[128px]', progressSizeClass: 'h-[34px] w-[34px]' },
+  event: { cardSizeClass: 'h-[128px] w-[128px]', progressSizeClass: 'h-[34px] w-[34px]' },
+  village: { cardSizeClass: 'h-[128px] w-[128px]', progressSizeClass: 'h-[34px] w-[34px]' },
+};
+
 // 행선지 타입별 정보
 const DESTINATION_INFO: Record<DestinationType, {
   emoji: string;
@@ -78,14 +90,92 @@ const DESTINATION_INFO: Record<DestinationType, {
   glow: string;
   description: string;
 }> = {
-  normal: { emoji: '👹', iconImg: nodeMonsterIcon, label: '몬스터', color: 'text-gray-200', border: 'border-stone-500/80', accent: '#C8BAA7', glow: 'rgba(200,186,167,0.34)', description: '일반 적과 맞서 다음 길을 연다' },
-  elite: { emoji: '💀', iconImg: nodeEliteIcon, label: '엘리트', color: 'text-yellow-200', border: 'border-yellow-500/80', accent: '#E3B45A', glow: 'rgba(227,180,90,0.38)', description: '강적과 싸워 더 큰 보상을 노린다' },
+  normal: { emoji: '👹', iconImg: nodeMonsterT1Icon, label: '몬스터', color: 'text-gray-200', border: 'border-stone-500/80', accent: '#C8BAA7', glow: 'rgba(200,186,167,0.34)', description: '일반 적과 맞서 다음 길을 연다' },
+  elite: { emoji: '💀', iconImg: nodeMonsterT2Icon, label: '엘리트', color: 'text-yellow-200', border: 'border-yellow-500/80', accent: '#E3B45A', glow: 'rgba(227,180,90,0.38)', description: '강적과 싸워 더 큰 보상을 노린다' },
   boss: { emoji: '👑', iconImg: nodeBossIcon, label: '보스', color: 'text-red-200', border: 'border-red-500/80', accent: '#D96C63', glow: 'rgba(217,108,99,0.36)', description: '지역의 지배자와 결전을 치른다' },
   rest: { emoji: '🏕️', iconImg: nodeRestIcon, label: '휴식', color: 'text-green-200', border: 'border-emerald-500/80', accent: '#73B899', glow: 'rgba(115,184,153,0.35)', description: '잠시 숨을 고르며 체력을 회복한다' },
   shop: { emoji: '🛒', iconImg: nodeShopIcon, label: '상점', color: 'text-sky-200', border: 'border-sky-500/80', accent: '#74A9D8', glow: 'rgba(116,169,216,0.34)', description: '소울을 써서 다음 전투를 준비한다' },
   event: { emoji: '❓', iconImg: nodeEventIcon, label: '이벤트', color: 'text-fuchsia-200', border: 'border-fuchsia-500/80', accent: '#AD7AC6', glow: 'rgba(173,122,198,0.34)', description: '예상치 못한 사건이 여정을 흔든다' },
   village: { emoji: '🏘️', label: '마을', color: 'text-amber-200', border: 'border-amber-500/80', accent: '#D5A259', glow: 'rgba(213,162,89,0.34)', description: '정비와 휴식이 가능한 거점에 들른다' },
 };
+
+function getProgressNodeType(round: number, totalRounds: number): DestinationType {
+  if (round === totalRounds) return 'boss';
+  if (round === Math.ceil(totalRounds / 2)) return 'rest';
+  return 'normal';
+}
+
+const MONSTER_REVEAL_SCRATCHES = [
+  { top: 16, delay: 0.1, height: 18, rotate: -15, width: 178 },
+  { top: 29, delay: 0.28, height: 24, rotate: -13, width: 190 },
+  { top: 43, delay: 0.48, height: 20, rotate: -16, width: 184 },
+  { top: 57, delay: 0.7, height: 26, rotate: -12, width: 196 },
+  { top: 72, delay: 0.94, height: 18, rotate: -15, width: 176 },
+];
+
+function MonsterScratchReveal({ accent }: { accent: string }) {
+  return (
+    <motion.div
+      className="pointer-events-none absolute inset-0 overflow-hidden rounded-[18px]"
+      initial={{ opacity: 1 }}
+      animate={{ opacity: 0 }}
+      exit={{ opacity: 0 }}
+      transition={{ delay: 1.72, duration: 0.42, ease: 'easeOut' }}
+    >
+      <motion.div
+        className="absolute inset-0"
+        initial={{ opacity: 0.98 }}
+        animate={{ opacity: 0.16 }}
+        transition={{ duration: 1.9, ease: [0.22, 0.61, 0.36, 1] }}
+        style={{
+          background:
+            'radial-gradient(circle at 50% 42%, rgba(240,232,216,0.2), rgba(49,35,45,0.72) 48%, rgba(18,14,20,0.92) 100%)',
+          boxShadow: 'inset 0 0 42px rgba(18,14,20,0.72)',
+        }}
+      />
+      <motion.div
+        className="absolute inset-x-5 top-5 h-7 rounded-full blur-sm"
+        initial={{ opacity: 0.24, scaleX: 0.58 }}
+        animate={{ opacity: [0.24, 0.52, 0.12], scaleX: [0.58, 1, 1.08] }}
+        transition={{ duration: 1.9, ease: 'easeInOut' }}
+        style={{ background: `linear-gradient(90deg, transparent, ${accent}66, rgba(240,232,216,0.76), transparent)` }}
+      />
+      {MONSTER_REVEAL_SCRATCHES.map((scratch, scratchIndex) => (
+        <motion.div
+          key={`${scratch.top}-${scratch.delay}`}
+          className="absolute left-1/2 rounded-full"
+          initial={{ x: '-160%', opacity: 0, scaleX: 0.42, rotate: scratch.rotate }}
+          animate={{ x: '42%', opacity: [0, 1, 0.86, 0], scaleX: [0.42, 1, 1.04, 1.08], rotate: scratch.rotate }}
+          transition={{ delay: scratch.delay, duration: 0.92, ease: [0.16, 1, 0.3, 1] }}
+          style={{
+            top: `${scratch.top}%`,
+            width: `${scratch.width}%`,
+            height: scratch.height,
+            background:
+              'linear-gradient(90deg, rgba(255,255,255,0), rgba(245,235,220,0.18) 16%, rgba(255,247,226,0.92) 44%, rgba(216,200,232,0.72) 58%, rgba(255,255,255,0) 100%)',
+            boxShadow: `0 0 12px rgba(240,232,216,0.58), 0 ${2 + scratchIndex}px 10px ${accent}44`,
+            mixBlendMode: 'screen',
+          }}
+        />
+      ))}
+      {MONSTER_REVEAL_SCRATCHES.map((scratch) => (
+        <motion.div
+          key={`shadow-${scratch.top}-${scratch.delay}`}
+          className="absolute left-1/2 rounded-full bg-[#1B1620]/48"
+          initial={{ x: '-160%', opacity: 0, scaleX: 0.4, rotate: scratch.rotate }}
+          animate={{ x: '42%', opacity: [0, 0.5, 0.16, 0], scaleX: [0.4, 1, 1.03, 1.08], rotate: scratch.rotate }}
+          transition={{ delay: scratch.delay + 0.03, duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
+          style={{
+            top: `${scratch.top + 2.6}%`,
+            width: `${scratch.width - 12}%`,
+            height: Math.max(5, scratch.height * 0.34),
+            filter: 'blur(2px)',
+          }}
+        />
+      ))}
+    </motion.div>
+  );
+}
 
 function DestinationCardBack({ className = '', stacked = false }: { className?: string; stacked?: boolean }) {
   const [imageError, setImageError] = useState(false);
@@ -131,7 +221,7 @@ function DestinationDeckMarker({ deckRef, isActive }: { deckRef: RefObject<HTMLD
       initial={false}
       animate={isActive ? { y: [0, -3, 0], rotate: [0, -1, 0.8, 0] } : { y: 0, rotate: 0 }}
       transition={isActive ? { duration: 1.6, repeat: Infinity, ease: 'easeInOut' } : { duration: 0.2 }}
-      className="pointer-events-none absolute right-56 top-4 z-20 h-[96px] w-[64px]"
+      className="pointer-events-none absolute right-56 top-[-68px] z-20 h-[96px] w-[64px]"
       style={{ filter: isActive ? 'drop-shadow(0 10px 18px rgba(38,20,34,0.24))' : 'drop-shadow(0 8px 14px rgba(38,20,34,0.18))' }}
     >
       <div className="absolute left-3 top-2 h-full w-full rounded-[18px] bg-[#261A1F]/35" />
@@ -167,6 +257,7 @@ function DestinationCard({
   onSelect: () => void;
 }) {
   const info = DESTINATION_INFO[destination.type];
+  const nodeStyle = DESTINATION_NODE_STYLE[destination.type];
   const destinationTitle = destination.enemyKey
     ? ENEMY_DEFINITIONS[destination.enemyKey]?.name ?? info.label
     : info.label;
@@ -194,7 +285,7 @@ function DestinationCard({
         y: 0,
         rotate: isSelected ? 0 : baseRotation,
         scale: isSelected ? 1.04 : 1,
-        filter: isSelected ? `drop-shadow(0 20px 34px ${info.glow})` : 'drop-shadow(0 12px 20px rgba(20,14,18,0.24))',
+        filter: isSelected ? 'drop-shadow(0 18px 28px rgba(20,14,18,0.3))' : 'drop-shadow(0 12px 20px rgba(20,14,18,0.24))',
       }}
       whileHover={canInteract ? { y: -8, scale: 1.03, rotate: 0, transition: { duration: 0.16 } } : undefined}
       transition={{ delay: 0.16 + index * 0.18, duration: 0.58, ease: [0.22, 0.61, 0.36, 1] }}
@@ -202,24 +293,6 @@ function DestinationCard({
       style={{ width: DESTINATION_CARD_WIDTH, height: DESTINATION_CARD_HEIGHT, perspective: 1200, zIndex: isSelected ? 20 : 10 + index }}
       onClick={canInteract ? onSelect : undefined}
     >
-      <motion.div
-        className="pointer-events-none absolute -inset-4 rounded-[34px]"
-        initial={false}
-        animate={isFlipped ? { opacity: [0.56, 0.9, 0.56], scale: [1, 1.045, 1] } : { opacity: 0, scale: 1 }}
-        transition={isFlipped ? { duration: 1.9, repeat: Infinity, ease: 'easeInOut' } : { duration: 0.2 }}
-        style={{
-          background: `conic-gradient(from 0deg at 50% 50%, transparent 0deg, ${info.accent}AA 42deg, transparent 86deg, ${info.accent}88 170deg, transparent 226deg, ${info.accent}AA 304deg, transparent 360deg)`,
-          filter: 'blur(13px)',
-          boxShadow: `0 0 42px ${info.accent}AA, 0 0 74px ${info.glow}`,
-        }}
-      />
-      <motion.div
-        className="pointer-events-none absolute -inset-1 rounded-[24px]"
-        initial={false}
-        animate={isFlipped ? { opacity: [0.72, 1, 0.72] } : { opacity: 0 }}
-        transition={isFlipped ? { duration: 1.9, repeat: Infinity, ease: 'easeInOut' } : { duration: 0.2 }}
-        style={{ boxShadow: `0 0 0 2px ${info.accent}88, 0 0 26px ${info.accent}99` }}
-      />
       <motion.div
         animate={{ rotateY: isFlipped ? 180 : 0 }}
         transition={{ duration: 0.72, ease: [0.22, 0.61, 0.36, 1] }}
@@ -245,31 +318,7 @@ function DestinationCard({
             />
             <AnimatePresence>
               {showScratchReveal && (
-                <motion.div
-                  initial={{ opacity: 0.95 }}
-                  animate={{ opacity: 0 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.32, ease: 'easeOut' }}
-                  className="pointer-events-none absolute inset-0 overflow-hidden rounded-[18px]"
-                  style={{ background: 'rgba(18,14,20,0.18)' }}
-                >
-                  {[0, 1, 2, 3].map((line) => (
-                    <motion.div
-                      key={line}
-                      initial={{ x: '-120%', opacity: 0 }}
-                      animate={{ x: '140%', opacity: [0, 0.95, 0] }}
-                      transition={{ delay: line * 0.05, duration: 0.28, ease: 'easeOut' }}
-                      className="absolute h-[18%] w-[180%]"
-                      style={{
-                        top: `${18 + line * 18}%`,
-                        left: '-30%',
-                        transform: 'rotate(-18deg)',
-                        background: 'linear-gradient(90deg, rgba(255,255,255,0), rgba(245,235,220,0.85), rgba(255,255,255,0))',
-                        mixBlendMode: 'screen',
-                      }}
-                    />
-                  ))}
-                </motion.div>
+                <MonsterScratchReveal accent={info.accent} />
               )}
             </AnimatePresence>
           </div>
@@ -279,14 +328,19 @@ function DestinationCard({
             style={{
               backfaceVisibility: 'hidden',
               transform: 'rotateY(180deg)',
-              boxShadow: `0 20px 36px rgba(14,10,16,0.34), 0 0 24px ${info.glow}`,
+              boxShadow: '0 20px 36px rgba(14,10,16,0.34)',
             }}
           >
             <img src={destinationChoiceCardFrontImg} alt="행선지 카드 앞면" className="pointer-events-none absolute inset-0 h-full w-full object-fill" />
             <div className="relative h-full w-full text-center">
-              <div className="absolute left-1/2 top-[56px] flex h-[108px] w-[108px] -translate-x-1/2 items-center justify-center">
+              <div className="absolute left-1/2 top-[30px] flex h-[160px] w-[160px] -translate-x-1/2 items-center justify-center">
                   {info.iconImg ? (
-                    <img src={info.iconImg} alt={info.label} className="h-[66px] w-[66px] object-contain drop-shadow-[0_4px_10px_rgba(58,48,64,0.22)]" />
+                    <img
+                      src={info.iconImg}
+                      alt={info.label}
+                      className={`relative z-10 object-contain drop-shadow-[0_4px_8px_rgba(58,48,64,0.16)] ${nodeStyle.cardSizeClass}`}
+                      style={{ mixBlendMode: 'multiply', imageRendering: nodeStyle.imageRendering ?? 'auto' }}
+                    />
                   ) : (
                     <span className="text-[58px] drop-shadow-[0_4px_10px_rgba(58,48,64,0.22)]">{info.emoji}</span>
                   )}
@@ -1092,9 +1146,9 @@ export function BattleScreen() {
       destinationFlipTimeoutRef.current = window.setTimeout(() => {
         setScratchRevealDestinationId(null);
         destinationFlipTimeoutRef.current = null;
-      }, 260 * getCurrentSpeedMultiplier());
+      }, 2300 * getCurrentSpeedMultiplier());
 
-      const commitDelay = 980 * getCurrentSpeedMultiplier();
+      const commitDelay = 2850 * getCurrentSpeedMultiplier();
       destinationCommitTimeoutRef.current = window.setTimeout(() => {
         selectDestination(destinationId);
         destinationCommitTimeoutRef.current = null;
@@ -1208,7 +1262,7 @@ export function BattleScreen() {
     return wrapInScale(<EventScreen />);
   }
 
-  if ((battle.phase === 'reward' || battle.phase === 'class_advancement') && !dyingEnemy) {
+  if (battle.phase === 'class_advancement' && !dyingEnemy) {
     return wrapInScale(<RewardScreen />);
   }
 
@@ -1296,9 +1350,11 @@ export function BattleScreen() {
           <div className="absolute inset-0" style={{ background: 'linear-gradient(to bottom, rgba(58,48,64,0.2), rgba(58,48,64,0.28) 38%, rgba(24,20,28,0.42) 100%)' }} />
         </div>
 
-        <div className="absolute top-0 left-0 w-full h-[72px] z-20" style={{ background: 'linear-gradient(to bottom, rgba(103,82,92,0.94), rgba(82,64,75,0.92))', borderBottom: '1px solid rgba(246,231,214,0.22)', boxShadow: '0 4px 18px rgba(28,20,28,0.3)' }}>
+        <div className="absolute top-0 left-0 w-full h-[72px] z-20">
           <TopBar
             regionName={getRegion(run.regionId).name}
+            hp={player.hp}
+            maxHp={player.maxHp}
             souls={player.souls}
             coinCount={totalCoinCount}
             soulPulse={soulPulse}
@@ -1327,47 +1383,98 @@ export function BattleScreen() {
               }}
             />
           </div>
-          <div className="absolute top-2 left-0 w-full flex justify-center z-20 pointer-events-none">
+          <div className="absolute top-[-70px] left-0 w-full flex justify-center z-20 pointer-events-none">
             <div
-              className="relative flex h-[54px] w-[628px] items-center justify-center rounded-full"
+              className="relative flex h-[76px] w-[628px] items-end justify-center rounded-full pb-[5px]"
               style={{
                 background: 'linear-gradient(to bottom, rgba(31,27,36,0.12), rgba(31,27,36,0.05))',
                 boxShadow: 'inset 0 1px 0 rgba(240,232,216,0.06)',
                 backdropFilter: 'blur(4px)',
               }}
             >
-              <div className="relative flex w-[574px] items-center px-[2px]">
+              <div
+                className="absolute left-1/2 top-0 -translate-x-1/2 rounded-full border px-4 py-[3px] text-[15px] font-bold tracking-[0.08em]"
+                style={{
+                  color: '#F0E8D8',
+                  background: 'rgba(31,27,36,0.42)',
+                  borderColor: 'rgba(240,232,216,0.18)',
+                  textShadow: '0 1px 6px rgba(20,14,18,0.48)',
+                }}
+              >
+                {getRegion(run.regionId).name.replace(/\s+/g, '')} {run.round}/{run.totalRounds} 단계
+              </div>
+              <div className="relative flex w-[520px] items-center px-0">
               {Array.from({ length: run.totalRounds }, (_, i) => i + 1).map((round) => {
-                const middleRound = Math.ceil(run.totalRounds / 2);
                 const isCurrent = round === run.round;
                 const isPassed = round < run.round;
-                const isVillage = round === middleRound;
-                const isBoss = round === run.totalRounds;
-                const markerSrc = isPassed
-                  ? progressClearedNodeImg
-                  : isBoss
-                    ? progressBossNodeImg
-                    : isVillage
-                      ? progressVillageNodeImg
-                      : progressRoundNodeImg;
+                const isBossRound = round === run.totalRounds;
+                const hasReached = round <= run.round || isBossRound;
+                const nodeType = hasReached
+                  ? run.visitedDestinationTypesByRound[round] ?? (isCurrent ? run.selectedDestinationType : undefined) ?? getProgressNodeType(round, run.totalRounds)
+                  : getProgressNodeType(round, run.totalRounds);
+                const markerInfo = DESTINATION_INFO[nodeType];
+                const markerStyle = DESTINATION_NODE_STYLE[nodeType];
+                const markerShellClass = isCurrent || isBossRound
+                  ? 'h-[44px] w-[44px]'
+                  : isPassed
+                    ? 'h-[26px] w-[26px]'
+                    : 'h-[22px] w-[22px]';
+                const markerImgClass = isCurrent || isBossRound
+                  ? 'h-[40px] w-[40px]'
+                  : isPassed
+                    ? 'h-[22px] w-[22px]'
+                    : markerStyle.progressSizeClass;
+                const emptyMarkerClass = isBossRound ? 'h-[34px] w-[34px]' : 'h-[20px] w-[20px]';
 
                 return (
                   <div key={round} className="flex flex-1 items-center">
-                    <div className="relative flex h-9 w-9 shrink-0 items-center justify-center">
-                      <img
-                        src={markerSrc}
-                        alt={isBoss ? '보스 라운드' : isVillage ? '마을 라운드' : isPassed ? '완료 라운드' : '라운드'}
-                        className={`relative z-10 object-contain ${isBoss || isVillage ? 'h-[44px] w-[44px]' : 'h-[27px] w-[27px]'}`}
-                        style={{ opacity: isPassed ? 0.7 : 1 }}
-                      />
-                      {isCurrent && <div className="pointer-events-none absolute inset-0 rounded-full ring-2 ring-[#F0E8D8]/70 ring-offset-2 ring-offset-transparent" />}
+                    <div className="relative flex h-[38px] w-[38px] shrink-0 items-center justify-center">
+                      {isCurrent && (
+                        <div
+                          className="pointer-events-none absolute inset-[1px] rounded-full"
+                          style={{
+                            border: `1.5px solid ${markerInfo.accent}CC`,
+                            boxShadow: `0 0 0 1px rgba(240,232,216,0.24), 0 0 7px ${markerInfo.glow}`,
+                          }}
+                        />
+                      )}
+                      {hasReached ? (
+                        <div
+                          className={`relative z-10 flex items-center justify-center overflow-hidden rounded-full ${markerShellClass}`}
+                          style={{
+                            opacity: isPassed ? 0.5 : 1,
+                            filter: isPassed ? 'grayscale(0.22) saturate(0.5) brightness(0.5)' : undefined,
+                            boxShadow: isCurrent
+                              ? `0 5px 14px ${markerInfo.glow}`
+                              : isBossRound
+                                ? `0 2px 5px ${markerInfo.glow}`
+                                : '0 2px 6px rgba(20,14,18,0.22)',
+                          }}
+                        >
+                          <img
+                            src={markerInfo.iconImg}
+                            alt={nodeType === 'boss' ? '보스 라운드' : nodeType === 'rest' ? '휴식 라운드' : isPassed ? '완료 라운드' : '몬스터 라운드'}
+                            className={`object-contain ${markerImgClass}`}
+                          />
+                          {isPassed && <div className="pointer-events-none absolute inset-0 rounded-full bg-[#1B1620]/38" />}
+                        </div>
+                      ) : (
+                        <div
+                          className={`relative z-10 rounded-full border ${emptyMarkerClass}`}
+                          style={{
+                            background: 'rgba(240,232,216,0.08)',
+                            borderColor: 'rgba(240,232,216,0.34)',
+                            boxShadow: 'inset 0 1px 2px rgba(31,27,36,0.18), 0 2px 6px rgba(20,14,18,0.12)',
+                          }}
+                        />
+                      )}
                     </div>
                     {round < run.totalRounds && (
-                      <div className="mx-[1px] flex-1">
+                      <div className="mx-[-7px] flex-1">
                         <img
                           src={progressConnectorImg}
                           alt="진행 연결선"
-                          className={`h-[7px] w-full object-fill ${isPassed ? 'opacity-78' : 'opacity-48'}`}
+                          className={`h-[3px] w-full object-fill ${isPassed ? 'opacity-62' : 'opacity-34'}`}
                         />
                       </div>
                     )}
@@ -1996,6 +2103,12 @@ export function BattleScreen() {
             />
           </div>
         )}
+
+        <AnimatePresence>
+          {battle.phase === 'reward' && !dyingEnemy && (
+            <RewardScreen />
+          )}
+        </AnimatePresence>
 
         <DragOverlay
           isDragging={skillDragState.isDragging}

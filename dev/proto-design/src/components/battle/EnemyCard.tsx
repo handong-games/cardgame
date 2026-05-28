@@ -29,9 +29,16 @@ import intentBadgeAttackImg from '@assets/icons/intent-badge-attack.svg';
 import intentBadgeDefenseImg from '@assets/icons/intent-badge-defense.svg';
 import intentBadgeBuffImg from '@assets/icons/intent-badge-buff.svg';
 import intentBadgeDebuffImg from '@assets/icons/intent-badge-debuff.svg';
-import statusVulnerableIcon from '@assets/icons/status-vulnerable.png';
-import statusStrengthIcon from '@assets/icons/status-strength.png';
 import shieldIcon from '@assets/icons/shield-icon.png';
+import badgePoison from '@assets/badges/badge-poison.png';
+import badgeSpore from '@assets/badges/badge-spore.png';
+import badgeThorns from '@assets/badges/badge-thorns.png';
+import badgeHardening from '@assets/badges/badge-hardening.png';
+import badgeEvasion from '@assets/badges/badge-evasion.png';
+import badgeVulnerable from '@assets/badges/badge-vulnerable.png';
+import badgeWeak from '@assets/badges/badge-weak.png';
+import badgeStrength from '@assets/badges/badge-strength.png';
+import badgeRootBind from '@assets/badges/badge-root-bind.png';
 
 // gameplan 8체 매핑 (MON_F01~F07 + BOSS_F01)
 // 프레임 티어: R1~3 T1(기본), R4~5 T2(정예), R6~7 T3(후반), R8 T3(보스)
@@ -45,6 +52,69 @@ const MONSTER_IMAGES: Record<string, { src: string; frame?: string }> = {
   '썩은 나무': { src: monsterRottenTree, frame: monsterFrameT3 },                    // MON_F07 R6-7 T3
   '고대 수목군주': { src: bossAncientGroveLord, frame: monsterFrameT3 },              // BOSS_F01 R8 T3
 };
+
+function EnemyAttackEffect() {
+  return (
+    <motion.div
+      className="pointer-events-none absolute -left-16 top-[31%] z-30 h-24 w-36"
+      initial={{ opacity: 0, x: 28, scale: 0.86 }}
+      animate={{ opacity: [0, 1, 0], x: [28, -18, -54], scale: [0.86, 1.08, 0.96] }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.34, ease: 'easeOut', times: [0, 0.48, 1] }}
+    >
+      {[0, 1, 2].map((line) => (
+        <motion.div
+          key={line}
+          className="absolute right-1/2 h-3 rounded-full"
+          initial={{ scaleX: 0.4 }}
+          animate={{ scaleX: [0.4, 1, 0.72] }}
+          transition={{ duration: 0.3, delay: line * 0.025, ease: 'easeOut' }}
+          style={{
+            top: `${22 + line * 18}%`,
+            width: `${86 - line * 10}%`,
+            rotate: '13deg',
+            background: 'linear-gradient(270deg, rgba(255,255,255,0), rgba(240,232,216,0.9), rgba(196,85,85,0.68), rgba(255,255,255,0))',
+            boxShadow: '0 0 12px rgba(240,232,216,0.48), 0 0 18px rgba(196,85,85,0.26)',
+            mixBlendMode: 'screen',
+          }}
+        />
+      ))}
+    </motion.div>
+  );
+}
+
+function EnemyHitEffect({ delay }: { delay: number }) {
+  return (
+    <motion.div
+      className="pointer-events-none absolute inset-0 z-30 overflow-hidden rounded-[inherit]"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: [0, 1, 0] }}
+      exit={{ opacity: 0 }}
+      transition={{ delay, duration: 0.36, ease: 'easeOut', times: [0, 0.35, 1] }}
+    >
+      <div className="absolute inset-0 bg-red-500/24" />
+      <motion.div
+        className="absolute left-[-24%] top-[44%] h-5 w-[154%] rounded-full"
+        initial={{ x: 46, scaleX: 0.55 }}
+        animate={{ x: -42, scaleX: [0.55, 1, 0.75] }}
+        transition={{ delay, duration: 0.34, ease: 'easeOut' }}
+        style={{
+          rotate: '18deg',
+          background: 'linear-gradient(270deg, rgba(255,255,255,0), rgba(255,238,220,0.9), rgba(201,168,108,0.74), rgba(255,255,255,0))',
+          boxShadow: '0 0 14px rgba(255,238,220,0.45)',
+          mixBlendMode: 'screen',
+        }}
+      />
+      <motion.div
+        className="absolute left-[18%] top-[22%] h-[56%] w-[64%] rounded-full"
+        initial={{ opacity: 0, scale: 0.5 }}
+        animate={{ opacity: [0, 0.44, 0], scale: [0.5, 1.08, 1.26] }}
+        transition={{ delay: delay + 0.04, duration: 0.32, ease: 'easeOut' }}
+        style={{ background: 'radial-gradient(circle, rgba(255,238,220,0.55), rgba(201,168,108,0.18) 42%, transparent 72%)' }}
+      />
+    </motion.div>
+  );
+}
 
 interface EnemyCardProps {
   enemy: Enemy;
@@ -83,8 +153,8 @@ export function MonsterCardFace({
         alt={monsterData?.frame ? '정예 프레임' : '몬스터 프레임'}
         className="absolute inset-0 h-full w-full object-cover rounded-[inherit]"
       />
-      <div className="absolute bottom-[3.6%] left-1/2 z-10 w-[88%] -translate-x-1/2 pointer-events-none">
-        <img src={cardNameplate} alt="이름판" className="w-full h-auto object-contain drop-shadow-[0_3px_6px_rgba(88,64,52,0.2)]" />
+      <div className="absolute bottom-[-2.8%] left-1/2 z-10 w-[88%] -translate-x-1/2 pointer-events-none">
+        <img src={cardNameplate} alt="이름판" className="w-full h-auto object-contain" />
       </div>
       {(isBoss || isElite) && (
         <div className="absolute top-[13%] right-[6%] z-20">
@@ -111,8 +181,8 @@ export function MonsterCardFace({
           <span className="card-emoji">👾</span>
         )}
       </div>
-      <div className={`absolute bottom-[5.5%] left-1/2 z-20 flex h-[10%] w-[56%] -translate-x-1/2 items-center justify-center pointer-events-none px-[6%] ${nameClassName}`}>
-        <span className="block max-w-full truncate text-center text-[12px] font-semibold tracking-[0.04em]" style={{ color: '#6B4E3D', fontFamily: 'Georgia, "Times New Roman", serif' }}>{baseName}</span>
+      <div className={`absolute bottom-[-0.9%] left-1/2 z-20 flex h-[10%] w-[56%] -translate-x-1/2 items-center justify-center pointer-events-none px-[6%] ${nameClassName}`}>
+        <span className="block max-w-full truncate text-center text-[16px] font-semibold tracking-[0.04em]" style={{ color: '#6B4E3D', fontFamily: 'Georgia, "Times New Roman", serif' }}>{baseName}</span>
       </div>
     </div>
   );
@@ -135,6 +205,10 @@ export function EnemyCard({
 
   const isElite = enemy.name.includes('(엘리트)');
   const baseName = enemy.name.replace(/ \(엘리트\)$/, '');
+  const hitEffectDelay = (() => {
+    const t = getScaledCombatTiming();
+    return t.PEEK_DURATION + t.HIT_DURATION;
+  })();
 
   const intentConfig: Record<string, { icon: string; iconImg?: string; badgeImg: string; label: string; text: string }> = {
     attack: { icon: '⚔️', iconImg: intentAttackIcon, badgeImg: intentBadgeAttackImg, label: '공격', text: 'text-red-200' },
@@ -145,14 +219,17 @@ export function EnemyCard({
 
   const currentIntent = intentConfig[enemy.intent.type] ?? intentConfig.attack;
 
-  const debuffIcons: Record<string, string> = {
-    weak: '💢',
-    vulnerable: '🎯',
-  };
-
   const debuffIconImages: Record<string, string> = {
-    vulnerable: statusVulnerableIcon,
-    strength: statusStrengthIcon,
+    bind: badgeRootBind,
+    evasion: badgeEvasion,
+    hardening: badgeHardening,
+    poison: badgePoison,
+    root_bind: badgeRootBind,
+    spore: badgeSpore,
+    strength: badgeStrength,
+    thorns: badgeThorns,
+    vulnerable: badgeVulnerable,
+    weak: badgeWeak,
   };
 
   useEffect(() => {
@@ -257,6 +334,9 @@ export function EnemyCard({
           </motion.div>
         )}
       </AnimatePresence>
+      <AnimatePresence>
+        {isAttacking && <EnemyAttackEffect />}
+      </AnimatePresence>
       <motion.div
         className="relative z-20 -mb-1 inline-flex h-12 min-w-[152px] items-center self-center justify-center whitespace-nowrap px-4 text-sm"
         style={{
@@ -331,22 +411,17 @@ export function EnemyCard({
         <MonsterCardFace enemyName={enemy.name} isElite={isElite} isBoss={isBoss} />
         <AnimatePresence>
           {isHit && (
-            <motion.div
-              className="absolute inset-0 bg-red-500/30 rounded-[inherit] pointer-events-none z-20"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: [0, 0.6, 0] }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.4 }}
-            />
+            <EnemyHitEffect delay={hitEffectDelay} />
           )}
         </AnimatePresence>
       </motion.div>
 
       {enemy.activeDebuffs && enemy.activeDebuffs.length > 0 && (
-        <div className="mt-1 flex gap-1.5 flex-wrap justify-center px-3 py-2 rounded-xl border" style={{ background: 'linear-gradient(to bottom, rgba(240,232,216,0.88), rgba(232,220,210,0.72))', borderColor: 'rgba(106,80,128,0.16)', boxShadow: '0 6px 14px rgba(58,48,64,0.12)' }}>
+        <div className="mt-1 flex w-[var(--enemy-card-width)] flex-wrap justify-start gap-1.5">
           {enemy.activeDebuffs.map((debuff, index) => {
             const debuffDef = getBuffDefinition(debuff.debuffId);
-            if (!debuffDef) return null;
+            const debuffName = debuffDef?.name ?? debuff.debuffId;
+            const badgeImage = debuffIconImages[debuff.debuffId];
 
             return (
               <div
@@ -355,35 +430,37 @@ export function EnemyCard({
                 onMouseEnter={() => setHoveredDebuff(debuff.debuffId)}
                 onMouseLeave={() => setHoveredDebuff(null)}
               >
-                <div className="w-9 h-9 rounded-full bg-effect-debuff/80 border-2 border-effect-debuff flex items-center justify-center cursor-help shadow-sm">
-                  {debuffIconImages[debuff.debuffId] ? (
-                    <img src={debuffIconImages[debuff.debuffId]} alt={debuffDef.name} className="w-5 h-5 object-contain" />
+                <div className="flex h-7 w-7 cursor-help items-center justify-center overflow-hidden rounded-[4px]">
+                  {badgeImage ? (
+                    <img src={badgeImage} alt={debuffName} className="h-full w-full object-contain" />
                   ) : (
-                    <span className="text-lg">{debuffIcons[debuff.debuffId] || '💀'}</span>
+                    <span className="flex h-full w-full items-center justify-center bg-[#181320] text-xs font-bold text-[#D8B84C]">
+                      {debuffName.charAt(0)}
+                    </span>
                   )}
                 </div>
 
                 {debuff.stacks > 1 && (
-                  <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-coin-dark-bronze border border-effect-attack rounded-full flex items-center justify-center text-xs font-bold text-white">
+                  <div className="absolute -bottom-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-[#3A3040] text-[10px] font-bold text-[#F0E8D8]">
                     {debuff.stacks}
                   </div>
                 )}
 
                 {typeof debuff.remainingDuration === 'number' && (
-                  <div className="absolute -top-1 -right-1 w-5 h-5 bg-coin-dark-bronze border border-sun-gold rounded-full flex items-center justify-center text-xs font-bold text-sun-gold">
+                  <div className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-[#181320] text-[10px] font-bold text-[#D8B84C]">
                     {debuff.remainingDuration}
                   </div>
                 )}
 
                 {hoveredDebuff === debuff.debuffId && (
-                  <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 bg-coin-dark-bronze border-2 border-effect-debuff rounded-lg text-sm whitespace-nowrap z-10 shadow-lg">
-                    <div className="font-bold text-effect-debuff mb-1">{debuffDef.name}</div>
-                    <div className="text-moon-light text-xs">{debuffDef.description}</div>
+                  <div className="absolute bottom-full left-1/2 z-10 mb-2 w-52 -translate-x-1/2 rounded-lg px-3 py-2 text-xs shadow-lg" style={{ backgroundColor: 'rgba(58,48,64,0.95)', border: '1px solid rgba(246,231,214,0.18)', color: '#FFF5E6' }}>
+                    <div className="mb-1 font-bold text-[#C9A86C]">{debuffName}</div>
+                    <div className="whitespace-normal text-[#E8DCD2]">{debuffDef?.description ?? '현재 전투 상태 변화입니다.'}</div>
                     {debuff.stacks > 1 && (
-                      <div className="text-sun-gold text-xs mt-1">스택: {debuff.stacks}</div>
+                      <div className="mt-1 text-[#D8B84C]">스택: {debuff.stacks}</div>
                     )}
                     {typeof debuff.remainingDuration === 'number' && (
-                      <div className="text-effect-defense text-xs">남은 턴: {debuff.remainingDuration}</div>
+                      <div className="text-[#B9AFB5]">남은 턴: {debuff.remainingDuration}</div>
                     )}
                   </div>
                 )}
